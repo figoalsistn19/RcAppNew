@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Rc App</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_register">RegisterActivity</string>
+    <string name="enter_name">Masukan nama</string>
+    <string name="enter_alamat">Masukan alamat</string>
+    <string name="enter_konfirmasi_pw">Masukan konfirmasi password</string>
+    <string name="enter_pw">Masukan password</string>
+    <string name="enter_no_telp">Masukan no telepon</string>
+    <string name="enter_email">Enter email address</string>
+    <string name="welcoming_word">klik agen untuk masuk sebagai agen dan internal untuk masuk sebagai tim RC</string>
+    <string name="title_activity_agent">AgentActivity</string>
 </resources>

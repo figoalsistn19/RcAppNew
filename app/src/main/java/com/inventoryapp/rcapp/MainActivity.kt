@@ -1,46 +1,44 @@
 package com.inventoryapp.rcapp
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
+import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
+import com.inventoryapp.rcapp.ui.nav.MainNavigation
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
-class MainActivity : ComponentActivity() {
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity() {
+
+    private val authViewModel by viewModels<AuthAgentViewModel>()
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        getSupportActionBar()?.hide()
         setContent {
-            RcAppTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
+            val snackbarHostState = remember { SnackbarHostState() }
+            Scaffold (
+                snackbarHost = { SnackbarHost (snackbarHostState) },
+                content = {
+                    RcAppTheme {
+                        MainNavigation(authViewModel)
+                    }
                 }
-            }
+            )
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RcAppTheme {
-        Greeting("Android")
-    }
-}
+
+
