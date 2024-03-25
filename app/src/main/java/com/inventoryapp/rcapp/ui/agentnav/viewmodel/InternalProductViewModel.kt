@@ -26,7 +26,7 @@ class InternalProductViewModel: ViewModel(){
                 products
             }
             products.filter { products ->// filter and return a list of countries based on the text the user typed
-                products.idProduct.uppercase().contains(text.trim().uppercase())
+                products.productName.uppercase().contains(text.trim().uppercase())
             }
         }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
             scope = viewModelScope,

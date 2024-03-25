@@ -1,18 +1,28 @@
-package com.inventoryapp.rcapp.ui.auth.agentauth
+package com.inventoryapp.rcapp.ui.auth.internalauth
 
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,13 +41,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.inventoryapp.rcapp.data.model.AgentUser
-import com.inventoryapp.rcapp.data.model.VerifAccountStatus
+import com.inventoryapp.rcapp.data.model.InternalUser
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
@@ -47,33 +57,38 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavController) {
+fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: NavController) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     val onBackPressed = remember { mutableStateOf(false) }
     val authResource =viewModel?.registerFlow?.collectAsState()
+    var list = UserRole.entries.map { it.name }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedMenu by remember {
+        mutableStateOf(list[0])
+    }
+    val enumValue = UserRole.entries.find { it.name == selectedMenu }
     val context = LocalContext.current
 
-    fun getUserObj(): AgentUser {
-        return AgentUser(
-            idAgent = "",
+    fun getUserObj(): InternalUser {
+        return InternalUser(
+            idUser = "",
             name = name,
-            address = address,
             phoneNumber = phoneNumber,
             email = email,
             createAt = Date(),
-            verificationStatus = VerifAccountStatus.PENDING
+            userRole = enumValue!!
         )
     }
-    val userObj: AgentUser = getUserObj()
+    val userObj: InternalUser = getUserObj()
+
     ConstraintLayout(
-        modifier = Modifier.fillMaxSize()
+    modifier = Modifier.fillMaxSize()
     ) {
-        val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoading, refConfirmPw, refPhoneNumber, refAddress) = createRefs()
+        val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoading, refConfirmPw, refPhoneNumber, refRole) = createRefs()
         val spacing = MaterialTheme.spacing
         Box(
             modifier = Modifier
@@ -85,7 +100,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
                 }
                 .wrapContentSize()
         ) {
-            AuthHeader("Daftar Agen")
+            AuthHeader("Daftar Internal")
         }
         OutlinedTextField(
             value = name,
@@ -156,7 +171,6 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
             ),
             maxLines = 1
         )
-
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = {
@@ -180,30 +194,6 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
             ),
             maxLines = 1
         )
-
-        OutlinedTextField(
-            value = address,
-            onValueChange = {
-                address = it
-            },
-            label = {
-                Text(text = "alamat")
-            },
-            modifier = Modifier.constrainAs(refAddress) {
-                top.linkTo(refConfirmPw.bottom, spacing.small)
-                start.linkTo(parent.start, spacing.large)
-                end.linkTo(parent.end, spacing.large)
-                width = Dimension.fillToConstraints
-            },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrect = false,
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done
-            ),
-            maxLines = 1
-        )
-
         OutlinedTextField(
             value = phoneNumber,
             onValueChange = {
@@ -213,7 +203,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
                 Text(text = "no telepon")
             },
             modifier = Modifier.constrainAs(refPhoneNumber) {
-                top.linkTo(refAddress.bottom, spacing.small)
+                top.linkTo(refConfirmPw.bottom, spacing.small)
                 start.linkTo(parent.start, spacing.large)
                 end.linkTo(parent.end, spacing.large)
                 width = Dimension.fillToConstraints
@@ -226,19 +216,60 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
             ),
             maxLines = 1
         )
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
+                .constrainAs(refRole) {
+                    top.linkTo(refPhoneNumber.bottom, spacing.medium)
+                    start.linkTo(refPhoneNumber.start)
+                    end.linkTo(refPhoneNumber.end)
+                    width = Dimension.fillToConstraints
+                }
+                .fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .menuAnchor()
+                    .constrainAs(refRole) {
+                        top.linkTo(refPhoneNumber.bottom, spacing.medium)
+                        width = Dimension.fillToConstraints
+                    }
+                    .fillMaxWidth(),
+                value = selectedMenu,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(text = "pilih role")},
+                trailingIcon = { Icon(imageVector = Icons.Outlined.ArrowDropDown, contentDescription = "pilih role")},
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                list.forEachIndexed{index, text ->
+                    DropdownMenuItem(
+                        modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer),
+                        text = { Text(text = text) },
+                        onClick = {
+                            selectedMenu = list[index]
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                }
+            }
+            // Add an icon if desired (optional)
+            // Icon(imageVector = Icons.ArrowDropDown, contentDescription = null)
+        }
         Button(
             onClick = {
                 viewModel?.registerUser(name, email, password, user = userObj)
-
             },
             modifier = Modifier.constrainAs(refButtonSignup) {
-                top.linkTo(refPhoneNumber.bottom, spacing.medium)
+                top.linkTo(refRole.bottom, spacing.medium)
                 start.linkTo(parent.start, spacing.extraLarge)
                 end.linkTo(parent.end, spacing.extraLarge)
                 width = Dimension.fillToConstraints
             }
         ) {
-            Text(text = "register", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Register", style = MaterialTheme.typography.titleMedium)
         }
         Text(
             modifier = Modifier
@@ -277,9 +308,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        navController.navigate(ROUTE_LOGIN_AGENT) {
-                            popUpTo(ROUTE_REGISTER_INTERNAL) { inclusive = true }
-                        }
+                        navController.navigate(ROUTE_LOGIN_INTERNAL)
                     }
                 }
             }
@@ -287,19 +316,59 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserRoleDropdownMenu(
+) {
+    var list = listOf("nwdnquw","weqweq","qdqddqw","dwqdq")
+    var expanded by remember { mutableStateOf(false) }
+    var selectedMenu by remember {
+        mutableStateOf(list[0])
+    }
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                modifier = Modifier.menuAnchor(),
+                value = selectedMenu,
+                onValueChange = {},
+                readOnly = true,
+            )
+
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                list.forEachIndexed{index, text ->
+                    DropdownMenuItem(
+                        text = { Text(text = text) },
+                        onClick = {
+                            selectedMenu = list[index]
+                            expanded = false
+                                  },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                }
+            }
+            // Add an icon if desired (optional)
+            // Icon(imageVector = Icons.ArrowDropDown, contentDescription = null)
+        }
+    }
+}
+
+
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
 @Composable
-fun SignupScreenPreviewLight() {
+fun RegisterScreenPreviewLight() {
     RcAppTheme {
-        RegisterAgentScreen(null, rememberNavController())
+        RegisterInternalScreen(null, rememberNavController())
     }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
 @Composable
-fun SignupScreenPreviewDark() {
+fun RegisterScreenPreviewDark() {
     RcAppTheme {
-        RegisterAgentScreen(null, rememberNavController())
+        RegisterInternalScreen(null, rememberNavController())
     }
 }
 

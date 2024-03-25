@@ -1,8 +1,6 @@
 package com.inventoryapp.rcapp.ui.nav
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,88 +11,189 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.inventoryapp.rcapp.R
+import androidx.navigation.navigation
 import com.inventoryapp.rcapp.ui.WelcomeScreen
 import com.inventoryapp.rcapp.ui.agentnav.AgentRequestOrderScreen
 import com.inventoryapp.rcapp.ui.agentnav.AgentStockScreen
 import com.inventoryapp.rcapp.ui.agentnav.HomeAgentScreen
+import com.inventoryapp.rcapp.ui.agentnav.OrderHistoryScreen
+import com.inventoryapp.rcapp.ui.agentnav.StockInScreen
+import com.inventoryapp.rcapp.ui.agentnav.StockOutScreen
+import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.LoginAgentScreen
 import com.inventoryapp.rcapp.ui.auth.agentauth.RegisterAgentScreen
-import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
+import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
+import com.inventoryapp.rcapp.ui.auth.internalauth.LoginInternalScreen
+import com.inventoryapp.rcapp.ui.auth.internalauth.RegisterInternalScreen
+import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
+import com.inventoryapp.rcapp.ui.internalnav.InternalHomeScreen
+import com.inventoryapp.rcapp.ui.internalnav.InternalSalesScreen
+import com.inventoryapp.rcapp.ui.internalnav.InternalStockScreen
+import com.inventoryapp.rcapp.ui.internalnav.MainInternalScreen
 import com.inventoryapp.rcapp.ui.theme.BtnAgenMitra
-import kotlinx.coroutines.delay
 
 @Composable
 fun MainNavigation(
-    viewModel: AuthAgentViewModel,
-    navController: NavHostController = rememberNavController(),
-    modifier: Modifier = Modifier,
-    startDestination: String = ROUTE_HOME
+    viewModelAgent: AuthAgentViewModel,
+    viewModelInternal: AuthInternalViewModel,
+    navController: NavHostController = rememberNavController()
 ) {
-    NavHost(navController = navController, startDestination = startDestination){
-        composable(ROUTE_HOME){
-            AgentRequestOrderScreen()
+    NavHost(navController = navController, startDestination = ROUTE_HOME) {
+        composable(ROUTE_HOME) {
+            WelcomeScreen(navController)
         }
         composable(ROUTE_LOGIN_AGENT) {
-            LoginAgentScreen(viewModel, navController)
+            LoginAgentScreen(viewModelAgent, navController)
         }
         composable(ROUTE_REGISTER_AGENT){
-            RegisterAgentScreen(viewModel, navController)
+            RegisterAgentScreen(viewModelAgent, navController)
         }
         composable(ROUTE_LOGIN_INTERNAL){
-            LoginAgentScreen(viewModel, navController)
+            LoginInternalScreen(viewModelInternal, navController)
         }
         composable(ROUTE_REGISTER_INTERNAL){
-            RegisterAgentScreen (viewModel,navController)
+            RegisterInternalScreen (viewModelInternal,navController)
         }
-        composable("home_internal"){
-            InternalScreen()
+        composable(ROUTE_MAIN_INTERNAL_SCREEN){
+            MainInternalScreen()
         }
-        composable("home_agent"){
-            InternalScreen()
-        }
+//        composable(BottomBarScreen.Home.route){
+//            InternalHomeScreen(navController = navController)
+//        }
+//        composable(BottomBarScreen.Settings.route){
+//            InternalSalesScreen()
+//        }
+//        composable(BottomBarScreen.Profile.route){
+//            InternalStockScreen()
+//        }
+        addAgentGraph(viewModelAgent, navController)
+//        addInternalGraph(viewModelInternal, navController)
     }
 }
 
 @Composable
-fun AgentNavigation(
-    viewModel: AuthAgentViewModel,
-    navController: NavHostController = rememberNavController(),
-    modifier: Modifier = Modifier,
-    startDestination: String = ROUTE_HOME
-) {
-    NavHost(navController = navController, startDestination = startDestination){
-        composable(ROUTE_HOME){
-            WelcomeScreen(navController)
+fun InternalNavigation(
+    navController: NavHostController = rememberNavController()
+){
+    NavHost(navController = navController, startDestination = ROUTE_MAIN_INTERNAL_SCREEN,
+//        route = INTERNAL_NAV
+    ){
+        composable(BottomBarScreen.Home.route){
+            InternalHomeScreen(navController = navController)
+        }
+        composable(BottomBarScreen.Profile.route){
+            InternalSalesScreen()
+        }
+        composable(BottomBarScreen.Settings.route){
+            InternalStockScreen()
         }
     }
 }
+
+//@Composable
+//fun AgentNavigation(
+//    viewModelAgent: AuthAgentViewModel,
+//    navController: NavHostController = rememberNavController()
+//){
+//    NavHost(navController = navController, startDestination = AGENT_NAV){
+//        addAgentGraph(viewModelAgent, navController)
+//    }
+//}
+
+fun NavGraphBuilder.addAgentGraph(viewModelAgent: AuthAgentViewModel,navController: NavHostController) {
+    navigation(startDestination = ROUTE_HOME_AGENT_SCREEN, route = AGENT_NAV) {
+        composable(ROUTE_HOME_AGENT_SCREEN){
+            HomeAgentScreen(viewModelAgent,navController)
+        }
+        composable(ROUTE_AGENT_STOCK_SCREEN){
+            AgentStockScreen(navController)
+        }
+        composable(ROUTE_AGENT_REQUEST_ORDER_SCREEN){
+            AgentRequestOrderScreen(navController)
+        }
+        composable(ROUTE_ORDER_HISTORY_SCREEN){
+            OrderHistoryScreen(navController)
+        }
+        composable(ROUTE_STOCK_IN_SCREEN){
+            StockInScreen(navController)
+        }
+        composable(ROUTE_STOCK_OUT_SCREEN){
+            StockOutScreen(navController)
+        }
+    }
+}
+
+//fun NavGraphBuilder.addInternalGraph(viewModelInternal: AuthInternalViewModel,navController: NavHostController) {
+//    navigation(startDestination = ROUTE_HOME_INTERNAL_SCREEN, route = INTERNAL_NAV) {
+//        composable(ROUTE_HOME_INTERNAL_SCREEN){
+//            MainInternalScreen(viewModelInternal, navController)
+//        }
+//        composable(ROUTE_INTERNAL_SALES_SCREEN){
+//            InternalSalesScreen()
+//        }
+//        composable(ROUTE_INTERNAL_STOCK_SCREEN){
+//            InternalStockScreen()
+//        }
+//
+//    }
+//}
+//    NavHost(navController = navController, startDestination = startDestination){
+//        composable(ROUTE_HOME){
+//            WelcomeScreen(navController)
+//        }
+//        composable(ROUTE_LOGIN_AGENT) {
+//            LoginAgentScreen(viewModelAgent, navController)
+//        }
+//        composable(ROUTE_REGISTER_AGENT){
+//            RegisterAgentScreen(viewModelAgent, navController)
+//        }
+//        composable(ROUTE_LOGIN_INTERNAL){
+//            LoginInternalScreen(viewModelInternal, navController)
+//        }
+//        composable(ROUTE_REGISTER_INTERNAL){
+//            RegisterInternalScreen (viewModelInternal,navController)
+//        }
+//        composable("home_internal"){
+//            InternalScreen()
+//        }
+//        composable("home_agent"){
+//            InternalScreen()
+//        }
+//    }
+//    NavHost(navController = navController, startDestination = "Beranda"){
+//        composable("Homepage") {
+//            HomeAgentScreen()
+//        }
+//
+//        composable("StokBarang") {
+//            AgentStockScreen()
+//        }
+//
+//        composable("RequestOrder") {
+//            AgentRequestOrderScreen()
+//        }
+//    }
+
+
 //@Composable
 //fun AgentNavigation(){
 //    val navController = rememberNavController()
@@ -205,47 +304,6 @@ fun LargeBtn(text: String, navController: Unit){
     }
 }
 
-@Composable
-fun Logo(
-    painter: Painter = if (isSystemInDarkTheme()) painterResource(id = R.drawable.rc_logodark) else painterResource(
-        id = R.drawable.rc_logo
-    ),
-    contentDescription: String = "ini logo Rc",
-    modifier: Modifier = Modifier
-){
-    Image(
-        painter = painter,
-        contentDescription = contentDescription,
-        contentScale = ContentScale.Fit,
-        modifier = modifier)
-}
-
-@Composable
-fun CustomToast(message: String) {
-    val duration = remember { mutableStateOf(3000) }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
-            modifier = Modifier.width(200.dp),
-            colors = CardColors(Color.Blue,Color.White,Color.Black,Color.Blue),
-            elevation = CardDefaults.cardElevation(10.dp,10.dp,15.dp,15.dp)
-        ) {
-            Text(
-                text = message,
-                modifier = Modifier.padding(16.dp),
-                color = Color.White
-            )
-        }
-    }
-
-    LaunchedEffect(key1 = duration) {
-        delay(duration.value.toLong())
-        duration.value = 0
-    }
-}
 @Composable
 fun Greeting(modifier: Modifier = Modifier, title: String, subtitle: String) {
     Column(

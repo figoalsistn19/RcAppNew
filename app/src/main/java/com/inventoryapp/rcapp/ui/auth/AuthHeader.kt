@@ -33,7 +33,6 @@ fun AuthHeader(textHeader: String?) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val spacing = MaterialTheme.spacing
-
         Image(
             modifier = Modifier
                 .size(128.dp, 128.dp),
@@ -43,8 +42,7 @@ fun AuthHeader(textHeader: String?) {
         Text(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(top = spacing.extraSmall),
+                .wrapContentHeight(),
             text = textHeader!!,
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
@@ -68,7 +66,7 @@ fun FirstPageHeader() {
                         end.linkTo(refVector.end)
                         width = Dimension.fillToConstraints
                     },
-                painter = painterResource(id = R.drawable.firstpage),
+                painter = painterResource(id = R.drawable.rc_logo),
                 contentDescription = stringResource(id = R.string.app_name)
             )
             Image(

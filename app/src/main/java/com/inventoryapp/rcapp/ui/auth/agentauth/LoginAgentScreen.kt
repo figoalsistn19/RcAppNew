@@ -30,7 +30,9 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
+import com.inventoryapp.rcapp.ui.nav.AGENT_NAV
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -46,8 +48,8 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
     fun onStart(){
         viewModel?.getSession { user ->
             if (user != null){
-                navController.navigate(ROUTE_HOME) {
-                    popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+                navController.navigate(AGENT_NAV) {
+                    popUpTo(ROUTE_HOME_AGENT_SCREEN) { inclusive = true }
                 }
             }
         }
@@ -139,9 +141,7 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
                     end.linkTo(parent.end, spacing.extraLarge)
                 },
             onClick = {
-                navController.navigate(ROUTE_REGISTER_AGENT) {
-                    popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
-                }
+                navController.navigate(ROUTE_REGISTER_AGENT)
             }
         ){
             Text(text = "DAFTAR", style = MaterialTheme.typography.titleMedium)
@@ -173,8 +173,8 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        navController.navigate(ROUTE_HOME) {
-                            popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+                        navController.navigate(AGENT_NAV) {
+                            popUpTo(ROUTE_HOME_AGENT_SCREEN) { inclusive = true }
                         }
                     }
                 }

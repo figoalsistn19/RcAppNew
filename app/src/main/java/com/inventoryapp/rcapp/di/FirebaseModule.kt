@@ -10,6 +10,8 @@ import com.google.firebase.storage.StorageReference
 import com.google.gson.Gson
 import com.inventoryapp.rcapp.data.repository.AuthAgentRepository
 import com.inventoryapp.rcapp.data.repository.AuthAgentRepositoryImp
+import com.inventoryapp.rcapp.data.repository.AuthInternalRepository
+import com.inventoryapp.rcapp.data.repository.AuthInternalRepositoryImp
 import com.inventoryapp.rcapp.util.FirebaseStorageConstants
 import com.inventoryapp.rcapp.util.SharedPrefConstants
 import dagger.Module
@@ -31,6 +33,9 @@ object FirebaseModule {
 
     @Provides
     fun provideAuthAgentRepository(impl:AuthAgentRepositoryImp):AuthAgentRepository = impl
+
+    @Provides
+    fun provideAuthInternalRepository(impl:AuthInternalRepositoryImp):AuthInternalRepository = impl
 
 //    @Provides
 //    fun provideAuthRepository(impl:AuthRepositoryImp):AuthRepository = impl

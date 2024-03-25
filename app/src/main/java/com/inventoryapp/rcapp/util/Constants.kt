@@ -2,7 +2,8 @@ package com.inventoryapp.rcapp.util
 
 object FireStoreCollection{
     val NOTE = "note"
-    val USER = "user"
+    val AGENTUSER = "AgentUser"
+    val INTERNALUSER = "InternalUser"
 }
 
 object FireDatabase{
@@ -17,6 +18,10 @@ object FireStoreDocumentField {
 object SharedPrefConstants {
     val LOCAL_SHARED_PREF = "local_shared_pref"
     val USER_SESSION = "user_session"
+    val USER_STATUS = "user_status"
+    val USER_ID = "user_id"
+    val USER_NAME = "user_name"
+
 }
 
 object FirebaseStorageConstants {
