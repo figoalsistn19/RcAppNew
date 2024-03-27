@@ -34,6 +34,7 @@ import com.inventoryapp.rcapp.ui.nav.AGENT_NAV
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
@@ -48,8 +49,8 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
     fun onStart(){
         viewModel?.getSession { user ->
             if (user != null){
-                navController.navigate(AGENT_NAV) {
-                    popUpTo(ROUTE_HOME_AGENT_SCREEN) { inclusive = true }
+                navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
+                    popUpTo(ROUTE_MAIN_AGENT_SCREEN) { inclusive = true }
                 }
             }
         }
@@ -93,7 +94,8 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
                 autoCorrect = false,
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
-            )
+            ),
+            maxLines = 1
         )
 
         TextField(
@@ -115,7 +117,8 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
                 autoCorrect = false,
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
-            )
+            ),
+            maxLines = 1
         )
 
         Button(
@@ -173,8 +176,8 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        navController.navigate(AGENT_NAV) {
-                            popUpTo(ROUTE_HOME_AGENT_SCREEN) { inclusive = true }
+                        navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
+                            popUpTo(ROUTE_MAIN_AGENT_SCREEN) { inclusive = true }
                         }
                     }
                 }

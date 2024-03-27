@@ -3,13 +3,10 @@ package com.inventoryapp.rcapp.ui.agentnav
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,11 +17,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardColors
@@ -50,16 +44,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -131,19 +120,26 @@ fun StockInScreen(navController: NavController){
                 scrollBehavior = scrollBehavior)
         },
         bottomBar ={
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
-                ExtendedFloatingActionButton(
-                    onClick = { showAddStockInSheet = true },
-                    shape = FloatingActionButtonDefaults.extendedFabShape,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    elevation = FloatingActionButtonDefaults.elevation(1.dp),
-                    modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
-                ) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
-                    Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+            Column {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    // Your other UI content here
+                    Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            showAddStockInSheet = true
+                        },
+                        shape = FloatingActionButtonDefaults.extendedFabShape,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        elevation = FloatingActionButtonDefaults.elevation(1.dp),
+                        modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
+
+                    ) {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
+                        Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+                    }
                 }
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     ) {
@@ -172,7 +168,7 @@ fun StockInScreen(navController: NavController){
                 }
             }
         }
-        LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
+        LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
             items(internalProductList) { item ->
                 ListItemForInOut(item)
             }
@@ -454,7 +450,7 @@ fun ListItemForInOut(item: InternalProduct) {
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp
         ),
-        colors = CardColors(contentColor = MaterialTheme.colorScheme.onSurface, containerColor = MaterialTheme.colorScheme.surfaceContainerLow, disabledContentColor = MaterialTheme.colorScheme.onSurface, disabledContainerColor = MaterialTheme.colorScheme.onTertiaryContainer)
+        colors = CardColors(contentColor = MaterialTheme.colorScheme.onSurface, containerColor = MaterialTheme.colorScheme.surfaceContainerLowest, disabledContentColor = MaterialTheme.colorScheme.onSurface, disabledContainerColor = MaterialTheme.colorScheme.onTertiaryContainer)
     ) {
         ConstraintLayout (modifier = Modifier.fillMaxWidth()) {
             val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
@@ -494,49 +490,6 @@ fun ListItemForInOut(item: InternalProduct) {
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
         }
 
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchBarSample() {
-    var text by rememberSaveable { mutableStateOf("") }
-    var active by rememberSaveable { mutableStateOf(false) }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .semantics { isTraversalGroup = true }) {
-        SearchBar(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .semantics { traversalIndex = -1f },
-            query = text,
-            onQueryChange = { text = it },
-            onSearch = { active = false },
-            active = active,
-            onActiveChange = {
-                active = it
-            },
-            placeholder = { Text("Hinted search text") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
-        ) {
-
-        }
-
-        LazyColumn(
-            contentPadding = PaddingValues(start = 16.dp, top = 72.dp, end = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val list = List(100) { "Text $it" }
-            items(count = list.size) {
-                Text(list[it],
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp))
-            }
-        }
     }
 }
 

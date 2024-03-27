@@ -6,6 +6,7 @@ import java.util.Date
 data class AgentProduct(
     val idAgentProduct: String,
     val idAgent: AgentUser,
+    val idProduct: String,
     val productName: String,
     val qtyProduct: Int,
     val qtyMin: Int,

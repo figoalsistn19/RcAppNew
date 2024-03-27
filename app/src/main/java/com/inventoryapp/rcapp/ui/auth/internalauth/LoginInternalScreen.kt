@@ -95,7 +95,8 @@ fun LoginInternalScreen(viewModel:AuthInternalViewModel?, navController: NavCont
                 autoCorrect = false,
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
-            )
+            ),
+            maxLines = 1
         )
 
         TextField(
@@ -117,7 +118,8 @@ fun LoginInternalScreen(viewModel:AuthInternalViewModel?, navController: NavCont
                 autoCorrect = false,
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
-            )
+            ),
+            maxLines = 1
         )
 
         Button(

@@ -211,7 +211,7 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
                 autoCorrect = false,
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Phone,
                 imeAction = ImeAction.Done
             ),
             maxLines = 1

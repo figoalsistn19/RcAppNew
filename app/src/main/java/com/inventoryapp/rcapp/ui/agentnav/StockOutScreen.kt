@@ -115,19 +115,26 @@ fun StockOutScreen(navController: NavController){
                 scrollBehavior = scrollBehavior)
         },
         bottomBar ={
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
-                ExtendedFloatingActionButton(
-                    onClick = { showAddStockOutSheet = true },
-                    shape = FloatingActionButtonDefaults.extendedFabShape,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                    elevation = FloatingActionButtonDefaults.elevation(1.dp),
-                    modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
-                ) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
-                    Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+            Column {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    // Your other UI content here
+                    Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            showAddStockOutSheet = true
+                        },
+                        shape = FloatingActionButtonDefaults.extendedFabShape,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        elevation = FloatingActionButtonDefaults.elevation(1.dp),
+                        modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
+
+                    ) {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
+                        Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+                    }
                 }
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     ) {
@@ -152,11 +159,12 @@ fun StockOutScreen(navController: NavController){
             ) {
                 LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
                     items(agentProductList) { item ->
-                        ListItem(item)
+                        ListItemForInOut(item
+                        )
                     }
                 }
             }
-            LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
+            LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
                 items(internalProductList) { item ->
                     ListItemForInOut(item)
                 }

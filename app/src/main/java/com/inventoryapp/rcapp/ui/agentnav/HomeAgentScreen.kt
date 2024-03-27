@@ -3,12 +3,10 @@ package com.inventoryapp.rcapp.ui.agentnav
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,8 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
@@ -31,7 +27,6 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -67,8 +61,6 @@ import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
-import com.inventoryapp.rcapp.ui.nav.BottomNavAgentViewModel
-import com.inventoryapp.rcapp.ui.nav.BottomNavBarAgent
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
@@ -87,7 +79,6 @@ fun HomeAgentScreen(viewModel: AuthAgentViewModel?,navController: NavController)
     val state = remember { ScrollState(0) }
     val agentProductViewModel = AgentProductViewModel()
     val agentProductList by agentProductViewModel.agentProductList.collectAsState()
-    val bottomNavAgentViewModel = BottomNavAgentViewModel()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     ModalNavigationDrawer(
@@ -118,15 +109,16 @@ fun HomeAgentScreen(viewModel: AuthAgentViewModel?,navController: NavController)
     {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            bottomBar = { BottomNavBarAgent(bottomNavAgentViewModel, navController ) },
             content = {
                 Column (modifier = Modifier
                     .verticalScroll(state)
-                    .padding(bottom = 100.dp)) {
+                    .size(1200.dp)
+                    .padding(bottom = 80.dp)
+                ) {
                     ConstraintLayout (
-                        modifier = Modifier
-                            .size(1200.dp)
-                            .padding(bottom = 20.dp)
+//                        modifier = Modifier
+//                            .size(1200.dp)
+
                     ) {
                         val (refTopAppBar, refCardPromotion, refMenu, refMenuDetail, refMenuTitle, refProduct, refProductList) = createRefs()
                         val spacing = MaterialTheme.spacing
@@ -303,10 +295,15 @@ fun HomeAgentScreen(viewModel: AuthAgentViewModel?,navController: NavController)
                                 start.linkTo(parent.start, spacing.medium)
                                 end.linkTo(parent.end, spacing.medium)
                             }
-                            .padding(horizontal = 10.dp, vertical = 1.dp)
-                            .fillMaxHeight()) {
+                            .padding(start = 10.dp, end = 10.dp, bottom = 80.dp)
+                        ) {
                             items(internalProducts) { item ->
-                                ListItem(item) // Replace with your composable for each item
+                                ListProduct(
+                                    item,
+                                    onCardClicked = {
+
+                                    }
+                                ) // Replace with your composable for each item
                             }
                         }
                     }
@@ -318,19 +315,23 @@ fun HomeAgentScreen(viewModel: AuthAgentViewModel?,navController: NavController)
 
 }
 
-data class ListItem(val title: String, val description: String, val stock:Int)
 
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun ListItem(item: InternalProduct) {
+fun ListProduct(
+    item: InternalProduct,
+    onCardClicked: (String) -> Unit
+) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp, horizontal = 10.dp),
+            .padding(vertical = 6.dp, horizontal = 10.dp)
+            .clickable { onCardClicked(item.idProduct) }
+        ,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp
         ),
-        colors = CardColors(contentColor = MaterialTheme.colorScheme.onSurface, containerColor = MaterialTheme.colorScheme.surfaceContainerLow, disabledContentColor = MaterialTheme.colorScheme.onSurface, disabledContainerColor = MaterialTheme.colorScheme.onTertiaryContainer)
+        colors = CardColors(contentColor = MaterialTheme.colorScheme.onSurface, containerColor = MaterialTheme.colorScheme.surfaceContainerLowest, disabledContentColor = MaterialTheme.colorScheme.onSurface, disabledContainerColor = MaterialTheme.colorScheme.onTertiaryContainer)
     ) {
         ConstraintLayout (modifier = Modifier.fillMaxWidth()) {
             val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
@@ -375,27 +376,12 @@ fun ListItem(item: InternalProduct) {
     }
 }
 
-val sampleData = listOf(
-    ListItem("afghanistan", "Diperbarui 23 Des 2023", 100),
-    ListItem("bengkulu", "Diperbarui 23 Des 2023",100),
-    ListItem("chsda", "Diperbarui 23 Des 2023", 100),
-    ListItem("dewdea", "Diperbarui 23 Des 2023",100),
-    ListItem("ewefwfe", "Diperbarui 23 Des 2023", 100),
-    ListItem("fefeea", "Diperbarui 23 Des 2023",100),
-    ListItem("gaenaf", "Diperbarui 23 Des 2023", 100),
-    ListItem("hadnqwi", "Diperbarui 23 Des 2023",100),
-    ListItem("iwqjndw", "Diperbarui 23 Des 2023", 100),
-    ListItem("jewkjwenf", "Diperbarui 23 Des 2023",100),
-    ListItem("kdlqwkld", "Diperbarui 23 Des 2023", 100),
-    ListItem("lwdqjnwqj", "Diperbarui 23 Des 2023",100)
-    // ... more items
-)
-
 @Preview(apiLevel = 33, showBackground = true)
 @Composable
 fun HomeAgentPreview(){
     RcAppTheme {
-        ListItem(item = internalProducts[1])
+        ListProduct(item = internalProducts[1],
+            onCardClicked = {})
     }
 }
 

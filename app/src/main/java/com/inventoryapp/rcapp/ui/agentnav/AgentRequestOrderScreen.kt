@@ -87,7 +87,6 @@ fun AgentRequestOrderScreen(navController: NavController){
     var filterBySales by remember { mutableStateOf(true) }
     var filterBySystem by remember { mutableStateOf(false) }
     val agentProductViewModel = AgentProductViewModel()
-    val bottomNavBarViewModel = BottomNavAgentViewModel()
     var qtyOrder by remember { mutableStateOf("") }
     var totalPriceProduct by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -228,8 +227,9 @@ fun AgentRequestOrderScreen(navController: NavController){
                 if (filterBySystem){
                     LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
                         items(agentProductList) { item ->
-                            ListItem(item = item)
-
+                            ListProduct(item = item,
+                                onCardClicked = {}
+                            )
                         }
                     }
                 } else {
@@ -240,14 +240,12 @@ fun AgentRequestOrderScreen(navController: NavController){
                                 onCardClick = { reqOrder ->
                                     showDetailOrder = true
                                 }
-
                             )
                         }
                     }
                 }
             }
-        },
-        bottomBar = { BottomNavBarAgent(bottomNavBarViewModel,navController) }
+        }
     ){
         if (showDetailOrder){
             ModalBottomSheet(

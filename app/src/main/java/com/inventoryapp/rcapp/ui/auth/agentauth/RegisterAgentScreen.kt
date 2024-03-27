@@ -221,7 +221,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
                 autoCorrect = false,
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Phone,
                 imeAction = ImeAction.Done
             ),
             maxLines = 1

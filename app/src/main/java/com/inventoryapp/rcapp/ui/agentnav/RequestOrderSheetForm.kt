@@ -39,7 +39,6 @@ fun RequestOrderSheetForm(){
         Text(modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Permintaan Pesanan",
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
-
         )
         Card (
             modifier = Modifier.padding(horizontal = 15.dp, vertical = 20.dp),
