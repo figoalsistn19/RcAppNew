@@ -30,6 +30,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -47,9 +48,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -72,27 +75,34 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.ui.agentnav.CardItem
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.VerificationAgentViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.agentUserList
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.agentUserListDummy
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.Resource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun OfferingPoForAgentScreen(navController: NavController){
+fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, navController: NavController){
     val verifAgentViewModel = VerificationAgentViewModel()
     val queryAgentList by verifAgentViewModel.searchText.collectAsState()
     val onQueryChangeAgentList by verifAgentViewModel.isSearching.collectAsState()
     val agentList by verifAgentViewModel.agentUsersList.collectAsState()
-    val internalProductViewModel = InternalProductViewModel()
+    val internalProductViewModel = InternalProductTestViewModel()
     val queryInternalProduct by internalProductViewModel.searchText.collectAsState()
     val onQueryChangeInternalProduct by internalProductViewModel.isSearching.collectAsState()
     val internalProductList1 by internalProductViewModel.productsList.collectAsState()
-    val sheetState = rememberModalBottomSheetState()
+    val query by agentUserViewModel.searchText.collectAsState()
+    val onQueryChange by agentUserViewModel.isSearching.collectAsState()
+    val agentUserList by agentUserViewModel.agentUsers.observeAsState()
+    val agentSearchList by agentUserViewModel.agentUsersList.collectAsState()
+
+    val sheetState = rememberModalBottomSheetState(true)
     var showAddPoForAgentSheet by remember { mutableStateOf(false) }
     var showPickItemSheet by remember { mutableStateOf(false) }
     var showDetailPoSheet by remember { mutableStateOf(false) }
@@ -159,9 +169,9 @@ fun OfferingPoForAgentScreen(navController: NavController){
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(bottom = 10.dp),
-                query = queryAgentList,
-                onQueryChange = verifAgentViewModel::onSearchTextChange,
-                onSearch = verifAgentViewModel::onSearchTextChange,
+                query = query,
+                onQueryChange = agentUserViewModel::onSearchTextChange,
+                onSearch = agentUserViewModel::onSearchTextChange,
                 active = onQueryChangeAgentList,
                 onActiveChange = { verifAgentViewModel.onToogleSearch()},
                 trailingIcon = {
@@ -182,7 +192,7 @@ fun OfferingPoForAgentScreen(navController: NavController){
             LazyColumn(
                 modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
             ){
-                items(agentUserList){ user ->
+                items(agentUserListDummy){ user ->
                     CardPoAgent()
                 }
             }
@@ -197,7 +207,7 @@ fun OfferingPoForAgentScreen(navController: NavController){
                 ConstraintLayout(modifier = Modifier.fillMaxSize()) {
                     val (refTitleSheet, refSearchBar, refListProduct, refBtnNext) = createRefs()
                     Text(
-                        text = "Tambahkan barang masuk",
+                        text = "Pilih Agen",
                         modifier = Modifier.constrainAs(refTitleSheet) {
                             top.linkTo(parent.top)
                             start.linkTo(parent.start)
@@ -225,11 +235,11 @@ fun OfferingPoForAgentScreen(navController: NavController){
                             }
                     ) {
                         SearchBar(
-                            query = queryAgentList,
-                            onQueryChange = verifAgentViewModel::onSearchTextChange,
-                            onSearch = verifAgentViewModel::onSearchTextChange,
-                            active = onQueryChangeAgentList,
-                            onActiveChange = { verifAgentViewModel.onToogleSearch() },
+                            query = query,
+                            onQueryChange = agentUserViewModel::onSearchTextChange,
+                            onSearch = agentUserViewModel::onSearchTextChange,
+                            active = onQueryChange,
+                            onActiveChange = { agentUserViewModel.onToogleSearch() },
                             trailingIcon = {
                                 Icon(
                                     imageVector = Icons.Rounded.Search,
@@ -237,11 +247,11 @@ fun OfferingPoForAgentScreen(navController: NavController){
                                 )
                             },
                             placeholder = {
-                                Text(text = "Pilih barang dulu...")
+                                Text(text = "Cari agen disini...")
                             }
                         ) {
                             LazyColumn(modifier = Modifier.padding(horizontal = 10.dp)) {
-                                items(agentList) { agent ->
+                                items(agentSearchList) { agent ->
                                     CardAgent(
                                         cardData = agent,
                                         selectedCard =selectedAgentUser,
@@ -268,20 +278,42 @@ fun OfferingPoForAgentScreen(navController: NavController){
                             }
                             .padding(horizontal = 10.dp, vertical = 10.dp))
                         {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp, vertical = 10.dp)
-                            )
-                            {
-                                items(agentUserList) { agent ->
-                                    CardAgent(
-                                        cardData = agent,
-                                        selectedCard = selectedAgentUser,
-                                        onCardClicked = { selectedAgent ->
-                                            selectedAgentNameHolder.updateValue(selectedAgent)
-                                            println("Nama produk: $selectedAgent")
+                            LaunchedEffect(Unit) {
+                                agentUserViewModel.fetchUsers()
+                            }
+
+                            when (agentUserList) {
+                                is Resource.Success -> {
+                                    val userList = (agentUserList as Resource.Success<List<AgentUser>>).result
+                                    LazyColumn(
+                                        modifier = Modifier
+                                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                                    )
+                                    {
+                                        items(userList) { agent ->
+                                            CardAgent(
+                                                cardData = agent,
+                                                selectedCard = selectedAgentUser,
+                                                onCardClicked = { selectedAgent ->
+                                                    selectedAgentNameHolder.updateValue(selectedAgent)
+                                                    println("Nama produk: $selectedAgent")
+                                                }
+                                            ) // Replace with your composable for each item
                                         }
-                                    ) // Replace with your composable for each item
+                                    }
+                                }
+                                is Resource.Loading -> {
+                                    // Tampilkan indikator loading jika diperlukan
+                                    CircularProgressIndicator()
+                                }
+                                is Resource.Failure -> {
+                                    // Tampilkan pesan error jika diperlukan
+                                    val error = (agentUserList as Resource.Failure).throwable
+                                    Text(text = "Error: ${error.message}")
+                                }
+                                else -> {
+                                    // Tampilkan pesan default jika diperlukan
+                                    Text(text = "No data available")
                                 }
                             }
                         }
@@ -728,8 +760,8 @@ fun CardAgent(
         modifier = Modifier
             .padding(8.dp)
             .clickable {
-                selectedCard.value = cardData.idAgent
-                onCardClicked(cardData.name)
+                selectedCard.value = cardData.idAgent!!
+                onCardClicked(cardData.name!!)
             }
             .height(80.dp) ,
         colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onSurface),
@@ -749,15 +781,15 @@ fun CardAgent(
                 Image(imageVector = ImageVector.vectorResource(id = R.drawable.bag_icon),
                     contentDescription = "Favorite",
                     modifier = Modifier.padding(horizontal = 10.dp))
-                Text(text = cardData.name,
+                Text(text = cardData.name!!,
                     style = MaterialTheme.typography.titleLarge)
             }
             // Bagian kanan
             RadioButton(
                 selected = cardData.idAgent == selectedCard.value,
                 onClick = {
-                    selectedCard.value = cardData.idAgent
-                    onCardClicked(cardData.name)
+                    selectedCard.value = cardData.idAgent!!
+                    onCardClicked(cardData.name!!)
                 }
             )
         }

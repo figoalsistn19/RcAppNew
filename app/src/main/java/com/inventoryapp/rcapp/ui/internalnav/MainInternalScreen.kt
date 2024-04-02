@@ -4,33 +4,45 @@ package com.inventoryapp.rcapp.ui.internalnav
 //noinspection UsingMaterialAndMaterial3Libraries
 //noinspection UsingMaterialAndMaterial3Libraries
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -41,61 +53,136 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
-import com.inventoryapp.rcapp.ui.nav.BottomNavAgentItem
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_VERIFICATION_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_SALES_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainInternalScreen(
-    viewModel: AuthInternalViewModel
+    agentUserViewModel: AgentUserViewModel,
+    authViewModel: AuthInternalViewModel,
+    internalProductViewModel: InternalProductViewModel
 //    navController: NavHostController
 ){
 //    val navController = rememberNavController()
     val navController = rememberNavController()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
+        rememberTopAppBarState()
+    )
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+            ) {
+                Column {
+                    Text("Drawer title", modifier = Modifier.padding(16.dp))
+                    Divider()
+                    NavigationDrawerItem(
+                        label = { Text(text = "Drawer Item") },
+                        selected = false,
+                        onClick = { /*TODO*/ }
+                    )
+                    IconButton(onClick = {
+                        authViewModel.logout()
+                        navController.navigate(ROUTE_HOME)
+                    }) {
+                        Icon(imageVector = Icons.Default.Home, contentDescription = "logout")
+                    }
+                }
 
-    Scaffold(
-        bottomBar = {
-            BottomBar(navController = navController)
-        }
-    ) {
-        NavHost(navController = navController, startDestination = BottomBarScreen.Home.route,
-        ){
-            composable(BottomBarScreen.Home.route){
-                InternalHomeScreen(navController = navController)
             }
-            composable(BottomBarScreen.Stock.route){
-                InternalStockScreen(viewModel, navController)
+        },
+    )
+    {
+        Scaffold(
+            bottomBar = {
+                BottomBarInternal(navController = navController)
+            },
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(text = "Halo Figo!",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium))
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                drawerState.apply {
+                                    if (isClosed) open() else close()
+                                }
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = "Localized description",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    actions = {
+                        BadgedBox(badge = { Badge { Text("k") } }) {
+                            Icon(
+                                Icons.Filled.Notifications,
+                                contentDescription = "Home"
+                            )
+                        } },
+                    scrollBehavior = scrollBehavior,
+                    modifier = Modifier
+                )
             }
-            composable(BottomBarScreen.SalesInternal.route){
-                InternalSalesScreen(viewModel, navController)
-            }
-            composable(ROUTE_AGENT_VERIFICATION_SCREEN){
-                AgentVerificationScreen()
-            }
-            composable(ROUTE_INTERNAL_STOCK_IN_SCREEN){
-                InternalStockInScreen(navController = navController)
-            }
-            composable(ROUTE_INTERNAL_STOCK_OUT_SCREEN){
-                InternalStockOutScreen(navController = navController)
-            }
-            composable(ROUTE_AGENT_STOCK_MONITORING_SCREEN){
-                AgentStockMonitoringScreen()
-            }
-            composable(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN){
-                OfferingPoForAgentScreen(navController)
+        ) {
+            NavHost(navController = navController, startDestination = BottomBarScreen.HomeInternal.route,
+            ){
+                composable(BottomBarScreen.HomeInternal.route){
+                    InternalHomeScreen(navController = navController)
+                }
+                composable(BottomBarScreen.StockInternal.route){
+                    InternalStockScreen(internalProductViewModel, authViewModel, navController)
+                }
+                composable(BottomBarScreen.SalesInternal.route){
+                    InternalSalesScreen(authViewModel, navController)
+                }
+                composable(ROUTE_AGENT_VERIFICATION_SCREEN){
+                    AgentVerificationScreen(agentUserViewModel)
+                }
+                composable(ROUTE_INTERNAL_STOCK_IN_SCREEN){
+                    InternalStockInScreen(navController = navController)
+                }
+                composable(ROUTE_INTERNAL_STOCK_OUT_SCREEN){
+                    InternalStockOutScreen(navController = navController)
+                }
+                composable(ROUTE_AGENT_STOCK_MONITORING_SCREEN){
+                    AgentStockMonitoringScreen()
+                }
+                composable(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN){
+                    OfferingPoForAgentScreen(agentUserViewModel, navController)
+                }
             }
         }
     }
+
 
 //    val state = remember { ScrollState(0) }
 //    val agentProductViewModel = AgentProductViewModel()
@@ -201,10 +288,10 @@ fun MainInternalScreen(
 }
 
 @Composable
-fun BottomBar(navController: NavHostController) {
+fun BottomBarInternal(navController: NavHostController) {
     val screens = listOf(
-        BottomBarScreen.Home,
-        BottomBarScreen.Stock,
+        BottomBarScreen.HomeInternal,
+        BottomBarScreen.StockInternal,
         BottomBarScreen.SalesInternal,
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -225,6 +312,32 @@ fun BottomBar(navController: NavHostController) {
     }
 }
 
+@Composable
+fun BottomBar(navController: NavHostController) {
+    val screens = listOf(
+        BottomBarScreen.Home,
+        BottomBarScreen.Stock,
+        BottomBarScreen.Sales,
+    )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    NavigationBar (
+        contentColor = Color.Green,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        tonalElevation = 30.dp
+    ){
+        screens.forEach { screen ->
+            AddItem(
+                screen = screen,
+                currentDestination = currentDestination,
+                navController = navController
+            )
+        }
+    }
+}
+
+
 
 sealed class BottomBarScreen(
     val route: String,
@@ -242,12 +355,27 @@ sealed class BottomBarScreen(
         route = ROUTE_HOME_AGENT_SCREEN
     )
 
+    object HomeInternal : BottomBarScreen(
+        title = "Beranda",
+        selectedIcon = Icons.Filled.Home,
+        unselectedIcon = Icons.Outlined.Home,
+        hasNews = false,
+        route = ROUTE_HOME_INTERNAL_SCREEN
+    )
     object Stock : BottomBarScreen(
         title = "Stok Barang",
         selectedIcon = Icons.Filled.Search,
         unselectedIcon = Icons.Sharp.Search,
         hasNews = true,
         route = ROUTE_AGENT_STOCK_SCREEN
+    )
+
+    object StockInternal : BottomBarScreen(
+        title = "Stok Barang",
+        selectedIcon = Icons.Filled.Search,
+        unselectedIcon = Icons.Sharp.Search,
+        hasNews = true,
+        route = ROUTE_INTERNAL_STOCK_SCREEN
     )
 
     object Sales : BottomBarScreen(
@@ -258,6 +386,7 @@ sealed class BottomBarScreen(
         badgeCount = 5,
         route = ROUTE_AGENT_REQUEST_ORDER_SCREEN
     )
+
 
     object SalesInternal : BottomBarScreen(
         title = "Penjualan",

@@ -3,10 +3,8 @@ package com.inventoryapp.rcapp.ui.auth.internalauth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
-import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalUser
-import com.inventoryapp.rcapp.data.repository.AuthAgentRepository
-import com.inventoryapp.rcapp.data.repository.AuthInternalRepository
+import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthInternalViewModel @Inject constructor(
-    private val repository: AuthInternalRepository
+    private val repository: InternalRepository
 ) : ViewModel()  {
     private val _loginFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
     val loginFlow: StateFlow<Resource<FirebaseUser>?> = _loginFlow
@@ -44,6 +42,8 @@ class AuthInternalViewModel @Inject constructor(
         val result = repository.register(name,email,password, user = user)
         _registerFlow.value = result
     }
+
+
 
     fun getSession(result: (InternalUser?) -> Unit){
         repository.getSession(result)

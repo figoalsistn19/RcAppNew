@@ -296,7 +296,7 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
         authResource?.value?.let {
             when (it) {
                 is Resource.Failure -> {
-                    Toast.makeText(context, it.exception.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.constrainAs(refLoading) {

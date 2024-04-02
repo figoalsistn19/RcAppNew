@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,8 +32,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,22 +51,25 @@ import androidx.compose.ui.unit.dp
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.VerificationAgentViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.agentUserList
+import com.inventoryapp.rcapp.util.Resource
 import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun AgentVerificationScreen(){
-    val verifAgentViewModel = VerificationAgentViewModel()
-    val query by verifAgentViewModel.searchText.collectAsState()
-    val onQueryChange by verifAgentViewModel.isSearching.collectAsState()
-    val agentList by verifAgentViewModel.agentUsersList.collectAsState()
+fun AgentVerificationScreen(agentUserViewModel: AgentUserViewModel?){
+    val query by agentUserViewModel!!.searchText.collectAsState()
+    val onQueryChange by agentUserViewModel!!.isSearching.collectAsState()
+    val agentUserList by agentUserViewModel!!.agentUsers.observeAsState()
+    val agentSearchList by agentUserViewModel!!.agentUsersList.collectAsState()
+
     val sheetState = rememberModalBottomSheetState()
     var checked by remember { mutableStateOf(true) }
     var showDetailAgent by remember { mutableStateOf(false) }
+
     Scaffold (
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     ){
@@ -97,10 +102,10 @@ fun AgentVerificationScreen(){
                     .align(Alignment.CenterHorizontally)
                     .padding(bottom = 10.dp),
                 query = query,
-                onQueryChange = verifAgentViewModel::onSearchTextChange,
-                onSearch = verifAgentViewModel::onSearchTextChange,
+                onQueryChange = agentUserViewModel!!::onSearchTextChange,
+                onSearch = agentUserViewModel::onSearchTextChange,
                 active = onQueryChange,
-                onActiveChange = { verifAgentViewModel.onToogleSearch()},
+                onActiveChange = { agentUserViewModel.onToogleSearch()},
                 trailingIcon = {
                     Icon(imageVector = Icons.Rounded.Search, contentDescription = "cari" )
                 },
@@ -111,7 +116,7 @@ fun AgentVerificationScreen(){
                 colors = SearchBarDefaults.colors(MaterialTheme.colorScheme.surfaceContainerLowest)
             ) {
                 LazyColumn {
-                    items(agentList) { user ->
+                    items(agentSearchList) { user ->
                         CardAgentVerification(
                             agentUser = user,
                             onCardClick = {user ->
@@ -120,16 +125,38 @@ fun AgentVerificationScreen(){
                     }
                 }
             }
-            LazyColumn(
-                modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
-            ){
-                items(agentUserList){ user ->
-                    CardAgentVerification(
-                        agentUser = user,
-                        onCardClick = {user ->
-                            showDetailAgent = true
+            LaunchedEffect(Unit) {
+                agentUserViewModel.fetchUsers()
+            }
+
+            when (agentUserList) {
+                is Resource.Success -> {
+                    val userList = (agentUserList as Resource.Success<List<AgentUser>>).result
+                    LazyColumn(
+                        modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
+                    ){
+                        items(userList){ user ->
+                            CardAgentVerification(
+                                agentUser = user,
+                                onCardClick = {user ->
+                                    showDetailAgent = true
+                                }
+                            )
                         }
-                    )
+                    }
+                }
+                is Resource.Loading -> {
+                    // Tampilkan indikator loading jika diperlukan
+                    CircularProgressIndicator()
+                }
+                is Resource.Failure -> {
+                    // Tampilkan pesan error jika diperlukan
+                    val error = (agentUserList as Resource.Failure).throwable
+                    Text(text = "Error: ${error.message}")
+                }
+                else -> {
+                    // Tampilkan pesan default jika diperlukan
+                    Text(text = "No data available")
                 }
             }
         }
@@ -268,15 +295,19 @@ fun CardAgentVerification(
     val color = when (agentUser.verificationStatus) {
         VerifAccountStatus.APPROVED -> Color.Green
         VerifAccountStatus.PENDING -> MaterialTheme.colorScheme.error
+        else -> {MaterialTheme.colorScheme.error}
     }
     val iconStatus = when (agentUser.verificationStatus){
         VerifAccountStatus.APPROVED -> ImageVector.vectorResource(R.drawable.icon_verified)
         VerifAccountStatus.PENDING -> ImageVector.vectorResource(R.drawable.icon_pending)
+        else -> {ImageVector.vectorResource(R.drawable.icon_pending)}
     }
 
     val text = when (agentUser.verificationStatus){
         VerifAccountStatus.APPROVED -> "terverifikasi"
         VerifAccountStatus.PENDING -> "pending"
+        else -> {"pending"}
+
     }
     Card (
         modifier = Modifier
@@ -285,7 +316,7 @@ fun CardAgentVerification(
                 horizontal = 15.dp, vertical = 5.dp
             )
             .clickable {
-                onCardClick(agentUser.idAgent)
+                onCardClick(agentUser.idAgent!!)
             },
         elevation = CardDefaults.cardElevation(3.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainerLowest)
@@ -302,7 +333,7 @@ fun CardAgentVerification(
             )
             Text(
                 modifier = Modifier.padding(start = 10.dp),
-                text = agentUser.name,
+                text = agentUser.name!!,
                 style = MaterialTheme.typography.labelLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -336,5 +367,5 @@ fun PrevCardAgentVerification(){
 @Preview(apiLevel = 33)
 @Composable
 fun PrevAgentVerification(){
-    AgentVerificationScreen()
+//    AgentVerificationScreen()
 }

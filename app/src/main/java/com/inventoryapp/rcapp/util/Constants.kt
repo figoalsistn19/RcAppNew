@@ -4,6 +4,8 @@ object FireStoreCollection{
     val NOTE = "note"
     val AGENTUSER = "AgentUser"
     val INTERNALUSER = "InternalUser"
+    val OFFERINGBYSALES = "OfferingBySales"
+    val INTERNALPRODUCT = "InternalProduct"
 }
 
 object FireDatabase{

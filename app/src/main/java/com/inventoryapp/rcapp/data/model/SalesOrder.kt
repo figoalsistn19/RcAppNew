@@ -19,7 +19,7 @@ data class SalesOrder(
 data class ProductsItem(
     val idProduct: String,
     val productName: String,
-    val price: Long,
+    val price: Long?,
     val quantity: Int,
     val totalPrice: Long
 )

@@ -42,10 +42,10 @@ import androidx.compose.ui.unit.dp
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.ui.agentnav.ListItemForInOut
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.VerificationAgentViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.agentUserList
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.agentUserListDummy
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -55,7 +55,7 @@ fun AgentStockMonitoringScreen(){
     val query by verifAgentViewModel.searchText.collectAsState()
     val onQueryChange by verifAgentViewModel.isSearching.collectAsState()
     val agentList by verifAgentViewModel.agentUsersList.collectAsState()
-    val internalProductViewModel = InternalProductViewModel()
+    val internalProductViewModel = InternalProductTestViewModel()
     val queryAgentStock by internalProductViewModel.searchText.collectAsState()
     val onQueryChangeAgentStock by internalProductViewModel.isSearching.collectAsState()
     val productsList by internalProductViewModel.productsList.collectAsState()
@@ -120,7 +120,7 @@ fun AgentStockMonitoringScreen(){
             LazyColumn(
                 modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
             ){
-                items(agentUserList){ user ->
+                items(agentUserListDummy){ user ->
                     CardAgentStockMonitoring(
                         agentUser = user,
                         onCardClick = {user ->
@@ -195,7 +195,7 @@ fun CardAgentStockMonitoring(
                 horizontal = 15.dp, vertical = 5.dp
             )
             .clickable {
-                onCardClick(agentUser.idAgent)
+                onCardClick(agentUser.idAgent!!)
             },
         elevation = CardDefaults.cardElevation(1.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainerLowest)
@@ -212,7 +212,7 @@ fun CardAgentStockMonitoring(
             )
             Text(
                 modifier = Modifier.padding(start = 10.dp),
-                text = agentUser.name,
+                text = agentUser.name!!,
                 style = MaterialTheme.typography.labelLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface,
                 )

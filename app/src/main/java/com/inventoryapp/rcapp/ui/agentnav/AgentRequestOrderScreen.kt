@@ -93,32 +93,15 @@ fun AgentRequestOrderScreen(navController: NavController){
     var isQtyEmpty = true
     val agentProductList by agentProductViewModel.agentProductList.collectAsState()
     var showDetailOrder by remember { mutableStateOf(false) }
-    var sheetState = rememberModalBottomSheetState()
+    var sheetState = rememberModalBottomSheetState(true)
     Scaffold (
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         topBar = {
             Column (
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(top = 65.dp)
                 ){
-                TopAppBar(
-                    title = {
-                        Text(text = "Request Order",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Medium))
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                    navigationIcon = {
-                        IconButton(onClick = {}){
-                            Icon(imageVector = Icons.Rounded.Menu, contentDescription = "menu")
-                        }
-                    },
-                    actions = {},
-                    scrollBehavior = scrollBehavior)
                 Row (
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)

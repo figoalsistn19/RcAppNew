@@ -42,7 +42,6 @@ import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentOrderViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.reqOrders
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -57,7 +56,7 @@ fun OrderHistoryScreen(navController: NavController){
     val searchHistoryOrder by agentOrderViewModel.searchText.collectAsState()
     val historyOrderIsSearching by agentOrderViewModel.isSearching.collectAsState()
     val historyOrderList by agentOrderViewModel.historyOrderList.collectAsState()
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(true)
     var showDetailOrder by remember { mutableStateOf(false) }
     var qtyProduct by remember { mutableStateOf("") }
     var descProduct by remember { mutableStateOf("") }

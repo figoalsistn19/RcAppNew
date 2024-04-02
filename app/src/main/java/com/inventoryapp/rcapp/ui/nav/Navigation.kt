@@ -45,17 +45,17 @@ import com.inventoryapp.rcapp.ui.auth.agentauth.RegisterAgentScreen
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.LoginInternalScreen
 import com.inventoryapp.rcapp.ui.auth.internalauth.RegisterInternalScreen
-import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
-import com.inventoryapp.rcapp.ui.internalnav.InternalHomeScreen
-import com.inventoryapp.rcapp.ui.internalnav.InternalSalesScreen
-import com.inventoryapp.rcapp.ui.internalnav.InternalStockScreen
 import com.inventoryapp.rcapp.ui.internalnav.MainInternalScreen
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.theme.BtnAgenMitra
 
 @Composable
 fun MainNavigation(
-    viewModelAgent: AuthAgentViewModel,
-    viewModelInternal: AuthInternalViewModel,
+    agentUserViewModel: AgentUserViewModel,
+    authViewModelAgent: AuthAgentViewModel,
+    authViewModelInternal: AuthInternalViewModel,
+    internalProductViewModel: InternalProductViewModel,
     navController: NavHostController = rememberNavController()
 ) {
     NavHost(navController = navController, startDestination = ROUTE_HOME) {
@@ -63,22 +63,22 @@ fun MainNavigation(
             WelcomeScreen(navController)
         }
         composable(ROUTE_LOGIN_AGENT) {
-            LoginAgentScreen(viewModelAgent, navController)
+            LoginAgentScreen(authViewModelAgent, navController)
         }
         composable(ROUTE_REGISTER_AGENT){
-            RegisterAgentScreen(viewModelAgent, navController)
+            RegisterAgentScreen(authViewModelAgent, navController)
         }
         composable(ROUTE_LOGIN_INTERNAL){
-            LoginInternalScreen(viewModelInternal, navController)
+            LoginInternalScreen(authViewModelInternal, navController)
         }
         composable(ROUTE_REGISTER_INTERNAL){
-            RegisterInternalScreen (viewModelInternal,navController)
+            RegisterInternalScreen (authViewModelInternal,navController)
         }
         composable(ROUTE_MAIN_INTERNAL_SCREEN){
-            MainInternalScreen(viewModelInternal)
+            MainInternalScreen(agentUserViewModel,authViewModelInternal,internalProductViewModel )
         }
         composable(ROUTE_MAIN_AGENT_SCREEN){
-            MainAgentScreen(viewModelAgent)
+            MainAgentScreen(authViewModelAgent)
         }
 //        composable(BottomBarScreen.Home.route){
 //            InternalHomeScreen(navController = navController)
@@ -126,10 +126,10 @@ fun MainNavigation(
 fun NavGraphBuilder.addAgentGraph(viewModelAgent: AuthAgentViewModel,navController: NavHostController) {
     navigation(startDestination = ROUTE_HOME_AGENT_SCREEN, route = AGENT_NAV) {
         composable(ROUTE_HOME_AGENT_SCREEN){
-            HomeAgentScreen(viewModelAgent,navController)
+            HomeAgentScreen(navController)
         }
         composable(ROUTE_AGENT_STOCK_SCREEN){
-            AgentStockScreen(viewModelAgent, navController)
+            AgentStockScreen(navController)
         }
         composable(ROUTE_AGENT_REQUEST_ORDER_SCREEN){
             AgentRequestOrderScreen(navController)

@@ -7,19 +7,19 @@ import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.inventoryapp.rcapp.data.model.AgentUser
-import com.inventoryapp.rcapp.data.model.VerifAccountStatus
+import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
 import com.inventoryapp.rcapp.util.SharedPrefConstants
 import com.inventoryapp.rcapp.util.await
 import javax.inject.Inject
 
-class AuthAgentRepositoryImp @Inject constructor(
+class AgentRepositoryImp @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val database: FirebaseFirestore,
     private val appPreferences: SharedPreferences,
     private val gson: Gson
-): AuthAgentRepository {
+): AgentRepository {
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
 
@@ -58,6 +58,28 @@ class AuthAgentRepositoryImp @Inject constructor(
             appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, gson.toJson(result))
                 .apply()
             Resource.Success(database)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun getProductData(): Resource<List<InternalProduct>> {
+        return try {
+            val querySnapshot = database
+                .collection(FireStoreCollection.INTERNALPRODUCT)
+                .get()
+                .await()
+
+            val productList = mutableListOf<InternalProduct>()
+            for (document in querySnapshot.documents) {
+                val product = document.toObject(InternalProduct::class.java)
+                if (product != null) {
+                    productList.add(product)
+                }
+            }
+
+            Resource.Success(productList)
         } catch (e: Exception) {
             e.printStackTrace()
             Resource.Failure(e)
@@ -103,7 +125,7 @@ class AuthAgentRepositoryImp @Inject constructor(
         result: (Resource<String>) -> Unit
     ): Resource<FirebaseFirestore> {
         return try {
-            val document = database.collection(FireStoreCollection.AGENTUSER).document(user.idAgent)
+            val document = database.collection(FireStoreCollection.AGENTUSER).document(user.idAgent!!)
             document.set(user).await()
             Resource.Success(database)
         } catch (e: Exception) {

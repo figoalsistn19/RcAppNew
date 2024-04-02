@@ -65,7 +65,8 @@ class AgentOrderViewModel: ViewModel() {
 }
 
 val products = listOf(
-    ProductsItem(internalProducts[1].idProduct, internalProducts[1].productName, internalProducts[1].price,10, 100000),
+    ProductsItem(internalProducts[1].idProduct!!,
+        internalProducts[1].productName!!, internalProducts[1].price,10, 100000),
     )
 
 val reqOrders = listOf( // Replace with your actual data

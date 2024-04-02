@@ -5,6 +5,7 @@ plugins {
     id("dagger.hilt.android.plugin")
     id("kotlin-kapt")
     id("kotlin-parcelize")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -104,6 +105,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
     //lifecycle livedata
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation ("androidx.lifecycle:lifecycle-extensions:2.1.0")
     //fragment
     implementation("androidx.fragment:fragment-ktx:1.6.2")
     // Lifecycle utilities for Compose
@@ -149,11 +151,13 @@ dependencies {
 //    kapt ("androidx.hilt:hilt-compiler:1.1.0")
 
     //firebase bom
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
     //firebase analytics
     implementation("com.google.firebase:firebase-analytics")
     //firebase firestore
     implementation("com.google.firebase:firebase-firestore")
+
+    implementation("com.google.firebase:firebase-crashlytics")
 
     implementation ("com.google.firebase:firebase-auth:22.3.1")
     implementation ("com.google.firebase:firebase-storage-ktx:20.3.0")

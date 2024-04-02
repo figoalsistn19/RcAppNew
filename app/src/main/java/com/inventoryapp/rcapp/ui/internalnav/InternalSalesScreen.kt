@@ -105,35 +105,9 @@ fun InternalSalesScreen(viewModel: AuthInternalViewModel, navController: NavCont
         Scaffold(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
             topBar = {
-                Column {
-                    TopAppBar(
-                        title = {
-                            Text(text = "Riwayat Penjualan",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Medium))
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                            titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
-                        navigationIcon = {
-                            IconButton(onClick = {
-                                scope.launch {
-                                    drawerState.apply {
-                                        if (isClosed) open() else close()
-                                    }
-                                }
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Menu,
-                                    contentDescription = "tombol kembali",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        },
-                        actions = {},
-                        scrollBehavior = scrollBehavior)
+                Column (
+                    modifier = Modifier.padding(top=55.dp)
+                ){
                     SearchBar(
                         query = searchHistoryOrder,//text showed on SearchBar
                         onQueryChange = agentOrderViewModel::onSearchTextChange, //update the value of searchText

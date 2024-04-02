@@ -3,10 +3,13 @@ package com.inventoryapp.rcapp.data.repository
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentUser
+import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.util.Resource
 
-interface AuthInternalRepository {
+interface InternalRepository {
+
+    //AUTH REPO
     val currentUser: FirebaseUser?
     suspend fun login (email: String, password: String): Resource<FirebaseUser>
     suspend fun register (name: String, email: String, password: String, user: InternalUser): Resource<FirebaseUser>
@@ -14,4 +17,13 @@ interface AuthInternalRepository {
     suspend fun storeSession(id: String, result: (InternalUser?) -> Unit): Resource<FirebaseFirestore>
     fun getSession(result: (InternalUser?) -> Unit)
     fun logout()
+
+    //INTERNAL REPO
+    suspend fun addInternalProduct(product: InternalProduct, result: (Resource<String>) -> Unit): Resource<FirebaseFirestore>
+
+    suspend fun getInternalProducts(): Resource<List<InternalProduct>>
+
+    suspend fun getUsers(): Resource<List<InternalUser>>
+
+    suspend fun getAgentUsers(): Resource<List<AgentUser>>
 }

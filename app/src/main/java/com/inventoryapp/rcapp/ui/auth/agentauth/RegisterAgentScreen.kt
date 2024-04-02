@@ -257,15 +257,10 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface
         )
-        LaunchedEffect(key1 = onBackPressed) {
-            if (onBackPressed.value) {
-                navController.popBackStack() // Or use other methods if needed
-            }
-        }
         authResource?.value?.let {
             when (it) {
                 is Resource.Failure -> {
-                    Toast.makeText(context, it.exception.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.constrainAs(refLoading) {

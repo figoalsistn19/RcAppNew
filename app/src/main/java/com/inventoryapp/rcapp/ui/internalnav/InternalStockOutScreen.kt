@@ -61,7 +61,7 @@ import com.inventoryapp.rcapp.ui.agentnav.CardItem
 import com.inventoryapp.rcapp.ui.agentnav.ListItemForInOut
 import com.inventoryapp.rcapp.ui.agentnav.ListProduct
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -72,7 +72,7 @@ import com.inventoryapp.rcapp.ui.theme.spacing
 fun InternalStockOutScreen(navController: NavController){
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val agentProductViewModel = AgentProductViewModel()
-    val internalProductViewModel = InternalProductViewModel()
+    val internalProductViewModel = InternalProductTestViewModel()
     val spacing = MaterialTheme.spacing
     val searchText by agentProductViewModel.searchText.collectAsState()
     val isSearching by agentProductViewModel.isSearching.collectAsState()

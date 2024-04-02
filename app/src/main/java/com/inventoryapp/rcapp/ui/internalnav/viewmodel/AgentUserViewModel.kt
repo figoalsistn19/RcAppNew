@@ -1,18 +1,43 @@
 package com.inventoryapp.rcapp.ui.internalnav.viewmodel
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.inventoryapp.rcapp.data.model.AgentUser
-import com.inventoryapp.rcapp.data.model.VerifAccountStatus
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.reqOrders
+import com.inventoryapp.rcapp.data.repository.InternalRepository
+import com.inventoryapp.rcapp.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.stateIn
-import java.util.Date
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class VerificationAgentViewModel :ViewModel(){
+@HiltViewModel
+class AgentUserViewModel @Inject constructor(
+    private val repository: InternalRepository
+): ViewModel() {
+
+    private val _agentUserSearch = MutableStateFlow<Resource<List<AgentUser>>>(Resource.Loading)
+
+    private val _agentUsers = MutableLiveData<Resource<List<AgentUser>>>()
+    val agentUsers: LiveData<Resource<List<AgentUser>>> get() = _agentUsers
+
+    fun fetchUsers() {
+        viewModelScope.launch {
+            _agentUsers.value = Resource.Loading
+            val result = repository.getAgentUsers()
+            _agentUsers.value = result
+        }
+    }
+
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
@@ -21,7 +46,7 @@ class VerificationAgentViewModel :ViewModel(){
     val searchText = _searchText.asStateFlow()
 
     //filter for list order by sales
-    private val _agentUsersList = MutableStateFlow(agentUserListDummy)
+    private val _agentUsersList = MutableStateFlow(emptyList<AgentUser>())
     val agentUsersList = searchText
         .combine(_agentUsersList) { text, orders ->//combine searchText with _contriesList
             if (text.isBlank()) { //return the entery list of countries if not is typed
@@ -36,6 +61,20 @@ class VerificationAgentViewModel :ViewModel(){
             initialValue = _agentUsersList.value
         )
 
+    init {
+        viewModelScope.launch {
+            _agentUserSearch.value = repository.getAgentUsers()
+            // Update filtered list based on initial data
+            _agentUsersList.value = mapToAgentList(_agentUserSearch.value) ?: emptyList()
+        }
+    }
+
+    private fun mapToAgentList(resource: Resource<List<AgentUser>>): List<AgentUser>? {
+        return when (resource) {
+            is Resource.Success -> resource.result
+            else -> null
+        }
+    }
     fun onSearchTextChange(text: String) {
         _searchText.value = text
     }
@@ -46,18 +85,5 @@ class VerificationAgentViewModel :ViewModel(){
             onSearchTextChange("")
         }
     }
+
 }
-
-val agentUserListDummy = listOf(
-    AgentUser("miwf","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("ewfwef","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("fewfewef","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("fewfwf","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("wdcewc","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("emfoeff","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("fweomfweo","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("wefowfo","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("fewkfmwe","Figo als", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.PENDING, Date()),
-    AgentUser("ewfnwefwe","Figo ni", "figo@mail.com", "21313132","wede2d2d2", VerifAccountStatus.APPROVED, Date())
-
-)
