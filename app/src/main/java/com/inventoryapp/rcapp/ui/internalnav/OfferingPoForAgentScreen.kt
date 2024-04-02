@@ -74,11 +74,14 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentUser
+import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.CardItem
+import com.inventoryapp.rcapp.ui.agentnav.ListProduct
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.VerificationAgentViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.agentUserListDummy
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
@@ -88,15 +91,20 @@ import com.inventoryapp.rcapp.util.Resource
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, navController: NavController){
+fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProductViewModel: InternalProductViewModel, navController: NavController){
     val verifAgentViewModel = VerificationAgentViewModel()
     val queryAgentList by verifAgentViewModel.searchText.collectAsState()
     val onQueryChangeAgentList by verifAgentViewModel.isSearching.collectAsState()
     val agentList by verifAgentViewModel.agentUsersList.collectAsState()
-    val internalProductViewModel = InternalProductTestViewModel()
+//    val internalProductViewModel = InternalProductTestViewModel()
+//    val queryInternalProduct by internalProductViewModel.searchText.collectAsState()
     val queryInternalProduct by internalProductViewModel.searchText.collectAsState()
+//    val onQueryChangeInternalProduct by internalProductViewModel.isSearching.collectAsState()
     val onQueryChangeInternalProduct by internalProductViewModel.isSearching.collectAsState()
-    val internalProductList1 by internalProductViewModel.productsList.collectAsState()
+//    val internalProductList1 by internalProductViewModel.productsList.collectAsState()
+    val internalProduct by internalProductViewModel.internalProducts.observeAsState()
+    val internalProductSearchList by internalProductViewModel.internalProductList.collectAsState()
+
     val query by agentUserViewModel.searchText.collectAsState()
     val onQueryChange by agentUserViewModel.isSearching.collectAsState()
     val agentUserList by agentUserViewModel.agentUsers.observeAsState()
@@ -414,7 +422,7 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, navControlle
                             }
                         ) {
                             LazyColumn(modifier = Modifier.padding(horizontal = 10.dp)) {
-                                items(internalProductList1) { product ->
+                                items(internalProductSearchList) { product ->
                                     CardItem(
                                         cardData = product,
                                         selectedCard = selectedProduct,
@@ -441,20 +449,43 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, navControlle
                             }
                             .padding(horizontal = 10.dp, vertical = 10.dp))
                         {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp, vertical = 10.dp)
-                            )
-                            {
-                                items(internalProducts) { product ->
-                                    CardItem(
-                                        cardData = product,
-                                        selectedCard = selectedProduct,
-                                        onCardClicked = { selectedProduct ->
-                                            selectedProductNameHolder.updateValue(selectedProduct)
-                                            println("Nama produk: $selectedProduct")
+                            LaunchedEffect(Unit) {
+                                internalProductViewModel.fetchInternalProducts()
+                            }
+                            when (internalProduct) {
+                                is Resource.Success -> {
+                                    val internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result
+                                    LazyColumn(
+                                        modifier = Modifier
+                                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                                    )
+                                    {
+                                        items(internalProductList) { product ->
+                                            CardItem(
+                                                cardData = product,
+                                                selectedCard = selectedProduct,
+                                                onCardClicked = { selectedProduct ->
+                                                    selectedProductNameHolder.updateValue(selectedProduct)
+                                                    println("Nama produk: $selectedProduct")
+                                                }
+                                            ) // Replace with your composable for each item
                                         }
-                                    ) // Replace with your composable for each item
+                                    }
+                                }
+                                is Resource.Loading -> {
+                                    // Tampilkan indikator loading jika diperlukan
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                                is Resource.Failure -> {
+                                    // Tampilkan pesan error jika diperlukan
+                                    val error = (internalProduct as Resource.Failure).throwable
+                                    Text(text = "Error: ${error.message}")
+                                }
+                                else -> {
+                                    // Tampilkan pesan default jika diperlukan
+                                    Text(text = "No data available")
                                 }
                             }
                         }

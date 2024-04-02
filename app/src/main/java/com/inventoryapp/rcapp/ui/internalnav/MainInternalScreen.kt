@@ -177,7 +177,7 @@ fun MainInternalScreen(
                     AgentStockMonitoringScreen()
                 }
                 composable(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN){
-                    OfferingPoForAgentScreen(agentUserViewModel, navController)
+                    OfferingPoForAgentScreen(agentUserViewModel, internalProductViewModel, navController)
                 }
             }
         }
