@@ -33,10 +33,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.inventoryapp.rcapp.ui.WelcomeScreen
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.internalnav.BottomBar
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_ORDER_HISTORY_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_OUT_SCREEN
@@ -47,6 +52,9 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainAgentScreen(
+    agentTransactionViewModel: AgentTransactionViewModel,
+    agentProductViewModel: AgentProductViewModel,
+    internalProductViewModel: InternalProductViewModel,
     authViewModel: AuthAgentViewModel?
 ){
     val navController = rememberNavController()
@@ -71,7 +79,9 @@ fun MainAgentScreen(
                     )
                     IconButton(onClick = {
                         authViewModel?.logout()
-                        navController.navigate(ROUTE_HOME)
+                        navController.navigate(ROUTE_HOME) {
+                            popUpTo(ROUTE_MAIN_AGENT_SCREEN) { inclusive = true }
+                        }
                     }) {
                         Icon(imageVector = Icons.Default.Home, contentDescription = "logout")
                     }
@@ -127,22 +137,25 @@ fun MainAgentScreen(
             NavHost(navController = navController, startDestination = BottomBarScreen.Home.route,
             ){
                 composable(BottomBarScreen.Home.route){
-                    HomeAgentScreen(navController = navController)
+                    HomeAgentScreen(agentProductViewModel,navController = navController)
                 }
                 composable(BottomBarScreen.Stock.route){
-                    AgentStockScreen(navController = navController)
+                    AgentStockScreen(agentProductViewModel, internalProductViewModel, navController = navController)
                 }
                 composable(BottomBarScreen.Sales.route){
-                    AgentRequestOrderScreen(navController = navController)
+                    AgentRequestOrderScreen(agentProductViewModel, navController = navController)
                 }
                 composable(ROUTE_ORDER_HISTORY_SCREEN){
                     OrderHistoryScreen(navController)
                 }
                 composable(ROUTE_STOCK_IN_SCREEN){
-                    StockInScreen(navController)
+                    StockInScreen(agentTransactionViewModel, agentProductViewModel, navController)
                 }
                 composable(ROUTE_STOCK_OUT_SCREEN){
-                    StockOutScreen(navController)
+                    StockOutScreen(agentProductViewModel, navController)
+                }
+                composable(ROUTE_HOME){
+                    WelcomeScreen(viewModel = authViewModel, navController = navController)
                 }
             }
         }

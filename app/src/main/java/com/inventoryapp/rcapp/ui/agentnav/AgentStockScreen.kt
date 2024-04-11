@@ -2,9 +2,8 @@ package com.inventoryapp.rcapp.ui.agentnav
 
 import android.annotation.SuppressLint
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,56 +18,41 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Divider
+import androidx.compose.foundation.text2.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -76,61 +60,72 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.R
+import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.StatusOrder
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
-import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
-import com.inventoryapp.rcapp.ui.nav.BottomNavAgentViewModel
-import com.inventoryapp.rcapp.ui.nav.BottomNavBarAgent
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
-import kotlinx.coroutines.launch
+import com.inventoryapp.rcapp.util.Resource
+import java.util.Date
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SuspiciousIndentation")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun AgentStockScreen(navController: NavController){
-    val agentProductViewModel = AgentProductViewModel()
-    val internalProductViewModel = InternalProductTestViewModel()
+fun AgentStockScreen(
+    agentProductViewModel: AgentProductViewModel?,
+    internalProductViewModel: InternalProductViewModel?,
+    navController: NavController
+){
     val spacing = MaterialTheme.spacing
-    val searchText by agentProductViewModel.searchText.collectAsState()
-    val isSearching by agentProductViewModel.isSearching.collectAsState()
-    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
-    val searchInternalProduct by internalProductViewModel.searchText.collectAsState()
-    val internalProductIsSearching by internalProductViewModel.isSearching.collectAsState()
-    val internalProductList by internalProductViewModel.productsList.collectAsState()
-    val sheetState = rememberModalBottomSheetState()
+    val searchText by agentProductViewModel!!.searchText.collectAsState()
+    val isSearching by agentProductViewModel!!.isSearching.collectAsState()
+    val agentProductList by agentProductViewModel!!.agentProductList.collectAsState()
+    val searchInternalProduct by internalProductViewModel!!.searchText.collectAsState()
+    val internalProductIsSearching by internalProductViewModel!!.isSearching.collectAsState()
+    val internalProductsForSearch by internalProductViewModel!!.internalProductList.collectAsState()
+    val sheetState = rememberModalBottomSheetState(true)
     var showAddProductSheet by remember { mutableStateOf(false) }
     var showDetailProductSheet by remember {
         mutableStateOf(false)
     }
+
+    val addAgentProductResource = agentProductViewModel?.agentProductFlow?.collectAsState()
+    val agentProducts by agentProductViewModel!!.agentProducts.observeAsState()
+    val internalProducts by internalProductViewModel!!.internalProducts.observeAsState()
+
     val context = LocalContext.current
     var qtyProduct by remember { mutableStateOf("") }
     var descProduct by remember { mutableStateOf("") }
     val selectedCard = remember { mutableStateOf("") }
-    val selectedProductNameHolder = StateHolder(initialValue = "")
+//    val selectedProductNameHolder = StateHolder(initialValue = "")
+    var selectedProduct by remember {
+        mutableStateOf("")
+    }
+    var selectedItemId by remember {
+        mutableStateOf("")
+    }
     var isQtyEmpty = true
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         topBar = {
             Column (
-                modifier = Modifier.padding(top = 55.dp)
+                modifier = Modifier.padding(top = 55.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ){
                 SearchBar(
                     query = searchText,//text showed on SearchBar
-                    onQueryChange = agentProductViewModel::onSearchTextChange, //update the value of searchText
+                    onQueryChange = agentProductViewModel!!::onSearchTextChange, //update the value of searchText
                     onSearch = agentProductViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
                     active = isSearching, //whether the user is searching or not
                     onActiveChange = { agentProductViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
@@ -146,17 +141,49 @@ fun AgentStockScreen(navController: NavController){
                 ) {
                     LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
                         items(agentProductList) { item ->
-                            ListProduct(item,
+                            ListProductAgent(item,
                                 onCardClicked = {
                                 })
                         }
                     }
                 }
-                LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
-                    items(internalProductList) { item ->
-                        ListProduct(item,
-                            onCardClicked = {
-                            })
+
+                LaunchedEffect(Unit) {
+                    agentProductViewModel.fetchAgentProducts()
+                }
+                when (agentProducts) {
+                    is Resource.Success -> {
+                        val agentProduct = (agentProducts as Resource.Success<List<AgentProduct>>).result
+                        if (agentProduct.isEmpty()){
+                            Text(
+                                modifier = Modifier.padding(top=20.dp),
+                                text = "Data masih kosong")
+                        }
+                        else {
+                            LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
+                                items(agentProduct) { item ->
+                                    ListProductAgent(item,
+                                        onCardClicked = {
+                                        })
+                                }
+                            }
+                        }
+                    }
+                    is Resource.Loading -> {
+                        // Tampilkan indikator loading jika diperlukan
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp, vertical = 10.dp)
+                        )
+                    }
+                    is Resource.Failure -> {
+                        // Tampilkan pesan error jika diperlukan
+                        val error = (agentProducts as Resource.Failure).throwable
+                        Text(text = "Error: ${error.message}")
+                    }
+                    else -> {
+                        // Tampilkan pesan default jika diperlukan
+                        Text(text = "No data available")
                     }
                 }
             }
@@ -221,7 +248,7 @@ fun AgentStockScreen(navController: NavController){
                     ){
                         SearchBar(
                             query = searchInternalProduct,
-                            onQueryChange = internalProductViewModel::onSearchTextChange,
+                            onQueryChange = internalProductViewModel!!::onSearchTextChange,
                             onSearch = internalProductViewModel::onSearchTextChange,
                             active = internalProductIsSearching,
                             onActiveChange = { internalProductViewModel.onToogleSearch()},
@@ -235,35 +262,77 @@ fun AgentStockScreen(navController: NavController){
                             colors = SearchBarDefaults.colors(MaterialTheme.colorScheme.surfaceContainerLowest)
                         ) {
                             LazyColumn {
-                                items(internalProductList) { product ->
+                                items(internalProductsForSearch) { product ->
                                     CardItem(
                                         cardData = product,
                                         selectedCard = selectedCard,
                                         onCardClicked = {productName ->
-                                            selectedProductNameHolder.updateValue(productName)
-                                            println("Nama produk: $productName")}
+//                                            selectedProductNameHolder.updateValue(productName)
+                                            selectedProduct = productName
+//                                            println("Nama produk: $productName")
+                                        },
+                                        idInternalProduct = {id ->
+                                            selectedItemId = id
+                                        }
                                     )
                                 }
                             }
                         }
                     }
-                    LazyColumn (modifier = Modifier
-                        .constrainAs(refListProduct) {
-                            top.linkTo(refSearchBar.bottom)
-                            start.linkTo(parent.start, spacing.medium)
-                            end.linkTo(parent.end, spacing.medium)
-                            bottom.linkTo(refBtnNext.top, spacing.extraSmall)
-                            height = Dimension.fillToConstraints
+                    LaunchedEffect(Unit) {
+                        internalProductViewModel!!.fetchInternalProducts()
+                    }
+
+                    when (internalProducts) {
+                        is Resource.Success -> {
+                            val internalProductList = (internalProducts as Resource.Success<List<InternalProduct>>).result
+                            LazyColumn (modifier = Modifier
+                                .constrainAs(refListProduct) {
+                                    top.linkTo(refSearchBar.bottom)
+                                    start.linkTo(parent.start, spacing.medium)
+                                    end.linkTo(parent.end, spacing.medium)
+                                    bottom.linkTo(refBtnNext.top, spacing.extraSmall)
+                                    height = Dimension.fillToConstraints
+                                }
+                                .padding(horizontal = 10.dp, vertical = 10.dp)
+                            )
+                            {
+                                items(internalProductList) { internalitem ->
+                                    CardItem(internalitem, selectedCard,
+                                        onCardClicked = { productName ->
+//                                            selectedProductNameHolder.updateValue(productName)
+                                            selectedProduct = productName
+//                                            println("Nama produk: $productName")
+                                        },
+                                        idInternalProduct = {
+                                            selectedItemId = it
+                                        }
+                                    ) // Replace with your composable for each item
+                                }
+                            }
                         }
-                        .padding(horizontal = 10.dp, vertical = 10.dp)
-                    )
-                    {
-                        items(internalProductList) { internalitem ->
-                            CardItem(internalitem, selectedCard,
-                                onCardClicked = { productName ->
-                                    selectedProductNameHolder.updateValue(productName)
-                                    println("Nama produk: $productName")
-                                }) // Replace with your composable for each item
+                        is Resource.Loading -> {
+                            // Tampilkan indikator loading jika diperlukan
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .constrainAs(refListProduct) {
+                                        top.linkTo(refSearchBar.bottom)
+                                        start.linkTo(parent.start, spacing.medium)
+                                        end.linkTo(parent.end, spacing.medium)
+                                        bottom.linkTo(refBtnNext.top, spacing.extraSmall)
+                                        height = Dimension.fillToConstraints
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 10.dp)
+                            )
+                        }
+                        is Resource.Failure -> {
+                            // Tampilkan pesan error jika diperlukan
+                            val error = (internalProducts as Resource.Failure).throwable
+                            Text(text = "Error: ${error.message}")
+                        }
+                        else -> {
+                            // Tampilkan pesan default jika diperlukan
+                            Text(text = "No data available")
                         }
                     }
                     Button(
@@ -302,45 +371,37 @@ fun AgentStockScreen(navController: NavController){
                 },
                 sheetState = sheetState
             ) {
-                ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-                    val (refTitleSheet, refProductName, refQtyMin, refDescProduct, refBtnSave) = createRefs()
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                    ) {
+//                    val (refTitleSheet, refProductName, refQtyMin, refDescProduct, refBtnSave) = createRefs()
                     Text(
                         text = "Tambahkan Detail Produk",
                         modifier = Modifier
-                            .constrainAs(refTitleSheet) {
-                                top.linkTo(parent.top)
-                                start.linkTo(parent.start)
-                                end.linkTo(parent.end)
-                            }
                             .padding(vertical = 10.dp),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
                     )
                     Text(
-                        text = selectedProductNameHolder.value ,
-                        modifier = Modifier.constrainAs(refProductName) {
-                            top.linkTo(refTitleSheet.bottom, spacing.medium)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            width = Dimension.wrapContent
-                        },
+                        text = selectedProduct ,
+                        modifier = Modifier,
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
                     )
+                    TextFieldState()
                     OutlinedTextField(
                         value = qtyProduct,
                         onValueChange = {
+                            if (it.isDigitsOnly())
                             qtyProduct = it
                             isQtyEmpty = it.isEmpty()
-                        },
+                                        },
                         isError = isQtyEmpty,
                         label = {
                             Text(text = "Stok Minimum")
                         },
-                        modifier = Modifier.constrainAs(refQtyMin) {
-                            top.linkTo(refProductName.bottom, spacing.medium)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            width = Dimension.wrapContent
-                        },
+                        modifier = Modifier
+                        ,
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.None,
                             autoCorrect = false,
@@ -366,11 +427,7 @@ fun AgentStockScreen(navController: NavController){
                         label = {
                             Text(text = "Keterangan")
                         },
-                        modifier = Modifier.constrainAs(refDescProduct) {
-                            top.linkTo(refQtyMin.bottom, spacing.medium)
-                            start.linkTo(parent.start, spacing.large)
-                            end.linkTo(parent.end, spacing.large)
-                        },
+                        modifier = Modifier,
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.None,
                             autoCorrect = false,
@@ -378,26 +435,50 @@ fun AgentStockScreen(navController: NavController){
                             imeAction = ImeAction.Done
                         )
                     )
+                    fun getAgentProduct(): AgentProduct {
+                        val qtyMinProductValue = qtyProduct.toIntOrNull() ?: 0
+                        return AgentProduct(
+                            idProduct = selectedItemId,
+                            productName = selectedProduct,
+                            qtyProduct = 0,
+                            qtyMin = qtyMinProductValue,
+                            updateAt = Date(),
+                            desc = descProduct
+                        )
+                    }
+                    val agentProductObj: AgentProduct = getAgentProduct()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {
                                 // Tampilkan pesan error
                                 Toast.makeText(context, "Jumlah stok minimum tidak boleh kosong", Toast.LENGTH_SHORT).show()
                             }else {
-                                isQtyEmpty= false
-                                navController.navigate(ROUTE_HOME_AGENT_SCREEN)
+                                agentProductViewModel?.addAgentProduct(agentProductObj)
+                                Toast.makeText(
+                                    context,
+                                    "Sukses menambahkan barang",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                navController.navigate(ROUTE_AGENT_STOCK_SCREEN)
                             }
                         },
                         modifier = Modifier
-                            .constrainAs(refBtnSave) {
-                                top.linkTo(refDescProduct.bottom, spacing.medium)
-                                start.linkTo(refDescProduct.start)
-                                end.linkTo(refDescProduct.end)
-                            }
-                            .padding(top = 10.dp)
+                            .padding(top = 10.dp, bottom = 25.dp)
                             .width(200.dp)
                     ) {
                         Text(text = "Simpan")
+                    }
+                    addAgentProductResource?.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                            }
+                            is Resource.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is Resource.Success -> {
+                            }
+                        }
                     }
                 }
             }
@@ -410,7 +491,8 @@ fun AgentStockScreen(navController: NavController){
 fun CardItem(
     cardData: InternalProduct,
     selectedCard: MutableState<String>,
-    onCardClicked: (String) -> Unit
+    onCardClicked: (String) -> Unit,
+    idInternalProduct: (String) -> Unit
 ) {
 //    val selectedCard = remember { mutableStateOf("") }
 //    var cardClicked = remember { mutableStateOf(false) }
@@ -424,6 +506,7 @@ fun CardItem(
             .clickable {
                 selectedCard.value = cardData.idProduct!!
                 onCardClicked(cardData.productName!!)
+                idInternalProduct(cardData.idProduct!!)
             }
             .height(80.dp) ,
         colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onSurface),
@@ -457,6 +540,7 @@ fun CardItem(
         }
     }
 }
+
 
 //@Preview(apiLevel = 33)
 //@Composable

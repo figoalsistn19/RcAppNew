@@ -1,16 +1,17 @@
 package com.inventoryapp.rcapp.data.model
 
+import android.os.Parcelable
 import com.google.firebase.firestore.ServerTimestamp
+import kotlinx.parcelize.Parcelize
 import java.util.Date
 
+@Parcelize
 data class AgentProduct(
-    val idAgentProduct: String,
-    val idAgent: AgentUser,
-    val idProduct: String,
-    val productName: String,
-    val qtyProduct: Int,
-    val qtyMin: Int,
+    var idProduct: String? ="",
+    var productName: String? ="",
+    var qtyProduct: Int? = null,
+    var qtyMin: Int? = null,
     @ServerTimestamp
-    val updateAt: Date,
-    val desc: String
-)
+    var updateAt: Date? = null,
+    var desc: String? =""
+): Parcelable

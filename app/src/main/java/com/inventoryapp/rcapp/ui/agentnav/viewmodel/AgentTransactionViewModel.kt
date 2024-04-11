@@ -6,11 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
-import com.inventoryapp.rcapp.data.model.AgentProduct
-import com.inventoryapp.rcapp.data.model.AgentUser
+import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.util.Resource
-import com.inventoryapp.rcapp.util.SharedPrefConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,42 +20,35 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AgentProductViewModel @Inject constructor(
+class AgentTransactionViewModel @Inject constructor(
     private val repository: AgentRepository,
     private val appPreferences: SharedPreferences
 ) : ViewModel() {
 
-//    private val _idAgentProduct = MutableStateFlow(appPreferences.getString(SharedPrefConstants.USER_ID,null))
-//    val idAgentProduct = _idAgentProduct.asStateFlow()
+    //for add product in
+    private val _addProductInFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
+    val addProductInFlow: StateFlow<Resource<FirebaseFirestore>?> = _addProductInFlow
 
-    // Add agent product
-    private val _agentProductFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
-    val agentProductFlow: StateFlow<Resource<FirebaseFirestore>?> = _agentProductFlow
-
-    fun addAgentProduct(agentProduct: AgentProduct) = viewModelScope.launch {
-        val result = repository.addAgentProduct(product = agentProduct){
+    fun addProductIn(transaction: AgentStockTransaction, idProduct: String) = viewModelScope.launch {
+        val result = repository.addAgentStockIn(transaction, idProduct) {
         }
-        _agentProductFlow.value = result
+        _addProductInFlow.value = result
     }
 
-    private val _agentProductSearch = MutableStateFlow<Resource<List<AgentProduct>>>(Resource.Loading)
+    //get agent transaction
+    private val _agentTransactionInSearch = MutableStateFlow<Resource<List<AgentStockTransaction>>>(Resource.Loading)
 
-    private val _agentProducts = MutableLiveData<Resource<List<AgentProduct>>>()
-    val agentProducts: LiveData<Resource<List<AgentProduct>>> get() = _agentProducts
+    private val _agentTransactionsIn = MutableLiveData<Resource<List<AgentStockTransaction>>>()
+    val agentTransactionsIn: LiveData<Resource<List<AgentStockTransaction>>> get() = _agentTransactionsIn
 
-    fun fetchAgentProducts() {
+    fun fetchStockIn() {
         viewModelScope.launch {
-            _agentProducts.value = Resource.Loading
-            val result = repository.getAgentProduct()
-            _agentProducts.value = result
+            _agentTransactionsIn.value = Resource.Loading
+            val result = repository.getAgentStockIn()
+            _agentTransactionsIn.value = result
         }
     }
 
-    fun getSession(result: (AgentUser?) -> Unit){
-        repository.getSession(result)
-    }
-
-    //first state whether the search is happening or not
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
@@ -65,9 +56,9 @@ class AgentProductViewModel @Inject constructor(
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
-    private val _agentProductList = MutableStateFlow(emptyList<AgentProduct>())
-    val agentProductList = searchText
-        .combine(_agentProductList) { text, agentProduct ->//combine searchText with _contriesList
+    private val _agentTransactionInList = MutableStateFlow(emptyList<AgentStockTransaction>())
+    val agentTransactionList = searchText
+        .combine(_agentTransactionInList) { text, agentProduct ->//combine searchText with _contriesList
             if (text.isBlank()) { //return the entery list of countries if not is typed
                 agentProduct
             }
@@ -77,20 +68,18 @@ class AgentProductViewModel @Inject constructor(
         }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
-            initialValue = _agentProductList.value
+            initialValue = _agentTransactionInList.value
         )
-
-
 
     init {
         viewModelScope.launch {
-            _agentProductSearch.value = repository.getAgentProduct()
+            _agentTransactionInSearch.value = repository.getAgentStockIn()
             // Update filtered list based on initial data
-            _agentProductList.value = mapToAgentProductList(_agentProductSearch.value) ?: emptyList()
+            _agentTransactionInList.value = mapToAgentProductList(_agentTransactionInSearch.value) ?: emptyList()
         }
     }
 
-    private fun mapToAgentProductList(resource: Resource<List<AgentProduct>>): List<AgentProduct>? {
+    private fun mapToAgentProductList(resource: Resource<List<AgentStockTransaction>>): List<AgentStockTransaction>? {
         return when (resource) {
             is Resource.Success -> resource.result
             else -> null
@@ -107,4 +96,6 @@ class AgentProductViewModel @Inject constructor(
             onSearchTextChange("")
         }
     }
+
+    /// AGENT TRANSACTION IN DONE
 }

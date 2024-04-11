@@ -6,12 +6,17 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
+import com.inventoryapp.rcapp.data.model.AgentProduct
+import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.util.FireStoreCollection
+import com.inventoryapp.rcapp.util.FirebaseCoroutines
 import com.inventoryapp.rcapp.util.Resource
 import com.inventoryapp.rcapp.util.SharedPrefConstants
 import com.inventoryapp.rcapp.util.await
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AgentRepositoryImp @Inject constructor(
@@ -38,6 +43,12 @@ class AgentRepositoryImp @Inject constructor(
                 // Handle case where user data or approved status not found
                 return Resource.Failure(Exception("User not found or verification not approved"))
             } else {
+                for (doc in documentSnapshot){
+                    val agentUser = doc.toObject(AgentUser::class.java)
+                    appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
+                    appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idAgent).apply()
+                    appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.verificationStatus.toString()).apply()
+                }
                 Resource.Success(result.user!!)
             }
         } catch (e: Exception) {
@@ -54,6 +65,12 @@ class AgentRepositoryImp @Inject constructor(
             database.collection(FireStoreCollection.AGENTUSER).document(id)
                 .get()
             appPreferences.edit().putString(SharedPrefConstants.USER_SESSION, gson.toJson(result))
+                .apply()
+            appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, gson.toJson(result))
+                .apply()
+            appPreferences.edit().putString(SharedPrefConstants.USER_NAME, gson.toJson(result))
+                .apply()
+            appPreferences.edit().putString(SharedPrefConstants.USER_ID, gson.toJson(result))
                 .apply()
             appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, gson.toJson(result))
                 .apply()
@@ -137,5 +154,204 @@ class AgentRepositoryImp @Inject constructor(
     override fun logout() {
         firebaseAuth.signOut()
         appPreferences.edit().putString(SharedPrefConstants.USER_SESSION, null).apply()
+        appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, null).apply()
+        appPreferences.edit().putString(SharedPrefConstants.USER_NAME, null).apply()
+        appPreferences.edit().putString(SharedPrefConstants.USER_ID, null).apply()
     }
+
+    override suspend fun addAgentProduct(
+        product: AgentProduct,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore> {
+        return try {
+            val firebaseResult = database
+                .collection(FireStoreCollection.AGENTUSER)
+                .document(currentUser!!.uid)
+                .collection(FireStoreCollection.AGENTPRODUCT)
+                .document(product.idProduct!!)
+//            val idProduct = firebaseResult.document().id // Dapatkan ID yang dihasilkan secara otomatis
+//            product.idProduct = idProduct
+            firebaseResult.set(product).await()
+            Resource.Success(database)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun addAgentStockIn(
+        transaction: AgentStockTransaction,
+        idProduct: String,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore> {
+        return try {
+            val stockRef = database.collection(FireStoreCollection.AGENTUSER)
+                .document(currentUser!!.uid)
+                .collection(FireStoreCollection.AGENTPRODUCT)
+                .document(idProduct)
+            val transactionRef = database.collection(FireStoreCollection.AGENTUSER)
+                .document(currentUser!!.uid)
+                .collection(FireStoreCollection.AGENTTRANSACTION)
+                .document()
+
+            database.runTransaction { _transaction ->
+                val stockSnapshot = _transaction.get(stockRef)
+
+                val currentStock = stockSnapshot.getLong("qtyProduct") ?: 0
+                val updatedStock = currentStock + transaction.qtyProduct!!
+
+                _transaction.update(stockRef, "qtyProduct", updatedStock)
+                _transaction.set(transactionRef, transaction)
+
+                null
+            }.await()
+            Resource.Success(database)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun getAgentProduct(): Resource<List<AgentProduct>> {
+        return withContext(Dispatchers.IO) {
+            val userId = if (currentUser != null)
+                currentUser!!.uid
+            else "ZeVxsI1nTCeZEprqlzZpti00sC42"
+            val querySnapshot = database
+                .collection(FireStoreCollection.AGENTUSER)
+                .document(userId)
+                .collection(FireStoreCollection.AGENTPRODUCT)
+                .get()
+            val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
+            when (taskResult) {
+                is Resource.Success -> {
+                    val documents = taskResult.result
+                    val users = mutableListOf<AgentProduct>()
+                    for (document in documents) {
+                        val user = document.toObject(AgentProduct::class.java)
+                        users.add(user)
+                    }
+                    Resource.Success(users)
+                }
+
+                is Resource.Failure -> {
+                    Resource.Failure(taskResult.throwable)
+                }
+
+                Resource.Loading -> TODO()
+            }
+        }
+    }
+
+    override suspend fun getAgentStockIn(): Resource<List<AgentStockTransaction>> {
+        return withContext(Dispatchers.IO) {
+            val userId = if (currentUser != null)
+                currentUser!!.uid
+            else "ZeVxsI1nTCeZEprqlzZpti00sC42"
+            val querySnapshot = database
+                .collection(FireStoreCollection.AGENTUSER)
+                .document(userId)
+                .collection(FireStoreCollection.AGENTTRANSACTION)
+                .get()
+            val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
+            when (taskResult) {
+                is Resource.Success -> {
+                    val documents = taskResult.result
+                    val users = mutableListOf<AgentStockTransaction>()
+                    for (document in documents) {
+                        val transaction = document.toObject(AgentStockTransaction::class.java)
+                        users.add(transaction)
+                    }
+                    Resource.Success(users)
+                }
+
+                is Resource.Failure -> {
+                    Resource.Failure(taskResult.throwable)
+                }
+
+                Resource.Loading -> TODO()
+            }
+        }
+    }
+//        val userStr = appPreferences.getString(SharedPrefConstants.USER_SESSION, null)
+//        if (userStr!!.isEmpty()) {
+//            // Handle case where user data or approved status not found
+//            return Resource.Failure(Exception("No data available!!"))
+//        } else
+//            return withContext(Dispatchers.IO) {
+//                val querySnapshot = database
+//                    .collection(FireStoreCollection.AGENTUSER)
+//                    .document(currentUser!!.uid)
+//                    .collection(FireStoreCollection.AGENTPRODUCT)
+//                    .get()
+//                val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
+//                when (taskResult) {
+//                    is Resource.Success -> {
+//                        val documents = taskResult.result
+//                        val users = mutableListOf<AgentProduct>()
+//                        for (document in documents) {
+//                            val user = document.toObject(AgentProduct::class.java)
+//                            users.add(user)
+//                        }
+//                        Resource.Success(users)
+//                    }
+//                    is Resource.Failure -> {
+//                        Resource.Failure(taskResult.throwable)
+//                    }
+//
+//                    Resource.Loading -> TODO()
+//                }
+//            }
+
+//        if (userStr != null){
+//            return withContext(Dispatchers.IO) {
+//                val querySnapshot = database
+//                    .collection(FireStoreCollection.AGENTUSER)
+//                    .document(userStr)
+//                    .collection(FireStoreCollection.AGENTPRODUCT)
+//                    .get()
+//                val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
+//                when (taskResult) {
+//                    is Resource.Success -> {
+//                        val documents = taskResult.result
+//                        val users = mutableListOf<AgentProduct>()
+//                        for (document in documents) {
+//                            val user = document.toObject(AgentProduct::class.java)
+//                            users.add(user)
+//                        }
+//                        Resource.Success(users)
+//                    }
+//                    is Resource.Failure -> {
+//                        Resource.Failure(taskResult.throwable)
+//                    }
+//
+//                    Resource.Loading -> TODO()
+//                }
+//            }
+//        } else
+//            return withContext(Dispatchers.IO) {
+//                val querySnapshot = database
+//                    .collection(FireStoreCollection.AGENTUSER)
+//                    .document("ZeVxsI1nTCeZEprqlzZpti00sC42")
+//                    .collection(FireStoreCollection.AGENTPRODUCT)
+//                    .get()
+//                val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
+//                when (taskResult) {
+//                    is Resource.Success -> {
+//                        val documents = taskResult.result
+//                        val users = mutableListOf<AgentProduct>()
+//                        for (document in documents) {
+//                            val user = document.toObject(AgentProduct::class.java)
+//                            users.add(user)
+//                        }
+//                        Resource.Success(users)
+//                    }
+//                    is Resource.Failure -> {
+//                        Resource.Failure(taskResult.throwable)
+//                    }
+//
+//                    Resource.Loading -> TODO()
+//                }
+//            }
+
 }

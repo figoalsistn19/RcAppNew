@@ -69,9 +69,11 @@ import com.inventoryapp.rcapp.ui.theme.spacing
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InternalStockOutScreen(navController: NavController){
+fun InternalStockOutScreen(
+    agentProductViewModel: AgentProductViewModel,
+    navController: NavController
+){
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val agentProductViewModel = AgentProductViewModel()
     val internalProductViewModel = InternalProductTestViewModel()
     val spacing = MaterialTheme.spacing
     val searchText by agentProductViewModel.searchText.collectAsState()
@@ -160,9 +162,9 @@ fun InternalStockOutScreen(navController: NavController){
             ) {
                 LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
                     items(agentProductList) { item ->
-                        ListProduct(item,
-                            onCardClicked = {}
-                        )
+//                        ListProduct(item,
+//                            onCardClicked = {}
+//                        )
                     }
                 }
             }
@@ -227,7 +229,9 @@ fun InternalStockOutScreen(navController: NavController){
                                         onCardClicked = { productName ->
                                             selectedProductNameHolder.updateValue(productName)
                                             println("Nama produk: $productName")
-                                        })
+                                        },
+                                        idInternalProduct = {}
+                                    )
                                 }
                             }
                         }
@@ -257,7 +261,8 @@ fun InternalStockOutScreen(navController: NavController){
                                         onCardClicked = { productName ->
                                             selectedProductNameHolder.updateValue(productName)
                                             println("Nama produk: $productName")
-                                        }
+                                        },
+                                        idInternalProduct = {}
                                     ) // Replace with your composable for each item
                                 }
                             }
@@ -410,5 +415,5 @@ fun InternalStockOutScreen(navController: NavController){
 @Preview(apiLevel = 33)
 @Composable
 fun PrevInternalStockOut(){
-    InternalStockOutScreen(navController = rememberNavController())
+//    InternalStockOutScreen(navController = rememberNavController())
 }

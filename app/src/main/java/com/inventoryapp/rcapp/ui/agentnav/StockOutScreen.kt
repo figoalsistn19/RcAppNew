@@ -68,9 +68,11 @@ import com.inventoryapp.rcapp.ui.theme.spacing
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StockOutScreen(navController: NavController){
+fun StockOutScreen(
+    agentProductViewModel: AgentProductViewModel,
+    navController: NavController
+){
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val agentProductViewModel = AgentProductViewModel()
     val internalProductViewModel = InternalProductTestViewModel()
     val spacing = MaterialTheme.spacing
     val searchText by agentProductViewModel.searchText.collectAsState()
@@ -159,8 +161,8 @@ fun StockOutScreen(navController: NavController){
             ) {
                 LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
                     items(agentProductList) { item ->
-                        ListItemForInOut(item
-                        )
+//                        ListItemForInOut(item
+//                        )
                     }
                 }
             }
@@ -225,7 +227,9 @@ fun StockOutScreen(navController: NavController){
                                         onCardClicked = { productName ->
                                             selectedProductNameHolder.updateValue(productName)
                                             println("Nama produk: $productName")
-                                        })
+                                        },
+                                        idInternalProduct = {}
+                                    )
                                 }
                             }
                         }
@@ -255,7 +259,8 @@ fun StockOutScreen(navController: NavController){
                                         onCardClicked = { productName ->
                                             selectedProductNameHolder.updateValue(productName)
                                             println("Nama produk: $productName")
-                                        }
+                                        },
+                                        idInternalProduct = {}
                                     ) // Replace with your composable for each item
                                 }
                             }
@@ -408,5 +413,5 @@ fun StockOutScreen(navController: NavController){
 @Preview(apiLevel = 33)
 @Composable
 fun PrevStockOutScreen(){
-    StockOutScreen(navController = rememberNavController())
+//    StockOutScreen(navController = rememberNavController())
 }

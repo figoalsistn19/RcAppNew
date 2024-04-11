@@ -52,6 +52,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
@@ -72,6 +73,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainInternalScreen(
+    agentProductViewModel: AgentProductViewModel,
     agentUserViewModel: AgentUserViewModel,
     authViewModel: AuthInternalViewModel,
     internalProductViewModel: InternalProductViewModel
@@ -156,10 +158,10 @@ fun MainInternalScreen(
             NavHost(navController = navController, startDestination = BottomBarScreen.HomeInternal.route,
             ){
                 composable(BottomBarScreen.HomeInternal.route){
-                    InternalHomeScreen(navController = navController)
+                    InternalHomeScreen(agentProductViewModel, navController = navController)
                 }
                 composable(BottomBarScreen.StockInternal.route){
-                    InternalStockScreen(internalProductViewModel, authViewModel, navController)
+                    InternalStockScreen(agentProductViewModel, internalProductViewModel, authViewModel, navController)
                 }
                 composable(BottomBarScreen.SalesInternal.route){
                     InternalSalesScreen(authViewModel, navController)
@@ -168,10 +170,10 @@ fun MainInternalScreen(
                     AgentVerificationScreen(agentUserViewModel)
                 }
                 composable(ROUTE_INTERNAL_STOCK_IN_SCREEN){
-                    InternalStockInScreen(navController = navController)
+                    InternalStockInScreen(agentProductViewModel, navController)
                 }
                 composable(ROUTE_INTERNAL_STOCK_OUT_SCREEN){
-                    InternalStockOutScreen(navController = navController)
+                    InternalStockOutScreen(agentProductViewModel, navController)
                 }
                 composable(ROUTE_AGENT_STOCK_MONITORING_SCREEN){
                     AgentStockMonitoringScreen()

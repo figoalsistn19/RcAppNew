@@ -25,6 +25,7 @@ class InternalProductViewModel @Inject constructor(
 ): ViewModel() {
 
     private val _internalProductSearch = MutableStateFlow<Resource<List<InternalProduct>>>(Resource.Loading)
+
     private val _internalProducts = MutableLiveData<Resource<List<InternalProduct>>>()
     val internalProducts: LiveData<Resource<List<InternalProduct>>> get() = _internalProducts
     fun fetchInternalProducts() {

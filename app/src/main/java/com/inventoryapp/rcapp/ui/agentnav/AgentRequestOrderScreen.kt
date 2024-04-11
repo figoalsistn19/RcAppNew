@@ -82,11 +82,10 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun AgentRequestOrderScreen(navController: NavController){
+fun AgentRequestOrderScreen(agentProductViewModel: AgentProductViewModel, navController: NavController){
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     var filterBySales by remember { mutableStateOf(true) }
     var filterBySystem by remember { mutableStateOf(false) }
-    val agentProductViewModel = AgentProductViewModel()
     var qtyOrder by remember { mutableStateOf("") }
     var totalPriceProduct by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -210,9 +209,9 @@ fun AgentRequestOrderScreen(navController: NavController){
                 if (filterBySystem){
                     LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
                         items(agentProductList) { item ->
-                            ListProduct(item = item,
-                                onCardClicked = {}
-                            )
+//                            ListProduct(item = item,
+//                                onCardClicked = {}
+//                            )
                         }
                     }
                 } else {

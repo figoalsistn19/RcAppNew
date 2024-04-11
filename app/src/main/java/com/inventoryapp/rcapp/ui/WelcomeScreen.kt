@@ -24,15 +24,29 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.ui.auth.FirstPageHeader
+import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 
 @Composable
-fun WelcomeScreen (navController: NavController) {
+fun WelcomeScreen (viewModel: AuthAgentViewModel?,navController: NavController) {
+
+    fun onStart(){
+        viewModel?.getSession { user ->
+            if (user != null){
+                navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
+                    popUpTo(ROUTE_HOME) { inclusive = true }
+                }
+            }
+        }
+    }
     ConstraintLayout(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLowest),
     ) {
+        onStart()
         val (refHeader, refVersion, refTitle) = createRefs()
         val spacing = MaterialTheme.spacing
         Box(

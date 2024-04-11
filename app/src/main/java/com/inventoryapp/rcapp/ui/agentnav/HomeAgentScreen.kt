@@ -40,6 +40,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
+import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
@@ -57,9 +58,8 @@ import java.text.SimpleDateFormat
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeAgentScreen(navController: NavController){
+fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel, navController: NavController){
     val state = remember { ScrollState(0) }
-    val agentProductViewModel = AgentProductViewModel()
     val agentProductList by agentProductViewModel.agentProductList.collectAsState()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -251,6 +251,65 @@ fun ListProduct(
                 imageVector = ImageVector.vectorResource(id = R.drawable.bag_icon),
                 contentDescription = "ini icon",
                )
+            Text(modifier = Modifier
+                .constrainAs(refTitle){
+                    top.linkTo(parent.top)
+                    start.linkTo(refIcon.end, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                text = item.productName!!, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium))
+            Text(modifier = Modifier
+                .constrainAs(refDate){
+                    top.linkTo(refTitle.bottom)
+                    start.linkTo(refIcon.end, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                text = fixDate,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Light))
+            Text(modifier = Modifier
+                .constrainAs(refStock){
+                    top.linkTo(parent.top)
+                    end.linkTo(parent.end, spacing.small)
+                    bottom.linkTo(parent.bottom)
+                },
+                text = item.qtyProduct.toString()+ " pcs",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
+        }
+    }
+}
+
+@SuppressLint("SimpleDateFormat")
+@Composable
+fun ListProductAgent(
+    item: AgentProduct,
+    onCardClicked: (String) -> Unit
+) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp, horizontal = 10.dp)
+            .clickable { onCardClicked(item.idProduct!!) }
+        ,
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        ),
+        colors = CardColors(contentColor = MaterialTheme.colorScheme.onSurface, containerColor = MaterialTheme.colorScheme.surfaceContainerLowest, disabledContentColor = MaterialTheme.colorScheme.onSurface, disabledContainerColor = MaterialTheme.colorScheme.onTertiaryContainer)
+    ) {
+        ConstraintLayout (modifier = Modifier.fillMaxWidth()) {
+            val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
+            val date = item.updateAt
+            val fixDate = sdf.format(date)
+            val spacing = MaterialTheme.spacing
+            val (refIcon, refTitle, refDate, refStock) = createRefs()
+            Image(modifier = Modifier
+                .constrainAs(refIcon){
+                    top.linkTo(parent.top, spacing.medium)
+                    start.linkTo(parent.start, spacing.medium)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                imageVector = ImageVector.vectorResource(id = R.drawable.bag_icon),
+                contentDescription = "ini icon",
+            )
             Text(modifier = Modifier
                 .constrainAs(refTitle){
                     top.linkTo(parent.top)

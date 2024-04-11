@@ -52,10 +52,10 @@ import com.inventoryapp.rcapp.ui.theme.spacing
 
 @Composable
 fun InternalHomeScreen(
+    agentProductViewModel: AgentProductViewModel,
     navController: NavHostController,
 ){
     val state = remember { ScrollState(0) }
-    val agentProductViewModel = AgentProductViewModel()
     val agentProductList by agentProductViewModel.agentProductList.collectAsState()
 
     Column (modifier = Modifier
@@ -346,5 +346,5 @@ fun InternalHomeScreen(
 @Preview(apiLevel = 33)
 @Composable
 fun PrevHomeInternal(){
-    InternalHomeScreen(navController = rememberNavController())
+//    InternalHomeScreen(navController = rememberNavController())
 }

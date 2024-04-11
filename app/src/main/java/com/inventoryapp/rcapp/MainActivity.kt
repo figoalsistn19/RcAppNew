@@ -11,6 +11,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.remember
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
@@ -22,10 +24,12 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    private val agentTransactionViewModel by viewModels<AgentTransactionViewModel>()
     private val authAgentViewModel by viewModels<AuthAgentViewModel>()
     private val authInternalViewModel by viewModels<AuthInternalViewModel>()
     private val internalProductViewModel by viewModels<InternalProductViewModel>()
     private val agentUserViewModel by viewModels<AgentUserViewModel>()
+    private val agentProductViewModel by viewModels<AgentProductViewModel>()
 //    private val internal: Internal
 //    private val viewModel by lazy { ViewModelProviders.of(this, InternalProductVMFactory(InternalImp(InternalRepoImp()))).get(InternalProductViewModel::class.java) }
 
@@ -40,7 +44,7 @@ class MainActivity : AppCompatActivity() {
                 content = {
                     RcAppTheme {
                         Surface (color = MaterialTheme.colorScheme.background) {
-                            MainNavigation(agentUserViewModel,authAgentViewModel,authInternalViewModel,internalProductViewModel)
+                            MainNavigation(agentTransactionViewModel, agentProductViewModel,agentUserViewModel,authAgentViewModel,authInternalViewModel,internalProductViewModel)
                         }
                     }
                 }

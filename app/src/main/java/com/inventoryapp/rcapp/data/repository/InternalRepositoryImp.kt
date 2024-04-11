@@ -74,43 +74,6 @@ class InternalRepositoryImp @Inject constructor(
         }
     }
 
-//    override suspend fun getInternalProductData(): Resource<MutableList<InternalProduct>> {
-//        return try {
-//            val querySnapshot = database
-//                .collection(INTERNALPRODUCT)
-//                .get()
-//                .await()
-//
-//            val productList = mutableListOf<InternalProduct>()
-//            for (document in querySnapshot.documents) {
-//                val product = document.toObject<InternalProduct>()
-////                    InternalProduct(
-////                    idProduct = document.getString("idProduct"),
-////                    productName = document.getString("productName"),
-////                    qtyProduct = document.get("qtyProduct") as Int,
-////                    qtyMin = document.get("qtyMin") as Int,
-////                    discProduct = document.get("discProduct") as Int,
-////                    price = document.getLong("price"),
-////                    finalPrice = document.getLong("finalPrice"),
-////                    updateAt = document.getDate("updateAt"),
-////                    desc = document.getString("desc")
-////                )
-//                product.let {
-//                    if (it != null) {
-//                        productList.add(it)
-//                    }
-//                }
-//            }
-//
-//            Resource.Success(productList)
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            Resource.Failure(e)
-//        }
-//    }
-
-
-
     override suspend fun updateUserInfo(
         user: InternalUser,
         result: (Resource<String>) -> Unit
@@ -160,6 +123,9 @@ class InternalRepositoryImp @Inject constructor(
     override fun logout() {
         firebaseAuth.signOut()
         appPreferences.edit().putString(SharedPrefConstants.USER_SESSION, null).apply()
+        appPreferences.edit().putString(SharedPrefConstants.USER_NAME, null).apply()
+        appPreferences.edit().putString(SharedPrefConstants.USER_ID, null).apply()
+        appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, null).apply()
     }
 
     override suspend fun getInternalProducts(): Resource<List<InternalProduct>> {

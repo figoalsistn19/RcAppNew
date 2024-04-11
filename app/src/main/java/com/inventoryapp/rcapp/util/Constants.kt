@@ -6,16 +6,15 @@ object FireStoreCollection{
     val INTERNALUSER = "InternalUser"
     val OFFERINGBYSALES = "OfferingBySales"
     val INTERNALPRODUCT = "InternalProduct"
+    val AGENTPRODUCT = "AgentProduct"
+    val AGENTTRANSACTION = "AgentTransaction"
 }
 
 object FireDatabase{
     val TASK = "task"
 }
 
-object FireStoreDocumentField {
-    val DATE = "date"
-    val USER_ID = "user_id"
-}
+
 
 object SharedPrefConstants {
     val LOCAL_SHARED_PREF = "local_shared_pref"

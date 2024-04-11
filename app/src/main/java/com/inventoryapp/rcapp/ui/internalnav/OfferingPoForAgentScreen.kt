@@ -429,7 +429,8 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                         onCardClicked = {selectedProduct ->
                                             selectedProductNameHolder.updateValue(selectedProduct)
                                             println("Nama produk: $selectedProduct")
-                                        }
+                                        },
+                                        idInternalProduct = {}
                                     )
                                 }
                             }
@@ -467,7 +468,8 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                                 onCardClicked = { selectedProduct ->
                                                     selectedProductNameHolder.updateValue(selectedProduct)
                                                     println("Nama produk: $selectedProduct")
-                                                }
+                                                },
+                                                idInternalProduct = {}
                                             ) // Replace with your composable for each item
                                         }
                                     }
