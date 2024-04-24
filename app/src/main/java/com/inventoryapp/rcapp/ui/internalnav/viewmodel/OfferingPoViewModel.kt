@@ -1,0 +1,102 @@
+package com.inventoryapp.rcapp.ui.internalnav.viewmodel
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
+import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.repository.InternalRepository
+import com.inventoryapp.rcapp.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class OfferingPoViewModel @Inject constructor(
+    private val repository: InternalRepository
+): ViewModel() {
+
+    //TO ADD OFFERING
+    private val _internalProducts = MutableLiveData<Resource<List<InternalProduct>>>()
+    val internalProducts: LiveData<Resource<List<InternalProduct>>> get() = _internalProducts
+
+    private val _addOfferingFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
+    val addOfferingFlow: StateFlow<Resource<FirebaseFirestore>?> = _addOfferingFlow
+
+    fun addOffering(offering: OfferingBySales) = viewModelScope.launch {
+        val result = repository.addOfferingBySales(offering){
+        }
+        _addOfferingFlow.value = result
+    }
+
+    // TO GET OFFERING
+    private val _offeringAgentsSearch = MutableStateFlow<Resource<List<OfferingBySales>>>(Resource.Loading)
+
+    private val _offeringAgents = MutableLiveData<Resource<List<OfferingBySales>>>()
+    val offeringAgents: LiveData<Resource<List<OfferingBySales>>> get() = _offeringAgents
+
+    fun fetchOfferingBySales() {
+        viewModelScope.launch {
+            _offeringAgents.value = Resource.Loading
+            val result = repository.getOfferingBySales()
+            _offeringAgents.value = result
+        }
+    }
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
+    //second state the text typed by the user
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    //filter for list order by sales
+    private val _offeringAgentsList = MutableStateFlow(emptyList<OfferingBySales>())
+    val offeringAgentList = searchText
+        .combine(_offeringAgentsList) { text, orders ->//combine searchText with _contriesList
+            if (text.isBlank()) { //return the entery list of countries if not is typed
+                orders
+            }
+            orders.filter { orders ->// filter and return a list of countries based on the text the user typed
+                orders.nameAgent!!.uppercase().contains(text.trim().uppercase())
+            }
+        }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
+            initialValue = _offeringAgentsList.value
+        )
+
+    init {
+        viewModelScope.launch {
+            _offeringAgentsSearch.value = repository.getOfferingBySales()
+            // Update filtered list based on initial data
+            _offeringAgentsList.value = mapToOfferingList(_offeringAgentsSearch.value) ?: emptyList()
+        }
+    }
+
+    private fun mapToOfferingList(resource: Resource<List<OfferingBySales>>): List<OfferingBySales>? {
+        return when (resource) {
+            is Resource.Success -> resource.result
+            else -> null
+        }
+    }
+    fun onSearchTextChange(text: String) {
+        _searchText.value = text
+    }
+
+    fun onToogleSearch() {
+        _isSearching.value = !_isSearching.value
+        if (!_isSearching.value) {
+            onSearchTextChange("")
+        }
+    }
+
+}

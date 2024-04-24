@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -53,12 +52,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -75,54 +75,82 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.ui.agentnav.CardItem
-import com.inventoryapp.rcapp.ui.agentnav.ListProduct
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.VerificationAgentViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.agentUserListDummy
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProductViewModel: InternalProductViewModel, navController: NavController){
-    val verifAgentViewModel = VerificationAgentViewModel()
-    val queryAgentList by verifAgentViewModel.searchText.collectAsState()
-    val onQueryChangeAgentList by verifAgentViewModel.isSearching.collectAsState()
-    val agentList by verifAgentViewModel.agentUsersList.collectAsState()
-//    val internalProductViewModel = InternalProductTestViewModel()
-//    val queryInternalProduct by internalProductViewModel.searchText.collectAsState()
+fun OfferingPoForAgentScreen(
+    offeringPoViewModel: OfferingPoViewModel,
+    agentUserViewModel:AgentUserViewModel,
+    internalProductViewModel: InternalProductViewModel,
+    navController: NavController,
+){
+    //GET OFFERING BY SALES
+    val queryOfferingBySales by offeringPoViewModel.searchText.collectAsState()
+    val onQueryChangeOffering by offeringPoViewModel.isSearching.collectAsState()
+    val offeringAgentList by offeringPoViewModel.offeringAgents.observeAsState()
+    val offeringAgentSearchList by offeringPoViewModel.offeringAgentList.collectAsState()
+
+    //INTERNAL PRODUCT
     val queryInternalProduct by internalProductViewModel.searchText.collectAsState()
-//    val onQueryChangeInternalProduct by internalProductViewModel.isSearching.collectAsState()
     val onQueryChangeInternalProduct by internalProductViewModel.isSearching.collectAsState()
-//    val internalProductList1 by internalProductViewModel.productsList.collectAsState()
     val internalProduct by internalProductViewModel.internalProducts.observeAsState()
     val internalProductSearchList by internalProductViewModel.internalProductList.collectAsState()
 
+    //AGENTUSER
     val query by agentUserViewModel.searchText.collectAsState()
     val onQueryChange by agentUserViewModel.isSearching.collectAsState()
     val agentUserList by agentUserViewModel.agentUsers.observeAsState()
     val agentSearchList by agentUserViewModel.agentUsersList.collectAsState()
 
+    val modelResource = offeringPoViewModel.addOfferingFlow.collectAsState()
+
     val sheetState = rememberModalBottomSheetState(true)
     var showAddPoForAgentSheet by remember { mutableStateOf(false) }
     var showPickItemSheet by remember { mutableStateOf(false) }
     var showDetailPoSheet by remember { mutableStateOf(false) }
-    val selectedAgentUser = remember { mutableStateOf("") }
-    val selectedProduct = remember { mutableStateOf("") }
-    val selectedAgentNameHolder = StateHolder(initialValue = "")
-    val selectedProductNameHolder = StateHolder(initialValue = "")
+
+    var selectedProductName by remember {
+        mutableStateOf("")
+    }
+
+    var selectedAgentId by remember {
+        mutableStateOf("")
+    }
+
+    var selectedAgentUser by remember {
+        mutableStateOf("")
+    }
+    val selectedProduct = remember {
+        mutableStateOf("")
+    }
+    var selectedItemId by remember {
+        mutableStateOf("")
+    }
+    var selectedItemDiscount by remember {
+        mutableIntStateOf(0)
+    }
+    var selectedItemPrice by remember {
+        mutableLongStateOf(0)
+    }
+    var selectedItemFinalPrice by remember {
+        mutableLongStateOf(0)
+    }
     var qtyOffering by remember { mutableStateOf("") }
     var descOffering by remember { mutableStateOf("") }
-    var isQtyEmpty = false
+    var isQtyEmpty = true
     val spacing = MaterialTheme.spacing
     val context = LocalContext.current
+
     Scaffold (
         bottomBar = {
             Column {
@@ -177,11 +205,11 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(bottom = 10.dp),
-                query = query,
-                onQueryChange = agentUserViewModel::onSearchTextChange,
-                onSearch = agentUserViewModel::onSearchTextChange,
-                active = onQueryChangeAgentList,
-                onActiveChange = { verifAgentViewModel.onToogleSearch()},
+                query = queryOfferingBySales,
+                onQueryChange = offeringPoViewModel::onSearchTextChange,
+                onSearch = offeringPoViewModel::onSearchTextChange,
+                active = onQueryChangeOffering,
+                onActiveChange = { offeringPoViewModel.onToogleSearch()},
                 trailingIcon = {
                     Icon(imageVector = Icons.Rounded.Search, contentDescription = "cari" )
                 },
@@ -192,16 +220,40 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                 colors = SearchBarDefaults.colors(MaterialTheme.colorScheme.surfaceContainerLowest)
             ) {
                 LazyColumn {
-                    items(agentList) { user ->
-                        CardPoAgent()
+                    items(offeringAgentSearchList) { user ->
+                        CardPoAgents(cardData = user)
                     }
                 }
             }
-            LazyColumn(
-                modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
-            ){
-                items(agentUserListDummy){ user ->
-                    CardPoAgent()
+            LaunchedEffect(Unit) {
+                offeringPoViewModel.fetchOfferingBySales()
+            }
+            when (offeringAgentList) {
+                is Resource.Success -> {
+                    val offeringList = (offeringAgentList as Resource.Success<List<OfferingBySales>>).result
+                    LazyColumn(
+                        modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
+                    ){
+                        items(offeringList){ offering ->
+                            CardPoAgents(cardData = offering)
+                        }
+                    }
+                }
+
+                is Resource.Loading -> {
+                    // Tampilkan indikator loading jika diperlukan
+                    CircularProgressIndicator()
+                }
+
+                is Resource.Failure -> {
+                    // Tampilkan pesan error jika diperlukan
+                    val error = (offeringAgentList as Resource.Failure).throwable
+                    Text(text = "Error: ${error.message}")
+                }
+
+                else -> {
+                    // Tampilkan pesan default jika diperlukan
+                    Text(text = "No data available")
                 }
             }
         }
@@ -226,7 +278,7 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                     )
                     Box(
                         modifier =
-                        if (onQueryChangeAgentList) {
+                        if (onQueryChange) {
                             Modifier
                                 .constrainAs(refSearchBar) {
                                     top.linkTo(refTitleSheet.bottom, spacing.small)
@@ -262,20 +314,16 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                 items(agentSearchList) { agent ->
                                     CardAgent(
                                         cardData = agent,
-                                        selectedCard =selectedAgentUser,
-                                        onCardClicked = {selectedAgent ->
-                                            selectedAgentNameHolder.updateValue(selectedAgent)
-                                            println("Nama produk: $selectedAgent")
-                                        }
+                                        selectedCard = selectedProduct,
+                                        selectedAgentId = { selectedAgentId = it },
+                                        selectedAgentName = {selectedAgentUser=it}
                                     )
                                 }
                             }
                         }
                     }
 
-                    if (onQueryChangeAgentList) {
-
-                    } else {
+                    if (!onQueryChange) {
                         Box(modifier = Modifier
                             .constrainAs(refListProduct) {
                                 top.linkTo(refSearchBar.bottom)
@@ -301,24 +349,25 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                         items(userList) { agent ->
                                             CardAgent(
                                                 cardData = agent,
-                                                selectedCard = selectedAgentUser,
-                                                onCardClicked = { selectedAgent ->
-                                                    selectedAgentNameHolder.updateValue(selectedAgent)
-                                                    println("Nama produk: $selectedAgent")
-                                                }
-                                            ) // Replace with your composable for each item
+                                                selectedCard = selectedProduct,
+                                                selectedAgentId = { selectedAgentId = it },
+                                                selectedAgentName = {selectedAgentUser=it}
+                                            )
                                         }
                                     }
                                 }
+
                                 is Resource.Loading -> {
                                     // Tampilkan indikator loading jika diperlukan
                                     CircularProgressIndicator()
                                 }
+
                                 is Resource.Failure -> {
                                     // Tampilkan pesan error jika diperlukan
                                     val error = (agentUserList as Resource.Failure).throwable
                                     Text(text = "Error: ${error.message}")
                                 }
+
                                 else -> {
                                     // Tampilkan pesan default jika diperlukan
                                     Text(text = "No data available")
@@ -330,7 +379,7 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
 
                     Button(
                         onClick = {
-                            if (selectedAgentUser.value.isEmpty()) {
+                            if (selectedProduct.value.isEmpty()) {
                                 Toast.makeText(
                                     context,
                                     "Pilih barang terlebih dahulu!",
@@ -340,7 +389,7 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                 showPickItemSheet = true
                             }
                         },
-                        modifier = if (onQueryChangeAgentList) {
+                        modifier = if (onQueryChange) {
                             Modifier
                                 .constrainAs(refBtnNext) {
                                     top.linkTo(refSearchBar.bottom)
@@ -426,20 +475,21 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                     CardItem(
                                         cardData = product,
                                         selectedCard = selectedProduct,
-                                        onCardClicked = {selectedProduct ->
-                                            selectedProductNameHolder.updateValue(selectedProduct)
-                                            println("Nama produk: $selectedProduct")
+                                        onCardClicked = {
+                                            selectedProductName = it
                                         },
-                                        idInternalProduct = {}
+                                        idInternalProduct = {selectedItemId =it
+                                        },
+                                        price = {selectedItemPrice = it},
+                                        finalPrice = {selectedItemFinalPrice = it},
+                                        discount = {selectedItemDiscount = it}
                                     )
                                 }
                             }
                         }
                     }
 
-                    if (onQueryChangeInternalProduct) {
-
-                    } else {
+                    if (!onQueryChangeInternalProduct) {
                         Box(modifier = Modifier
                             .constrainAs(refListProduct) {
                                 top.linkTo(refSearchBar.bottom)
@@ -465,26 +515,31 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                             CardItem(
                                                 cardData = product,
                                                 selectedCard = selectedProduct,
-                                                onCardClicked = { selectedProduct ->
-                                                    selectedProductNameHolder.updateValue(selectedProduct)
-                                                    println("Nama produk: $selectedProduct")
+                                                onCardClicked = {
+                                                    selectedProductName = it
                                                 },
-                                                idInternalProduct = {}
+                                                idInternalProduct = {},
+                                                price = {selectedItemPrice = it},
+                                                finalPrice = {selectedItemFinalPrice = it},
+                                                discount = {selectedItemDiscount = it}
                                             ) // Replace with your composable for each item
                                         }
                                     }
                                 }
+
                                 is Resource.Loading -> {
                                     // Tampilkan indikator loading jika diperlukan
                                     CircularProgressIndicator(
                                         modifier = Modifier.align(Alignment.Center)
                                     )
                                 }
+
                                 is Resource.Failure -> {
                                     // Tampilkan pesan error jika diperlukan
                                     val error = (internalProduct as Resource.Failure).throwable
                                     Text(text = "Error: ${error.message}")
                                 }
+
                                 else -> {
                                     // Tampilkan pesan default jika diperlukan
                                     Text(text = "No data available")
@@ -520,13 +575,6 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                 end.linkTo(refListProduct.end)
                             }
                             .padding(end = 18.dp)
-
-//                        Modifier
-//                            .constrainAs(refBtnNext) {
-//                                top.linkTo(refListProduct.bottom, spacing.medium)
-//                                end.linkTo(refListProduct.end)
-//                            }
-//                            .padding(end = 18.dp)
                     ) {
                         Text(text = "Selanjutnya")
                     }
@@ -593,11 +641,11 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    text = selectedAgentNameHolder.value,
+                                    text = selectedAgentUser,
                                     style = MaterialTheme.typography.titleMedium
                                     )
                                 Text(
-                                    text = selectedProductNameHolder.value,
+                                    text = selectedProductName,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             }
@@ -610,13 +658,6 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                             }
                         }
                     }
-
-//                    modifier = Modifier.constrainAs(refProductName) {
-//                        top.linkTo(refTitleSheet.bottom, spacing.medium)
-//                        start.linkTo(parent.start)
-//                        end.linkTo(parent.end)
-//                        width = Dimension.wrapContent
-//                    }
                     OutlinedTextField(
                         value = qtyOffering,
                         onValueChange = {
@@ -670,6 +711,46 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                             imeAction = ImeAction.Done
                         )
                     )
+                    fun getOfferingData(): OfferingBySales {
+//                        val qtyProductValue = qtyProduct.toIntOrNull() ?: 0
+//                        val qtyMinProductValue = qtyMinProduct.toIntOrNull() ?: 0
+//                        val priceValue = price.toLongOrNull() ?: 0
+//                        val discountValue = discount.toIntOrNull() ?:0
+                        val qtyValue = qtyOffering.toIntOrNull()
+                        val listProducts = listOf(
+                            ProductsItem(
+                                idProduct =  selectedProduct.value,
+                                productName =  selectedProductName,
+                                price = selectedItemPrice,
+                                quantity =  qtyValue,
+                                discProduct = selectedItemDiscount,
+                                finalPrice = selectedItemFinalPrice,
+                                totalPrice = selectedItemPrice - (selectedItemPrice * selectedItemDiscount / 100),
+                            ),
+                            ProductsItem(
+                                idProduct =  selectedProduct.value,
+                                productName =  selectedProductName,
+                                price = selectedItemPrice,
+                                quantity =  qtyValue,
+                                discProduct = selectedItemDiscount,
+                                finalPrice = selectedItemFinalPrice,
+                                totalPrice = selectedItemPrice - (selectedItemPrice * selectedItemDiscount / 100),
+                            )
+                        )
+                        val totalPriceAll = listProducts.fold(0L) { acc, product ->
+                            acc + (product.totalPrice ?: 0)
+                        }
+                        return OfferingBySales(
+                            idAgent = selectedAgentId,
+                            idOffering = "",
+                            nameAgent = selectedAgentUser,
+                            desc = descOffering,
+                            statusOffering = "PENDING",
+                            productsItem = listProducts,
+                            totalPrice = totalPriceAll
+                        )
+                    }
+                    val offeringObj: OfferingBySales = getOfferingData()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {
@@ -677,7 +758,8 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                                 Toast.makeText(context, "Jumlah stok minimum tidak boleh kosong", Toast.LENGTH_SHORT).show()
                             }else {
                                 isQtyEmpty= false
-                                navController.navigate(ROUTE_HOME_AGENT_SCREEN)
+                                offeringPoViewModel.addOffering(offeringObj)
+                                navController.navigate(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN)
                             }
                         },
                         modifier = Modifier
@@ -690,6 +772,18 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
                             .width(200.dp)
                     ) {
                         Text(text = "Simpan")
+                    }
+                    modelResource.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                            }
+                            is Resource.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is Resource.Success -> {
+                            }
+                        }
                     }
                 }
             }
@@ -781,7 +875,9 @@ fun OfferingPoForAgentScreen(agentUserViewModel:AgentUserViewModel, internalProd
 fun CardAgent(
     cardData: AgentUser,
     selectedCard: MutableState<String>,
-    onCardClicked: (String) -> Unit
+    selectedAgentName: (String) -> Unit,
+    selectedAgentId: (String) -> Unit
+
 ) {
 //    val selectedCard = remember { mutableStateOf("") }
 //    var cardClicked = remember { mutableStateOf(false) }
@@ -794,7 +890,8 @@ fun CardAgent(
             .padding(8.dp)
             .clickable {
                 selectedCard.value = cardData.idAgent!!
-                onCardClicked(cardData.name!!)
+                selectedAgentName(cardData.name!!)
+                selectedAgentId(cardData.idAgent!!)
             }
             .height(80.dp) ,
         colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onSurface),
@@ -822,7 +919,7 @@ fun CardAgent(
                 selected = cardData.idAgent == selectedCard.value,
                 onClick = {
                     selectedCard.value = cardData.idAgent!!
-                    onCardClicked(cardData.name!!)
+                    selectedAgentName(cardData.name!!)
                 }
             )
         }
@@ -890,9 +987,82 @@ fun CardPoAgent(){
         }
     }
 }
+@Composable
+fun CardPoAgents(
+    cardData: OfferingBySales
+){
+    val offeringSize = cardData.productsItem!!.size
+    val offeringSizeMinOne = cardData.productsItem!!.size-1
+    val productName = when (offeringSize){
+        0 -> "No Data"
+        1 -> cardData.productsItem!![0].productName!!
+        else -> cardData.productsItem!![0].productName!! + " + " + offeringSizeMinOne.toString() + " lainnya"
+    }
+    Card (
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = 15.dp, vertical = 5.dp
+            )
+            .clickable {
+
+            },
+        elevation = CardDefaults.cardElevation(3.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainerLowest)
+    ){
+        Row (
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Image(
+                imageVector = ImageVector.vectorResource(R.drawable.price_tag),
+                contentDescription = "price tag"
+            )
+            Column (
+                modifier = Modifier.padding(start = 8.dp)
+            ){
+                Text(
+                    text = cardData.nameAgent!!,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = productName,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ){
+                Column (
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.End
+                ){
+                    Text(text = cardData.totalPrice.toString())
+                    Text(text = cardData.statusOffering!!)
+                }
+            }
+        }
+    }
+}
 
 @Preview(apiLevel = 33)
 @Composable
 fun PrevPo(){
-    CardPoAgent()
+//    CardPoAgent()
+    CardPoAgents(cardData = OfferingBySales(
+        productsItem = listOf(
+        ProductsItem(
+            idProduct = "wlwlwl",
+            productName = "Roti Tiro",
+            price = 1000,
+            quantity = 100,
+            discProduct = 10
+        )
+    )))
 }

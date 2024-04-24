@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,8 +38,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.SalesOrder
-import com.inventoryapp.rcapp.data.model.StatusOrder
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.reqOrders
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -48,11 +45,11 @@ fun InvoiceScreen (
     invoice: SalesOrder
 ){
     val color = when (invoice.statusOrder) {
-        StatusOrder.Pending -> MaterialTheme.colorScheme.error
-        StatusOrder.Lunas -> MaterialTheme.colorScheme.primary
-        StatusOrder.Selesai -> Color.Green
-        StatusOrder.DalamProses -> MaterialTheme.colorScheme.tertiary
-        StatusOrder.DalamPerjalanan -> MaterialTheme.colorScheme.secondary
+        "Pending" -> MaterialTheme.colorScheme.error
+        "Lunas" -> MaterialTheme.colorScheme.primary
+        "Selesai" -> Color.Green
+        "DalamProses" -> MaterialTheme.colorScheme.tertiary
+        "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
         else -> Color.Gray // Warna default untuk status yang tidak diketahui
     }
     val formattedPrice = String.format("Rp%,d", invoice.totalPrice)
@@ -356,5 +353,5 @@ fun InvoiceScreen (
 @Preview(apiLevel = 33)
 @Composable
 fun PrevInvoiceScreen(){
-    InvoiceScreen(invoice = reqOrders[1])
+//    InvoiceScreen(invoice = reqOrders[1])
 }

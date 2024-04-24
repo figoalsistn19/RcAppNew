@@ -10,6 +10,7 @@ import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.OfferingBySales
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.FirebaseCoroutines
 import com.inventoryapp.rcapp.util.Resource
@@ -179,9 +180,10 @@ class AgentRepositoryImp @Inject constructor(
         }
     }
 
-    override suspend fun addAgentStockIn(
+    override suspend fun addAgentStockTransaction(
         transaction: AgentStockTransaction,
         idProduct: String,
+        offering: OfferingBySales,
         result: (Resource<String>) -> Unit
     ): Resource<FirebaseFirestore> {
         return try {
@@ -194,14 +196,28 @@ class AgentRepositoryImp @Inject constructor(
                 .collection(FireStoreCollection.AGENTTRANSACTION)
                 .document()
 
+            val idAgentTransaction = transactionRef.id // Dapatkan ID yang dihasilkan secara otomatis
+            transaction.idAgentStockTransaction = idAgentTransaction
+
             database.runTransaction { _transaction ->
                 val stockSnapshot = _transaction.get(stockRef)
 
                 val currentStock = stockSnapshot.getLong("qtyProduct") ?: 0
+                val stockMin = stockSnapshot.getLong("qtyMin") ?: 0
+
+                val updateReqOrderRef = database.collection(FireStoreCollection.OFFERINGBYSALES)
+                    .document(offering.idOffering!!)
+//                val idOffering = updateReqOrderRef.id
+//                offering.idOffering = idOffering
                 val updatedStock = currentStock + transaction.qtyProduct!!
 
                 _transaction.update(stockRef, "qtyProduct", updatedStock)
                 _transaction.set(transactionRef, transaction)
+                if (updatedStock <= stockMin){
+                    _transaction.set(updateReqOrderRef, offering)
+                }
+
+//                _transaction.set(updateReqOrderRef,)
 
                 null
             }.await()
@@ -222,8 +238,7 @@ class AgentRepositoryImp @Inject constructor(
                 .document(userId)
                 .collection(FireStoreCollection.AGENTPRODUCT)
                 .get()
-            val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
-            when (taskResult) {
+            when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)) {
                 is Resource.Success -> {
                     val documents = taskResult.result
                     val users = mutableListOf<AgentProduct>()
@@ -243,7 +258,7 @@ class AgentRepositoryImp @Inject constructor(
         }
     }
 
-    override suspend fun getAgentStockIn(): Resource<List<AgentStockTransaction>> {
+    override suspend fun getAgentTransaction(): Resource<List<AgentStockTransaction>> {
         return withContext(Dispatchers.IO) {
             val userId = if (currentUser != null)
                 currentUser!!.uid

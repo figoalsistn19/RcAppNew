@@ -29,6 +29,8 @@ class AgentProductViewModel @Inject constructor(
 
 //    private val _idAgentProduct = MutableStateFlow(appPreferences.getString(SharedPrefConstants.USER_ID,null))
 //    val idAgentProduct = _idAgentProduct.asStateFlow()
+    val idAgent = appPreferences.getString(SharedPrefConstants.USER_ID,null)
+    val agentName = appPreferences.getString(SharedPrefConstants.USER_NAME, null)
 
     // Add agent product
     private val _agentProductFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
@@ -80,7 +82,20 @@ class AgentProductViewModel @Inject constructor(
             initialValue = _agentProductList.value
         )
 
-
+    private val _agentProductListForReqOrder = MutableStateFlow(emptyList<AgentProduct>())
+    val agentProductListForReqOrder = searchText
+        .combine(_agentProductListForReqOrder) { text, agentProduct ->//combine searchText with _contriesList
+            if (text.isBlank()) { //return the entery list of countries if not is typed
+                agentProduct
+            }
+            agentProduct.filter { agentProduct ->// filter and return a list of countries based on the text the user typed
+                agentProduct.productName!!.uppercase().contains(text.trim().uppercase())
+            }
+        }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
+            initialValue = _agentProductListForReqOrder.value
+        )
 
     init {
         viewModelScope.launch {

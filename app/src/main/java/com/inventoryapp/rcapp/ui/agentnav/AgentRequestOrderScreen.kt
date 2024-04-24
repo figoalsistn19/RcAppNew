@@ -20,17 +20,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -38,13 +37,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableChipColors
 import androidx.compose.material3.SelectableChipElevation
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,43 +54,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
+import com.inventoryapp.rcapp.data.model.OfferingBySales
 import com.inventoryapp.rcapp.data.model.SalesOrder
-import com.inventoryapp.rcapp.data.model.StatusOrder
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.reqOrders
-import com.inventoryapp.rcapp.ui.nav.BottomNavAgentViewModel
-import com.inventoryapp.rcapp.ui.nav.BottomNavBarAgent
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
-import com.inventoryapp.rcapp.ui.theme.LocalSpacing
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun AgentRequestOrderScreen(agentProductViewModel: AgentProductViewModel, navController: NavController){
+fun AgentRequestOrderScreen(
+    offeringPoViewModel: OfferingPoViewModel,
+    agentProductViewModel: AgentProductViewModel,
+    navController: NavController
+){
+    val offeringAgentList by offeringPoViewModel.offeringAgents.observeAsState()
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     var filterBySales by remember { mutableStateOf(true) }
     var filterBySystem by remember { mutableStateOf(false) }
     var qtyOrder by remember { mutableStateOf("") }
     var totalPriceProduct by remember { mutableStateOf("") }
+
     val context = LocalContext.current
     var isQtyEmpty = true
-    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
+    val agentProductList by agentProductViewModel.agentProductListForReqOrder.collectAsState()
     var showDetailOrder by remember { mutableStateOf(false) }
     var sheetState = rememberModalBottomSheetState(true)
     Scaffold (
@@ -209,20 +211,41 @@ fun AgentRequestOrderScreen(agentProductViewModel: AgentProductViewModel, navCon
                 if (filterBySystem){
                     LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
                         items(agentProductList) { item ->
-//                            ListProduct(item = item,
-//                                onCardClicked = {}
-//                            )
+//                            CardBySales(reqOrder = item, onCardClick = {
+//                                showDetailOrder = true
+//                            })
                         }
                     }
                 } else {
-                    LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
-                        items(reqOrders) { reqOrder ->
-                            CardReqOrder(
-                                reqOrder = reqOrder,
-                                onCardClick = { reqOrder ->
-                                    showDetailOrder = true
+                    LaunchedEffect(Unit) {
+                        offeringPoViewModel.fetchOfferingBySales()
+                    }
+                    when (offeringAgentList) {
+                        is Resource.Success -> {
+                            val offeringList = (offeringAgentList as Resource.Success<List<OfferingBySales>>).result
+                            LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
+                                items(offeringList) { item ->
+                                    CardBySales(reqOrder = item, onCardClick = {
+                                        showDetailOrder = true
+                                    })
                                 }
-                            )
+                            }
+                        }
+
+                        is Resource.Loading -> {
+                            // Tampilkan indikator loading jika diperlukan
+                            CircularProgressIndicator()
+                        }
+
+                        is Resource.Failure -> {
+                            // Tampilkan pesan error jika diperlukan
+                            val error = (offeringAgentList as Resource.Failure).throwable
+                            Text(text = "Error: ${error.message}")
+                        }
+
+                        else -> {
+                            // Tampilkan pesan default jika diperlukan
+                            Text(text = "No data available")
                         }
                     }
                 }
@@ -350,28 +373,27 @@ fun AgentRequestOrderScreen(agentProductViewModel: AgentProductViewModel, navCon
     }
 }
 
-@SuppressLint("SimpleDateFormat")
 @Composable
-fun CardReqOrder(
-    reqOrder: SalesOrder, // Pass required data from LazyColumn items
+fun CardBySystem(
+    reqOrder: OfferingBySales, // Pass required data from LazyColumn items
     onCardClick: (String) -> Unit // Pass lambda to handle card click
 ) {
     val formattedPrice = String.format("Rp%,d", reqOrder.totalPrice)
-    val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
-    val date = reqOrder.orderDate
-    val fixDate = sdf.format(date)
-    val color = when (reqOrder.statusOrder) {
-        StatusOrder.Pending -> MaterialTheme.colorScheme.error
-        StatusOrder.Lunas -> MaterialTheme.colorScheme.primary
-        StatusOrder.Selesai -> Color.Green
-        StatusOrder.DalamProses -> MaterialTheme.colorScheme.tertiary
-        StatusOrder.DalamPerjalanan -> MaterialTheme.colorScheme.secondary
+//    val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
+//    val date = reqOrder.orderDate
+//    val fixDate = sdf.format(date)
+    val color = when (reqOrder.statusOffering) {
+        "PENDING" -> MaterialTheme.colorScheme.error
+        "Lunas" -> MaterialTheme.colorScheme.primary
+        "Selesai" -> Color.Green
+        "DalamProses" -> MaterialTheme.colorScheme.tertiary
+        "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
         else -> Color.Gray // Warna default untuk status yang tidak diketahui
     }
     ElevatedCard (modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 8.dp, vertical = 6.dp)
-        .clickable { onCardClick(reqOrder.idOrder) },
+        .clickable { onCardClick(reqOrder.idOffering!!) },
         elevation = CardDefaults.cardElevation(2.dp,6.dp,4.dp,3.dp,3.dp,0.dp),
         colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLow,MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.tertiaryContainer,MaterialTheme.colorScheme.tertiary)
     )
@@ -390,7 +412,162 @@ fun CardReqOrder(
 //                tint = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = reqOrder.productsItem[0].productName,
+                text = reqOrder.productsItem!![0].productName!!,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.constrainAs(refIdReqOrder){
+                    top.linkTo(parent.top, spacing.medium)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                    start.linkTo(refIcon.end, spacing.small)
+                }
+            )
+            Text(
+                text = reqOrder.desc!!,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Light),
+                modifier = Modifier.constrainAs(refDate){
+                    top.linkTo(refIdReqOrder.bottom)
+                    start.linkTo(refIcon.end, spacing.extraSmall)
+                }
+            )
+            Spacer(modifier = Modifier.fillMaxWidth())
+            Column (
+                modifier = Modifier
+                    .constrainAs(refPrice){
+                        end.linkTo(parent.end, spacing.small)
+                        top.linkTo(parent.top, spacing.medium)
+                    },
+                horizontalAlignment = Alignment.End
+            ){
+                Text(
+                    text = formattedPrice,
+                    style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = reqOrder.statusOffering.toString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = color
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CardBySales(
+    reqOrder: OfferingBySales, // Pass required data from LazyColumn items
+    onCardClick: (String) -> Unit // Pass lambda to handle card click
+) {
+    val formattedPrice = String.format("Rp%,d", reqOrder.totalPrice)
+//    val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
+//    val date = reqOrder.orderDate
+//    val fixDate = sdf.format(date)
+    val color = when (reqOrder.statusOffering) {
+        "PENDING" -> MaterialTheme.colorScheme.error
+        "Lunas" -> MaterialTheme.colorScheme.primary
+        "Selesai" -> Color.Green
+        "DalamProses" -> MaterialTheme.colorScheme.tertiary
+        "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
+        else -> Color.Gray // Warna default untuk status yang tidak diketahui
+    }
+    ElevatedCard (modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp, vertical = 6.dp)
+        .clickable { onCardClick(reqOrder.idOffering!!) },
+        elevation = CardDefaults.cardElevation(2.dp,6.dp,4.dp,3.dp,3.dp,0.dp),
+        colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLow,MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.tertiaryContainer,MaterialTheme.colorScheme.tertiary)
+    )
+    {
+        ConstraintLayout (modifier = Modifier.height(70.dp)){
+            val (refIcon, refIdReqOrder, refDate, refPrice, refStatusOrder)= createRefs()
+            val spacing = MaterialTheme.spacing
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.tag_2),
+                contentDescription = "icon harga",
+                modifier = Modifier.constrainAs(refIcon){
+                    top.linkTo(parent.top, spacing.medium)
+                    start.linkTo(parent.start, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+//                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = reqOrder.productsItem!![0].productName!!,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.constrainAs(refIdReqOrder){
+                    top.linkTo(parent.top, spacing.medium)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                    start.linkTo(refIcon.end, spacing.small)
+                }
+            )
+            Text(
+                text = reqOrder.desc!!,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Light),
+                modifier = Modifier.constrainAs(refDate){
+                    top.linkTo(refIdReqOrder.bottom)
+                    start.linkTo(refIcon.end, spacing.extraSmall)
+                }
+            )
+            Spacer(modifier = Modifier.fillMaxWidth())
+            Column (
+                modifier = Modifier
+                    .constrainAs(refPrice){
+                        end.linkTo(parent.end, spacing.small)
+                        top.linkTo(parent.top, spacing.medium)
+                    },
+                horizontalAlignment = Alignment.End
+            ){
+                Text(
+                    text = formattedPrice,
+                    style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = reqOrder.statusOffering.toString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = color
+                )
+            }
+        }
+    }
+}
+
+@SuppressLint("SimpleDateFormat")
+@Composable
+fun CardReqOrder(
+    reqOrder: SalesOrder, // Pass required data from LazyColumn items
+    onCardClick: (String) -> Unit // Pass lambda to handle card click
+) {
+    val formattedPrice = String.format("Rp%,d", reqOrder.totalPrice)
+    val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
+    val date = reqOrder.orderDate
+    val fixDate = sdf.format(date)
+    val color = when (reqOrder.statusOrder) {
+        "Pending" -> MaterialTheme.colorScheme.error
+        "Lunas" -> MaterialTheme.colorScheme.primary
+        "Selesai" -> Color.Green
+        "DalamProses" -> MaterialTheme.colorScheme.tertiary
+        "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
+        else -> Color.Gray // Warna default untuk status yang tidak diketahui
+    }
+    ElevatedCard (modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp, vertical = 6.dp)
+        .clickable { onCardClick(reqOrder.idOrder!!) },
+        elevation = CardDefaults.cardElevation(2.dp,6.dp,4.dp,3.dp,3.dp,0.dp),
+        colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLow,MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.tertiaryContainer,MaterialTheme.colorScheme.tertiary)
+    )
+    {
+        ConstraintLayout (modifier = Modifier.height(70.dp)){
+            val (refIcon, refIdReqOrder, refDate, refPrice, refStatusOrder)= createRefs()
+            val spacing = MaterialTheme.spacing
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.tag_2),
+                contentDescription = "icon harga",
+                modifier = Modifier.constrainAs(refIcon){
+                    top.linkTo(parent.top, spacing.medium)
+                    start.linkTo(parent.start, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+//                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = reqOrder.productsItem[0].productName!!,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.constrainAs(refIdReqOrder){
                     top.linkTo(parent.top, spacing.medium)

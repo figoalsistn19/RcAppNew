@@ -48,6 +48,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -112,6 +114,15 @@ fun AgentStockScreen(
     }
     var selectedItemId by remember {
         mutableStateOf("")
+    }
+    var selectedItemDiscount by remember {
+        mutableIntStateOf(0)
+    }
+    var selectedItemPrice by remember {
+        mutableLongStateOf(0)
+    }
+    var selectedItemFinalPrice by remember {
+        mutableLongStateOf(0)
     }
     var isQtyEmpty = true
 
@@ -273,7 +284,10 @@ fun AgentStockScreen(
                                         },
                                         idInternalProduct = {id ->
                                             selectedItemId = id
-                                        }
+                                        },
+                                        price = {selectedItemPrice = it},
+                                        finalPrice = {selectedItemFinalPrice = it},
+                                        discount = {selectedItemDiscount = it}
                                     )
                                 }
                             }
@@ -300,13 +314,14 @@ fun AgentStockScreen(
                                 items(internalProductList) { internalitem ->
                                     CardItem(internalitem, selectedCard,
                                         onCardClicked = { productName ->
-//                                            selectedProductNameHolder.updateValue(productName)
                                             selectedProduct = productName
-//                                            println("Nama produk: $productName")
                                         },
                                         idInternalProduct = {
                                             selectedItemId = it
-                                        }
+                                        },
+                                        price = {selectedItemPrice = it},
+                                        finalPrice = {selectedItemFinalPrice = it},
+                                        discount = {selectedItemDiscount = it}
                                     ) // Replace with your composable for each item
                                 }
                             }
@@ -492,13 +507,16 @@ fun CardItem(
     cardData: InternalProduct,
     selectedCard: MutableState<String>,
     onCardClicked: (String) -> Unit,
-    idInternalProduct: (String) -> Unit
+    idInternalProduct: (String) -> Unit,
+    price: (Long) -> Unit,
+    discount: (Int) -> Unit,
+    finalPrice: (Long) -> Unit
 ) {
 //    val selectedCard = remember { mutableStateOf("") }
 //    var cardClicked = remember { mutableStateOf(false) }
 //    val color = when (cardClicked.value) {
 //        true -> CardColors(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.tertiary)
-//        else ->CardColors(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.tertiary)
+//        else -> CardColors(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.tertiary)
 //    }
     Card(
         modifier = Modifier
@@ -507,6 +525,9 @@ fun CardItem(
                 selectedCard.value = cardData.idProduct!!
                 onCardClicked(cardData.productName!!)
                 idInternalProduct(cardData.idProduct!!)
+                price(cardData.price!!)
+                discount(cardData.discProduct!!)
+                finalPrice(cardData.finalPrice!!)
             }
             .height(80.dp) ,
         colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLowest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onSurface),

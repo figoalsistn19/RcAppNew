@@ -52,7 +52,6 @@ import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.VerificationAgentViewModel
 import com.inventoryapp.rcapp.util.Resource
 import java.util.Date
 
@@ -119,7 +118,7 @@ fun AgentVerificationScreen(agentUserViewModel: AgentUserViewModel?){
                     items(agentSearchList) { user ->
                         CardAgentVerification(
                             agentUser = user,
-                            onCardClick = {user ->
+                            onCardClick = {users ->
                                 showDetailAgent = true
                             })
                     }
@@ -138,7 +137,7 @@ fun AgentVerificationScreen(agentUserViewModel: AgentUserViewModel?){
                         items(userList){ user ->
                             CardAgentVerification(
                                 agentUser = user,
-                                onCardClick = {user ->
+                                onCardClick = {users ->
                                     showDetailAgent = true
                                 }
                             )

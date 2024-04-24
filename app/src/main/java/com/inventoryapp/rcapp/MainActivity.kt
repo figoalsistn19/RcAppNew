@@ -17,6 +17,7 @@ import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.MainNavigation
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    private val offeringPoViewModel by viewModels<OfferingPoViewModel>()
     private val agentTransactionViewModel by viewModels<AgentTransactionViewModel>()
     private val authAgentViewModel by viewModels<AuthAgentViewModel>()
     private val authInternalViewModel by viewModels<AuthInternalViewModel>()
@@ -44,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 content = {
                     RcAppTheme {
                         Surface (color = MaterialTheme.colorScheme.background) {
-                            MainNavigation(agentTransactionViewModel, agentProductViewModel,agentUserViewModel,authAgentViewModel,authInternalViewModel,internalProductViewModel)
+                            MainNavigation(offeringPoViewModel, agentTransactionViewModel, agentProductViewModel,agentUserViewModel,authAgentViewModel,authInternalViewModel,internalProductViewModel)
                         }
                     }
                 }

@@ -1,8 +1,9 @@
 package com.inventoryapp.rcapp.ui.agentnav
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -37,8 +39,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,42 +60,73 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.R
+import com.inventoryapp.rcapp.data.model.AgentProduct
+import com.inventoryapp.rcapp.data.model.AgentStockTransaction
+import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
-import com.inventoryapp.rcapp.ui.nav.BottomNavAgentViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.FireStoreCollection
+import com.inventoryapp.rcapp.util.Resource
+import com.inventoryapp.rcapp.util.SharedPref
+import com.inventoryapp.rcapp.util.SharedPrefConstants
+import com.inventoryapp.rcapp.util.SharedPrefConstants.USER_ID
+import com.inventoryapp.rcapp.util.SharedPrefConstants.prefUserId
+import java.util.Date
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StockOutScreen(
+    agentTransactionViewModel: AgentTransactionViewModel,
     agentProductViewModel: AgentProductViewModel,
     navController: NavController
 ){
+    val db = FirebaseFirestore.getInstance()
+
+    val context = LocalContext.current
+
+    var finalPrice by remember {
+        mutableStateOf(0L)
+    }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val internalProductViewModel = InternalProductTestViewModel()
     val spacing = MaterialTheme.spacing
-    val searchText by agentProductViewModel.searchText.collectAsState()
-    val isSearching by agentProductViewModel.isSearching.collectAsState()
+
+    val searchText by agentTransactionViewModel.searchText.collectAsState()
+    val isSearching by agentTransactionViewModel.isSearching.collectAsState()
+
+    val searchAgentProduct by agentProductViewModel.searchText.collectAsState()
+    val agentProductIsSearching by agentProductViewModel.isSearching.collectAsState()
     val agentProductList by agentProductViewModel.agentProductList.collectAsState()
-    val searchInternalProduct by internalProductViewModel.searchText.collectAsState()
-    val internalProductIsSearching by internalProductViewModel.isSearching.collectAsState()
-    val internalProductList by internalProductViewModel.productsList.collectAsState()
-    val sheetState = rememberModalBottomSheetState()
+    val agentTransactionOutList by agentTransactionViewModel.agentTransactionOutList.collectAsState()
+
+    val agentProducts by agentProductViewModel.agentProducts.observeAsState()
+    val addStockOut = agentTransactionViewModel.addProductInFlow.collectAsState()
+    val agentStocksOut by agentTransactionViewModel.agentTransactionsIn.observeAsState()
+
+    val sheetState = rememberModalBottomSheetState(true)
     var showAddStockOutSheet by remember { mutableStateOf(false) }
     var showDetailStockOutSheet by remember {
         mutableStateOf(false)
     }
     var isQtyEmpty = true
-    val context = LocalContext.current
     var qtyStockOut by remember { mutableStateOf("") }
     var descStockOut by remember { mutableStateOf("") }
     val selectedCard = remember { mutableStateOf("") }
-    val selectedProductNameHolder = StateHolder(initialValue = "")
+    var selectedProduct by remember {
+        mutableStateOf("")
+    }
+
+    var selectedItemId by remember {
+        mutableStateOf("")
+    }
+
     Scaffold (
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         topBar = {
@@ -145,10 +180,10 @@ fun StockOutScreen(
         ) {
             SearchBar(
                 query = searchText,
-                onQueryChange = agentProductViewModel::onSearchTextChange, //update the value of searchText
-                onSearch = agentProductViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
+                onQueryChange = agentTransactionViewModel::onSearchTextChange, //update the value of searchText
+                onSearch = agentTransactionViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
                 active = isSearching, //whether the user is searching or not
-                onActiveChange = { agentProductViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
+                onActiveChange = { agentTransactionViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 23.dp, top = 8.dp, end = 23.dp),
@@ -160,15 +195,46 @@ fun StockOutScreen(
                 }
             ) {
                 LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
-                    items(agentProductList) { item ->
-//                        ListItemForInOut(item
-//                        )
+                    items(agentTransactionOutList) { item ->
+                        ListItemForInOutAgent(item
+                        )
                     }
                 }
             }
-            LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
-                items(internalProductList) { item ->
-                    ListItemForInOut(item)
+            LaunchedEffect(Unit) {
+                agentTransactionViewModel.fetchStockIn()
+            }
+            when (agentStocksOut) {
+                is Resource.Success -> {
+                    val agentStockIn = (agentStocksOut as Resource.Success<List<AgentStockTransaction>>).result.filter { it.transactionType == "OUT" }
+                    if (agentStockIn.isEmpty()){
+                        Text(
+                            modifier = Modifier.padding(top=20.dp),
+                            text = "Data masih kosong")
+                    }
+                    else {
+                        LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
+                            items(agentStockIn) { item ->
+                                ListItemForInOutAgent(item)
+                            }
+                        }
+                    }
+                }
+                is Resource.Loading -> {
+                    // Tampilkan indikator loading jika diperlukan
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                    )
+                }
+                is Resource.Failure -> {
+                    // Tampilkan pesan error jika diperlukan
+                    val error = (agentProducts as Resource.Failure).throwable
+                    Text(text = "Error: ${error.message}")
+                }
+                else -> {
+                    // Tampilkan pesan default jika diperlukan
+                    Text(text = "No data available")
                 }
             }
         }
@@ -191,7 +257,7 @@ fun StockOutScreen(
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
                     )
                     Box (modifier =
-                    if (internalProductIsSearching){
+                    if (agentProductIsSearching){
                         Modifier
                             .constrainAs(refSearchBar) {
                                 top.linkTo(refTitleSheet.bottom, spacing.small)
@@ -208,36 +274,35 @@ fun StockOutScreen(
                         }
                     ){
                         SearchBar(
-                            query = searchInternalProduct,
-                            onQueryChange = internalProductViewModel::onSearchTextChange,
-                            onSearch = internalProductViewModel::onSearchTextChange,
-                            active = internalProductIsSearching,
-                            onActiveChange = { internalProductViewModel.onToogleSearch() },
+                            query = searchAgentProduct,
+                            onQueryChange = agentProductViewModel::onSearchTextChange,
+                            onSearch = agentProductViewModel::onSearchTextChange,
+                            active = agentProductIsSearching,
+                            onActiveChange = { agentProductViewModel.onToogleSearch() },
                             trailingIcon = {
                                 Icon(imageVector = Icons.Rounded.Search, contentDescription = "cari" )
                             },
-                            shadowElevation = 2.dp,
                             placeholder = {
-                                Text(text = "Cari pesanan disini...")
+                                Text(text = "Pilih barang dulu...")
                             }
                         ) {
                             LazyColumn (modifier = Modifier.padding(horizontal = 10.dp)){
-                                items(internalProductList) { product ->
-                                    CardItem(cardData = product, selectedCard = selectedCard,
+                                items(agentProductList) { product ->
+                                    CardItemForInOut(cardData = product, selectedCard = selectedCard,
                                         onCardClicked = { productName ->
-                                            selectedProductNameHolder.updateValue(productName)
+                                            selectedProduct = productName
                                             println("Nama produk: $productName")
                                         },
-                                        idInternalProduct = {}
+                                        idInternalProduct = {
+                                            selectedItemId = it
+                                        }
                                     )
                                 }
                             }
                         }
                     }
 
-                    if (internalProductIsSearching){
-
-                    } else {
+                    if (!agentProductIsSearching) {
                         Box(modifier = Modifier
                             .constrainAs(refListProduct) {
                                 top.linkTo(refSearchBar.bottom)
@@ -248,20 +313,57 @@ fun StockOutScreen(
                             }
                             .padding(horizontal = 10.dp, vertical = 10.dp))
                         {
-                            LazyColumn(modifier = Modifier
-                                .padding(horizontal = 10.dp, vertical = 10.dp)
-                            )
-                            {
-                                items(internalProductList) { internalitem ->
-                                    CardItem(
-                                        internalitem,
-                                        selectedCard,
-                                        onCardClicked = { productName ->
-                                            selectedProductNameHolder.updateValue(productName)
-                                            println("Nama produk: $productName")
-                                        },
-                                        idInternalProduct = {}
-                                    ) // Replace with your composable for each item
+                            LaunchedEffect(Unit) {
+                                agentProductViewModel.fetchAgentProducts()
+                            }
+                            when (agentProducts) {
+                                is Resource.Success -> {
+                                    val agentProduct =
+                                        (agentProducts as Resource.Success<List<AgentProduct>>).result
+                                    if (agentProduct.isEmpty()) {
+                                        Text(
+                                            modifier = Modifier.padding(top = 20.dp),
+                                            text = "Data masih kosong"
+                                        )
+                                    } else {
+                                        LazyColumn(modifier = Modifier
+                                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                                        )
+                                        {
+                                            items(agentProduct) { product ->
+                                                CardItemForInOut(
+                                                    product,
+                                                    selectedCard,
+                                                    onCardClicked = { productName ->
+                                                        selectedProduct = productName
+                                                        println("Nama produk: $productName")
+                                                    },
+                                                    idInternalProduct = {
+                                                        selectedItemId = it
+                                                    }
+                                                ) // Replace with your composable for each item
+                                            }
+                                        }
+                                    }
+                                }
+
+                                is Resource.Loading -> {
+                                    // Tampilkan indikator loading jika diperlukan
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                                    )
+                                }
+
+                                is Resource.Failure -> {
+                                    // Tampilkan pesan error jika diperlukan
+                                    val error = (agentProducts as Resource.Failure).throwable
+                                    Text(text = "Error: ${error.message}")
+                                }
+
+                                else -> {
+                                    // Tampilkan pesan default jika diperlukan
+                                    Text(text = "No data available")
                                 }
                             }
                         }
@@ -273,9 +375,26 @@ fun StockOutScreen(
                                 Toast.makeText(context,"Pilih barang terlebih dahulu!", Toast.LENGTH_SHORT).show()
                             } else{
                                 showDetailStockOutSheet = true
+                                db.collection(FireStoreCollection.INTERNALPRODUCT)
+                                    .document(selectedItemId)
+                                    .get()
+                                    .addOnSuccessListener { document ->
+                                        val finalPriceProduct = document.getLong("finalPrice")
+                                        if (document != null) {
+                                            // Dokumen ditemukan, dapatkan data
+                                            finalPrice = finalPriceProduct!!
+                                            // Lakukan sesuatu dengan data
+                                        } else {
+                                            Toast.makeText(context,"Data tidak ditemukan", Toast.LENGTH_SHORT).show()
+
+                                        }
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Toast.makeText(context,"Gagal mengambil data", Toast.LENGTH_SHORT).show()
+                                    }
                             }
                         },
-                        modifier = if (internalProductIsSearching){
+                        modifier = if (agentProductIsSearching){
                             Modifier
                                 .constrainAs(refBtnNext) {
                                     top.linkTo(refSearchBar.bottom)
@@ -318,7 +437,7 @@ fun StockOutScreen(
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
                     )
                     Text(
-                        text = selectedProductNameHolder.value ,
+                        text = selectedProduct ,
                         modifier = Modifier.constrainAs(refProductName) {
                             top.linkTo(refTitleSheet.bottom, spacing.medium)
                             start.linkTo(parent.start)
@@ -336,7 +455,7 @@ fun StockOutScreen(
                         isError = isQtyEmpty,
                         maxLines = 1,
                         label = {
-                            Text(text = "Stok masuk")
+                            Text(text = "Stok Keluar")
                         },
                         modifier = Modifier.constrainAs(refQtyMin) {
                             top.linkTo(refProductName.bottom, spacing.medium)
@@ -382,6 +501,41 @@ fun StockOutScreen(
                             imeAction = ImeAction.Done
                         )
                     )
+                    fun getAgentStockTransaction(): AgentStockTransaction {
+                        val qtyOut = qtyStockOut.toIntOrNull() ?: 0
+                        return AgentStockTransaction(
+                            idAgentStockTransaction = "",
+                            idProduct = selectedItemId,
+                            productName = selectedProduct,
+                            qtyProduct = -qtyOut,
+                            transactionType = "OUT",
+                            createAt = Date(),
+                            desc = descStockOut
+                        )
+                    }
+                    val agentStockTransactionObj: AgentStockTransaction = getAgentStockTransaction()
+                    fun getOffering(): OfferingBySales {
+                        return OfferingBySales(
+                            idOffering = selectedItemId + "bysystem",
+                            desc = "STOK MENIPIS",
+                            idAgent = agentProductViewModel.idAgent,
+                            nameAgent = agentProductViewModel.agentName,
+                            statusOffering = "PENDING",
+                            productsItem = listOf(
+                                ProductsItem(
+                                    idProduct = selectedItemId,
+                                    productName = selectedProduct,
+                                    price = finalPrice,
+                                    finalPrice = finalPrice,
+                                    quantity = 10,
+                                    totalPrice = finalPrice * 10,
+                                    discProduct = null
+                                )
+                            ),
+                            totalPrice = finalPrice * 10
+                        )
+                    }
+                    val offeringObj: OfferingBySales = getOffering()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {
@@ -389,6 +543,7 @@ fun StockOutScreen(
                                 Toast.makeText(context, "Jumlah stok masuk tidak boleh kosong!", Toast.LENGTH_SHORT).show()
                             } else {
                                 isQtyEmpty= false
+                                agentTransactionViewModel.addProductIn(agentStockTransactionObj, selectedItemId, offeringObj)
                                 navController.navigate(ROUTE_HOME_AGENT_SCREEN)
                             }
 
@@ -403,6 +558,18 @@ fun StockOutScreen(
                             .width(200.dp)
                     ) {
                         Text(text = "Simpan")
+                    }
+                    addStockOut.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                            }
+                            is Resource.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is Resource.Success -> {
+                            }
+                        }
                     }
                 }
             }

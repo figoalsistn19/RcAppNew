@@ -105,20 +105,20 @@ fun OrderHistoryScreen(navController: NavController){
                 ) {
                     LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
                         items(historyOrderList) { item ->
-                            CardReqOrder(reqOrder = item, onCardClick = {item ->
-                                showDetailOrder = true
-                            })
+//                            CardReqOrder(reqOrder = item, onCardClick = {item ->
+//                                showDetailOrder = true
+//                            })
                         }
                     }
                 }
                 LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp)){
                     items(historyOrderList) { item ->
-                        CardReqOrder(
-                            reqOrder = item,
-                            onCardClick = {item ->
-                                showDetailOrder = true
-                            }
-                        )
+//                        CardReqOrder(
+//                            reqOrder = item,
+//                            onCardClick = {item ->
+//                                showDetailOrder = true
+//                            }
+//                        )
                     }
                 }
             }
@@ -131,7 +131,7 @@ fun OrderHistoryScreen(navController: NavController){
                 },
                 sheetState = sheetState
             ){
-               InvoiceScreen(reqOrders[1])
+//               InvoiceScreen(reqOrders[1])
 //                InvoiceScreen(invoice = historyOrderList[2])
 //                InvoiceScreen(invoice = historyOrderList[3])
                 

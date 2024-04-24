@@ -59,7 +59,9 @@ import com.inventoryapp.rcapp.util.Resource
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition",
+    "SuspiciousIndentation"
+)
 @Composable
 fun InternalStockScreen(
     agentProductViewModel: AgentProductViewModel,

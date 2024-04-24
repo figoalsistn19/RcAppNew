@@ -42,10 +42,12 @@ import com.inventoryapp.rcapp.ui.auth.internalauth.RegisterInternalScreen
 import com.inventoryapp.rcapp.ui.internalnav.MainInternalScreen
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.theme.BtnAgenMitra
 
 @Composable
 fun MainNavigation(
+    offeringPoViewModel: OfferingPoViewModel,
     agentTransactionViewModel: AgentTransactionViewModel,
     agentProductViewModel: AgentProductViewModel,
     agentUserViewModel: AgentUserViewModel,
@@ -71,10 +73,10 @@ fun MainNavigation(
             RegisterInternalScreen (authViewModelInternal,navController)
         }
         composable(ROUTE_MAIN_INTERNAL_SCREEN){
-            MainInternalScreen(agentProductViewModel, agentUserViewModel,authViewModelInternal,internalProductViewModel )
+            MainInternalScreen(offeringPoViewModel, agentProductViewModel, agentUserViewModel,authViewModelInternal,internalProductViewModel )
         }
         composable(ROUTE_MAIN_AGENT_SCREEN){
-            MainAgentScreen(agentTransactionViewModel, agentProductViewModel, internalProductViewModel, authViewModelAgent)
+            MainAgentScreen(offeringPoViewModel, agentTransactionViewModel, agentProductViewModel, internalProductViewModel, authViewModelAgent)
         }
     }
 }

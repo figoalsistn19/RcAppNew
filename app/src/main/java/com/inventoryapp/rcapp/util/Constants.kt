@@ -10,6 +10,7 @@ object FireStoreCollection{
     val AGENTTRANSACTION = "AgentTransaction"
 }
 
+
 object FireDatabase{
     val TASK = "task"
 }
@@ -22,7 +23,7 @@ object SharedPrefConstants {
     val USER_STATUS = "user_status"
     val USER_ID = "user_id"
     val USER_NAME = "user_name"
-
+    val prefUserId = "userId_pref"
 }
 
 object FirebaseStorageConstants {

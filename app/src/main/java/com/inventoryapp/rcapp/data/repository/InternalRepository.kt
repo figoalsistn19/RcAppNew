@@ -2,9 +2,11 @@ package com.inventoryapp.rcapp.data.repository
 
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalUser
+import com.inventoryapp.rcapp.data.model.OfferingBySales
 import com.inventoryapp.rcapp.util.Resource
 
 interface InternalRepository {
@@ -26,4 +28,18 @@ interface InternalRepository {
     suspend fun getUsers(): Resource<List<InternalUser>>
 
     suspend fun getAgentUsers(): Resource<List<AgentUser>>
+
+    suspend fun addOfferingBySales(
+        offering: OfferingBySales,
+        result: (Resource<String>) -> Unit
+    ) :Resource<FirebaseFirestore>
+
+    suspend fun getOfferingBySales(): Resource<List<OfferingBySales>>
+    suspend fun addInternalStockTransaction(
+        transaction: AgentStockTransaction,
+        idProduct: String,
+        result: (Resource<String>) -> Unit
+    ) :Resource<FirebaseFirestore>
+
+    suspend fun getInternalStockTransaction(): Resource<List<AgentStockTransaction>>
 }

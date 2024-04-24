@@ -230,13 +230,13 @@ fun InternalStockInScreen(agentProductViewModel: AgentProductViewModel, navContr
                         ) {
                             LazyColumn(modifier = Modifier.padding(horizontal = 10.dp)) {
                                 items(internalProductList) { product ->
-                                    CardItem(cardData = product, selectedCard = selectedCard,
-                                        onCardClicked = { productName ->
-                                            selectedProductNameHolder.updateValue(productName)
-                                            println("Nama produk: $productName")
-                                        },
-                                        idInternalProduct = {}
-                                    )
+//                                    CardItem(cardData = product, selectedCard = selectedCard,
+//                                        onCardClicked = { productName ->
+//                                            selectedProductNameHolder.updateValue(productName)
+//                                            println("Nama produk: $productName")
+//                                        },
+//                                        idInternalProduct = {}
+//                                    )
                                 }
                             }
                         }
@@ -261,15 +261,15 @@ fun InternalStockInScreen(agentProductViewModel: AgentProductViewModel, navContr
                             )
                             {
                                 items(internalProductList) { internalitem ->
-                                    CardItem(
-                                        internalitem,
-                                        selectedCard,
-                                        onCardClicked = { productName ->
-                                            selectedProductNameHolder.updateValue(productName)
-                                            println("Nama produk: $productName")
-                                        },
-                                        idInternalProduct = {}
-                                    ) // Replace with your composable for each item
+//                                    CardItem(
+//                                        internalitem,
+//                                        selectedCard,
+//                                        onCardClicked = { productName ->
+//                                            selectedProductNameHolder.updateValue(productName)
+//                                            println("Nama produk: $productName")
+//                                        },
+//                                        idInternalProduct = {}
+//                                    ) // Replace with your composable for each item
                                 }
                             }
                         }

@@ -40,6 +40,7 @@ import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.internalnav.BottomBar
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_ORDER_HISTORY_SCREEN
@@ -52,6 +53,7 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainAgentScreen(
+    offeringPoViewModel: OfferingPoViewModel,
     agentTransactionViewModel: AgentTransactionViewModel,
     agentProductViewModel: AgentProductViewModel,
     internalProductViewModel: InternalProductViewModel,
@@ -143,7 +145,7 @@ fun MainAgentScreen(
                     AgentStockScreen(agentProductViewModel, internalProductViewModel, navController = navController)
                 }
                 composable(BottomBarScreen.Sales.route){
-                    AgentRequestOrderScreen(agentProductViewModel, navController = navController)
+                    AgentRequestOrderScreen(offeringPoViewModel, agentProductViewModel, navController = navController)
                 }
                 composable(ROUTE_ORDER_HISTORY_SCREEN){
                     OrderHistoryScreen(navController)
@@ -152,7 +154,7 @@ fun MainAgentScreen(
                     StockInScreen(agentTransactionViewModel, agentProductViewModel, navController)
                 }
                 composable(ROUTE_STOCK_OUT_SCREEN){
-                    StockOutScreen(agentProductViewModel, navController)
+                    StockOutScreen(agentTransactionViewModel, agentProductViewModel, navController)
                 }
                 composable(ROUTE_HOME){
                     WelcomeScreen(viewModel = authViewModel, navController = navController)

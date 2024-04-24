@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
+import com.inventoryapp.rcapp.data.model.OfferingBySales
 import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,8 +30,9 @@ class AgentTransactionViewModel @Inject constructor(
     private val _addProductInFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
     val addProductInFlow: StateFlow<Resource<FirebaseFirestore>?> = _addProductInFlow
 
-    fun addProductIn(transaction: AgentStockTransaction, idProduct: String) = viewModelScope.launch {
-        val result = repository.addAgentStockIn(transaction, idProduct) {
+    fun addProductIn(transaction: AgentStockTransaction, idProduct: String, offering: OfferingBySales) = viewModelScope.launch {
+
+        val result = repository.addAgentStockTransaction(transaction, idProduct, offering) {
         }
         _addProductInFlow.value = result
     }
@@ -44,7 +46,7 @@ class AgentTransactionViewModel @Inject constructor(
     fun fetchStockIn() {
         viewModelScope.launch {
             _agentTransactionsIn.value = Resource.Loading
-            val result = repository.getAgentStockIn()
+            val result = repository.getAgentTransaction()
             _agentTransactionsIn.value = result
         }
     }
@@ -57,6 +59,8 @@ class AgentTransactionViewModel @Inject constructor(
     val searchText = _searchText.asStateFlow()
 
     private val _agentTransactionInList = MutableStateFlow(emptyList<AgentStockTransaction>())
+    private val _agentTransactionOutList = MutableStateFlow(emptyList<AgentStockTransaction>())
+
     val agentTransactionList = searchText
         .combine(_agentTransactionInList) { text, agentProduct ->//combine searchText with _contriesList
             if (text.isBlank()) { //return the entery list of countries if not is typed
@@ -71,11 +75,27 @@ class AgentTransactionViewModel @Inject constructor(
             initialValue = _agentTransactionInList.value
         )
 
+    val agentTransactionOutList = searchText
+        .combine(_agentTransactionOutList) { text, agentProduct ->//combine searchText with _contriesList
+            if (text.isBlank()) { //return the entery list of countries if not is typed
+                agentProduct
+            }
+            agentProduct.filter { agentProduct ->// filter and return a list of countries based on the text the user typed
+                agentProduct.productName!!.uppercase().contains(text.trim().uppercase())
+            }
+        }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
+            initialValue = _agentTransactionOutList.value
+        )
     init {
         viewModelScope.launch {
-            _agentTransactionInSearch.value = repository.getAgentStockIn()
+            _agentTransactionInSearch.value = repository.getAgentTransaction()
             // Update filtered list based on initial data
-            _agentTransactionInList.value = mapToAgentProductList(_agentTransactionInSearch.value) ?: emptyList()
+            _agentTransactionInList.value = mapToAgentProductList(_agentTransactionInSearch.value)?.filter { it.transactionType == "IN" }
+                ?: emptyList()
+            _agentTransactionOutList.value = mapToAgentProductList(_agentTransactionInSearch.value)?.filter { it.transactionType == "OUT" }
+                ?: emptyList()
         }
     }
 

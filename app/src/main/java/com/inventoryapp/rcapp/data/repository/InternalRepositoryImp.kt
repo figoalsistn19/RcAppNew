@@ -6,11 +6,14 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
+import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalUser
+import com.inventoryapp.rcapp.data.model.OfferingBySales
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.FireStoreCollection.INTERNALPRODUCT
+import com.inventoryapp.rcapp.util.FireStoreCollection.OFFERINGBYSALES
 import com.inventoryapp.rcapp.util.FirebaseCoroutines
 import com.inventoryapp.rcapp.util.Resource
 import com.inventoryapp.rcapp.util.SharedPrefConstants
@@ -196,5 +199,59 @@ class InternalRepositoryImp @Inject constructor(
                 Resource.Loading -> TODO()
             }
         }
+    }
+
+    override suspend fun addOfferingBySales(
+        offering: OfferingBySales,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore> {
+        return try {
+            val firebaseResult = database
+                .collection(OFFERINGBYSALES)
+                .document()
+            val idOffering = firebaseResult.id // Dapatkan ID yang dihasilkan secara otomatis
+            offering.idOffering = idOffering
+            firebaseResult.set(offering).await()
+            Resource.Success(database)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun getOfferingBySales(): Resource<List<OfferingBySales>> {
+        return withContext(Dispatchers.IO){
+            val querySnapshot = database.collection(OFFERINGBYSALES).get()
+            val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
+            when (taskResult){
+                is Resource.Success -> {
+                    val documents = taskResult.result
+                    val users = mutableListOf<OfferingBySales>()
+                    for (document in documents){
+                        val user = document.toObject(OfferingBySales::class.java)
+                        users.add(user)
+                    }
+                    Resource.Success(users)
+                }
+
+                is Resource.Failure -> {
+                    Resource.Failure(taskResult.throwable)
+                }
+
+                Resource.Loading -> TODO()
+            }
+        }
+    }
+
+    override suspend fun addInternalStockTransaction(
+        transaction: AgentStockTransaction,
+        idProduct: String,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getInternalStockTransaction(): Resource<List<AgentStockTransaction>> {
+        TODO("Not yet implemented")
     }
 }

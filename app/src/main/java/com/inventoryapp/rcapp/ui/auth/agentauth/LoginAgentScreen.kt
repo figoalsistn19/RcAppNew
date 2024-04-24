@@ -30,10 +30,6 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
-import com.inventoryapp.rcapp.ui.nav.AGENT_NAV
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.theme.spacing

@@ -73,11 +73,9 @@ import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.TransactionType
+import com.inventoryapp.rcapp.data.model.OfferingBySales
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -85,7 +83,7 @@ import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
 import java.util.Date
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SuspiciousIndentation")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StockInScreen(
@@ -94,15 +92,15 @@ fun StockInScreen(
     navController: NavController
 ){
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val internalProductViewModel = InternalProductTestViewModel()
     val spacing = MaterialTheme.spacing
+
     val searchText by agentTransactionViewModel.searchText.collectAsState()
     val isSearching by agentTransactionViewModel.isSearching.collectAsState()
     val agentTransactionList by agentTransactionViewModel.agentTransactionList.collectAsState()
 
-    val searchInternalProduct by internalProductViewModel.searchText.collectAsState()
-    val internalProductIsSearching by internalProductViewModel.isSearching.collectAsState()
-    val internalProductList by internalProductViewModel.productsList.collectAsState()
+    val searchAgentProduct by agentProductViewModel.searchText.collectAsState()
+    val agentProductIsSearching by agentProductViewModel.isSearching.collectAsState()
+    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
 
     val agentProducts by agentProductViewModel.agentProducts.observeAsState()
     val addStockIn = agentTransactionViewModel.addProductInFlow.collectAsState()
@@ -116,7 +114,6 @@ fun StockInScreen(
     var isQtyEmpty = true
     val context = LocalContext.current
     var qtyStockIn by remember { mutableStateOf("") }
-    var productName by remember { mutableStateOf("") }
     var descStockIn by remember { mutableStateOf("") }
     val selectedCard = remember { mutableStateOf("") }
     var selectedProduct by remember {
@@ -205,7 +202,7 @@ fun StockInScreen(
             }
             when (agentStocksIn) {
                 is Resource.Success -> {
-                    val agentStockIn = (agentStocksIn as Resource.Success<List<AgentStockTransaction>>).result
+                    val agentStockIn = (agentStocksIn as Resource.Success<List<AgentStockTransaction>>).result.filter { it.transactionType == "IN" }
                     if (agentStockIn.isEmpty()){
                         Text(
                             modifier = Modifier.padding(top=20.dp),
@@ -258,7 +255,7 @@ fun StockInScreen(
                     )
                     Box (
                         modifier =
-                        if (internalProductIsSearching){
+                        if (agentProductIsSearching){
                             Modifier
                                 .constrainAs(refSearchBar) {
                                     top.linkTo(refTitleSheet.bottom, spacing.small)
@@ -275,11 +272,11 @@ fun StockInScreen(
                         }
                     ){
                         SearchBar(
-                            query = searchInternalProduct,
-                            onQueryChange = internalProductViewModel::onSearchTextChange,
-                            onSearch = internalProductViewModel::onSearchTextChange,
-                            active = internalProductIsSearching,
-                            onActiveChange = { internalProductViewModel.onToogleSearch() },
+                            query = searchAgentProduct,
+                            onQueryChange = agentProductViewModel::onSearchTextChange,
+                            onSearch = agentProductViewModel::onSearchTextChange,
+                            active = agentProductIsSearching,
+                            onActiveChange = { agentProductViewModel.onToogleSearch() },
                             trailingIcon = {
                                 Icon(imageVector = Icons.Rounded.Search, contentDescription = "cari" )
                             },
@@ -288,8 +285,8 @@ fun StockInScreen(
                             }
                         ) {
                             LazyColumn (modifier = Modifier.padding(horizontal = 10.dp)){
-                                items(internalProductList) { product ->
-                                    CardItem(cardData = product, selectedCard = selectedCard,
+                                items(agentProductList) { product ->
+                                    CardItemForInOut(cardData = product, selectedCard = selectedCard,
                                         onCardClicked = { productName ->
                                             selectedProduct = productName
                                             println("Nama produk: $productName")
@@ -327,9 +324,7 @@ fun StockInScreen(
 //                        }
 //                    }
 //                    SearchBarSample()
-                    if (internalProductIsSearching){
-
-                    } else {
+                    if (!agentProductIsSearching) {
                         Box(modifier = Modifier
                             .constrainAs(refListProduct) {
                                 top.linkTo(refSearchBar.bottom)
@@ -357,9 +352,9 @@ fun StockInScreen(
                                             .padding(horizontal = 10.dp, vertical = 10.dp)
                                         )
                                         {
-                                            items(agentProduct) { internalitem ->
+                                            items(agentProduct) { product ->
                                                 CardItemForInOut(
-                                                    internalitem,
+                                                    product,
                                                     selectedCard,
                                                     onCardClicked = { productName ->
                                                         selectedProduct = productName
@@ -404,7 +399,7 @@ fun StockInScreen(
                                 showDetailStockInSheet = true
                             }
                         },
-                        modifier = if (internalProductIsSearching){
+                        modifier = if (agentProductIsSearching){
                             Modifier
                                 .constrainAs(refBtnNext) {
                                     top.linkTo(refSearchBar.bottom)
@@ -524,13 +519,21 @@ fun StockInScreen(
                             idAgentStockTransaction = "",
                             idProduct = selectedItemId,
                             productName = selectedProduct,
-                            qtyProduct = -qtyIn,
+                            qtyProduct = qtyIn,
                             transactionType = "IN",
                             createAt = Date(),
                             desc = descStockIn
                         )
                     }
                     val agentStockTransactionObj: AgentStockTransaction = getAgentStockTransaction()
+                    fun getOffering(): OfferingBySales {
+                        val qtyIn = qtyStockIn.toIntOrNull() ?: 0
+                        return OfferingBySales(
+
+                            desc = descStockIn
+                        )
+                    }
+                    val offeringObj: OfferingBySales = getOffering()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {
@@ -538,7 +541,7 @@ fun StockInScreen(
                                 Toast.makeText(context, "jumlah stok masuk tidak boleh kosong", Toast.LENGTH_SHORT).show()
                             }else {
                                 isQtyEmpty= false
-                                agentTransactionViewModel.addProductIn(agentStockTransactionObj, selectedItemId)
+                                agentTransactionViewModel.addProductIn(agentStockTransactionObj, selectedItemId, offeringObj)
                                 navController.navigate(ROUTE_HOME_AGENT_SCREEN)
                             }
                         },

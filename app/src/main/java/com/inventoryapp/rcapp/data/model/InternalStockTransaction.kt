@@ -6,8 +6,8 @@ import kotlinx.parcelize.Parcelize
 import java.util.Date
 
 @Parcelize
-data class AgentStockTransaction(
-    var idAgentStockTransaction: String? ="",
+data class InternalStockTransaction(
+    val idAgentStockTransaction: String? ="",
     val idProduct: String? ="",
     val productName: String? ="",
     val qtyProduct: Int? = null,
@@ -16,3 +16,4 @@ data class AgentStockTransaction(
     val createAt: Date? = null,
     val desc: String? =""
 ): Parcelable
+

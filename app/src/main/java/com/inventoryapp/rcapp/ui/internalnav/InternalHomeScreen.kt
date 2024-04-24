@@ -15,15 +15,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,11 +38,11 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.R
+import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.ListItemForInOut
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_VERIFICATION_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
@@ -49,14 +50,15 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.Resource
 
 @Composable
 fun InternalHomeScreen(
-    agentProductViewModel: AgentProductViewModel,
+    internalProductViewModel: InternalProductViewModel?,
     navController: NavHostController,
 ){
     val state = remember { ScrollState(0) }
-    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
+    val internalProduct by internalProductViewModel!!.internalProducts.observeAsState()
 
     Column (modifier = Modifier
         .verticalScroll(state)
@@ -324,18 +326,48 @@ fun InternalHomeScreen(
                 },
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
             )
-            LazyColumn (modifier = Modifier
-                .constrainAs(refProductList) {
-                    top.linkTo(refProduct.bottom)
-                    start.linkTo(parent.start, spacing.medium)
-                    end.linkTo(parent.end, spacing.medium)
+            LaunchedEffect(Unit) {
+                internalProductViewModel!!.fetchInternalProducts()
+            }
+
+            when (internalProduct) {
+                is Resource.Success -> {
+                    val internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result
+                    LazyColumn (modifier = Modifier
+                        .constrainAs(refProductList) {
+                            top.linkTo(refProduct.bottom)
+                            start.linkTo(parent.start, spacing.medium)
+                            end.linkTo(parent.end, spacing.medium)
+                        }
+                        .padding(horizontal = 10.dp, vertical = 1.dp))
+                    {
+                        items(internalProductList) { item ->
+                            ListItemForInOut(
+                                item
+                            )
+                        }
+                    }
                 }
-                .padding(horizontal = 10.dp, vertical = 1.dp))
-            {
-                items(internalProducts) { item ->
-                    ListItemForInOut(
-                        item
+                is Resource.Loading -> {
+                    // Tampilkan indikator loading jika diperlukan
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .constrainAs(refProductList) {
+                                top.linkTo(refProduct.bottom)
+                                start.linkTo(parent.start, spacing.medium)
+                                end.linkTo(parent.end, spacing.medium)
+                            }
+                            .padding(horizontal = 10.dp, vertical = 1.dp)
                     )
+                }
+                is Resource.Failure -> {
+                    // Tampilkan pesan error jika diperlukan
+                    val error = (internalProduct as Resource.Failure).throwable
+                    Text(text = "Error: ${error.message}")
+                }
+                else -> {
+                    // Tampilkan pesan default jika diperlukan
+                    Text(text = "No data available")
                 }
             }
         }
