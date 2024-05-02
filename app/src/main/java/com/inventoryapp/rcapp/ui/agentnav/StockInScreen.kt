@@ -50,6 +50,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -69,16 +70,20 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
+import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.InternalStockTransaction
+import com.inventoryapp.rcapp.data.model.OfferingForAgent
+import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -91,6 +96,8 @@ fun StockInScreen(
     agentProductViewModel: AgentProductViewModel,
     navController: NavController
 ){
+    val db = FirebaseFirestore.getInstance()
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val spacing = MaterialTheme.spacing
 
@@ -110,6 +117,10 @@ fun StockInScreen(
     var showAddStockInSheet by remember { mutableStateOf(false) }
     var showDetailStockInSheet by remember {
         mutableStateOf(false)
+    }
+
+    var finalPrice by remember {
+        mutableLongStateOf(0L)
     }
     var isQtyEmpty = true
     val context = LocalContext.current
@@ -196,7 +207,6 @@ fun StockInScreen(
                 }
             }
         }
-
             LaunchedEffect(Unit) {
                 agentTransactionViewModel.fetchStockIn()
             }
@@ -225,7 +235,7 @@ fun StockInScreen(
                 }
                 is Resource.Failure -> {
                     // Tampilkan pesan error jika diperlukan
-                    val error = (agentProducts as Resource.Failure).throwable
+                    val error = (agentStocksIn as Resource.Failure).throwable
                     Text(text = "Error: ${error.message}")
                 }
                 else -> {
@@ -299,31 +309,6 @@ fun StockInScreen(
                             }
                         }
                     }
-
-//                    SearchBar(
-//                        query = searchInternalProduct,
-//                        onQueryChange = internalProductViewModel::onSearchTextChange,
-//                        onSearch = internalProductViewModel::onSearchTextChange,
-//                        isActive = internalProductIsSearching,
-//                        modifier = Modifier.constrainAs(refSearchBar) {
-//                            top.linkTo(refTitleSheet.bottom)
-//                            start.linkTo(parent.start, spacing.large)
-//                            end.linkTo(parent.end, spacing.large)
-//                        }
-//                    )
-//
-//                    if (internalProductList.isNotEmpty()) {
-//                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-//                            items(internalProductList) { product ->
-//                                CardItem(cardData = product, selectedCard = selectedCard,
-//                                    onCardClicked = { productName ->
-//                                        selectedProductNameHolder.updateValue(productName)
-//                                        println("Nama produk: $productName")
-//                                    })
-//                            }
-//                        }
-//                    }
-//                    SearchBarSample()
                     if (!agentProductIsSearching) {
                         Box(modifier = Modifier
                             .constrainAs(refListProduct) {
@@ -397,6 +382,23 @@ fun StockInScreen(
                                 Toast.makeText(context,"Pilih barang terlebih dahulu!", Toast.LENGTH_SHORT).show()
                             } else{
                                 showDetailStockInSheet = true
+                                db.collection(FireStoreCollection.INTERNALPRODUCT)
+                                    .document(selectedItemId)
+                                    .get()
+                                    .addOnSuccessListener { document ->
+                                        val finalPriceProduct = document.getLong("finalPrice")
+                                        if (document != null) {
+                                            // Dokumen ditemukan, dapatkan data
+                                            finalPrice = finalPriceProduct!!
+                                            // Lakukan sesuatu dengan data
+                                        } else {
+                                            Toast.makeText(context,"Data tidak ditemukan", Toast.LENGTH_SHORT).show()
+
+                                        }
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Toast.makeText(context,exception.message, Toast.LENGTH_SHORT).show()
+                                    }
                             }
                         },
                         modifier = if (agentProductIsSearching){
@@ -526,14 +528,28 @@ fun StockInScreen(
                         )
                     }
                     val agentStockTransactionObj: AgentStockTransaction = getAgentStockTransaction()
-                    fun getOffering(): OfferingBySales {
-                        val qtyIn = qtyStockIn.toIntOrNull() ?: 0
-                        return OfferingBySales(
-
-                            desc = descStockIn
+                    fun getOffering(): OfferingForAgent {
+                        return OfferingForAgent(
+                            idOffering = selectedItemId + "bysystem",
+                            desc = "STOK MENIPIS",
+                            idAgent = agentProductViewModel.currentUser?.uid?:"",
+                            nameAgent = agentProductViewModel.currentUser?.displayName?:"",
+                            statusOffering = "BY SYSTEM",
+                            productsItem = listOf(
+                                ProductsItem(
+                                    idProduct = selectedItemId,
+                                    productName = selectedProduct,
+                                    price = finalPrice,
+                                    finalPrice = finalPrice,
+                                    quantity = 10,
+                                    totalPrice = finalPrice * 10,
+                                    discProduct = null
+                                )
+                            ),
+                            totalPrice = finalPrice * 10
                         )
                     }
-                    val offeringObj: OfferingBySales = getOffering()
+                    val offeringObj: OfferingForAgent = getOffering()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {
@@ -632,7 +648,7 @@ fun CardItemForInOut(
 
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun ListItemForInOut(item: InternalProduct) {
+fun ListItemStock(item: InternalProduct) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -645,6 +661,58 @@ fun ListItemForInOut(item: InternalProduct) {
         ConstraintLayout (modifier = Modifier.fillMaxWidth()) {
             val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
             val date = item.updateAt
+            val fixDate = sdf.format(date!!)
+            val spacing = MaterialTheme.spacing
+            val (refIcon, refTitle, refDate, refStock) = createRefs()
+            Image(modifier = Modifier
+                .constrainAs(refIcon){
+                    top.linkTo(parent.top, spacing.medium)
+                    start.linkTo(parent.start, spacing.medium)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                imageVector = ImageVector.vectorResource(id = R.drawable.bag_icon), contentDescription = "ini icon")
+            Text(modifier = Modifier
+                .constrainAs(refTitle){
+                    top.linkTo(parent.top)
+                    start.linkTo(refIcon.end, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                text = item.productName!!, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium))
+            Text(modifier = Modifier
+                .constrainAs(refDate){
+                    top.linkTo(refTitle.bottom)
+                    start.linkTo(refIcon.end, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                text = fixDate,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Light))
+            Text(modifier = Modifier
+                .constrainAs(refStock){
+                    top.linkTo(parent.top)
+                    end.linkTo(parent.end, spacing.small)
+                    bottom.linkTo(parent.bottom)
+                },
+                text = item.qtyProduct.toString()+ " pcs",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
+        }
+
+    }
+}
+@SuppressLint("SimpleDateFormat")
+@Composable
+fun ListItemForInOut(item: InternalStockTransaction) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp, horizontal = 10.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        ),
+        colors = CardColors(contentColor = MaterialTheme.colorScheme.onSurface, containerColor = MaterialTheme.colorScheme.surfaceContainerLowest, disabledContentColor = MaterialTheme.colorScheme.onSurface, disabledContainerColor = MaterialTheme.colorScheme.onTertiaryContainer)
+    ) {
+        ConstraintLayout (modifier = Modifier.fillMaxWidth()) {
+            val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
+            val date = item.createAt
             val fixDate = sdf.format(date!!)
             val spacing = MaterialTheme.spacing
             val (refIcon, refTitle, refDate, refStock) = createRefs()
@@ -739,5 +807,5 @@ fun ListItemForInOutAgent(item: AgentStockTransaction) {
 @Preview(apiLevel = 33)
 @Composable
 fun PrevStockInScreen(){
-ListItemForInOut(item = internalProducts[1])
+//ListItemForInOut(item = internalProducts[1])
 }

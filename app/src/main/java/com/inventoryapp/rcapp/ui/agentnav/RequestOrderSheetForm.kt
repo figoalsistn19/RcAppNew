@@ -1,133 +1,156 @@
 package com.inventoryapp.rcapp.ui.agentnav
 
-import androidx.compose.foundation.background
+import android.content.ContentResolver
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Point
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.view.View
+import android.view.WindowManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Done
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 @Composable
-fun RequestOrderSheetForm(){
-    Column {
-        Text(modifier = Modifier.align(Alignment.CenterHorizontally),
-            text = "Permintaan Pesanan",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
-        )
-        Card (
-            modifier = Modifier.padding(horizontal = 15.dp, vertical = 20.dp),
-            elevation = CardDefaults.cardElevation(5.dp),
-            colors = CardColors(
-                MaterialTheme.colorScheme.surfaceContainerLowest,
-                MaterialTheme.colorScheme.onSurface,
-                MaterialTheme.colorScheme.surfaceContainer,
-                MaterialTheme.colorScheme.onSurfaceVariant)
-        ){
-            var qtyOrder by remember { mutableStateOf("") }
-            var totalPriceProduct by remember { mutableStateOf("") }
-            var isQtyEmpty = true
-            Column (
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Text(
-                    modifier = Modifier.padding(top=10.dp, start = 20.dp).align(Alignment.Start),
-                    text = "Krupuk Sate",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
-                )
-                OutlinedTextField(
-                    modifier = Modifier.padding(top = 5.dp),
-                    value = qtyOrder,
-                    onValueChange = {
-                        qtyOrder = it
-                        isQtyEmpty = it.isEmpty()
-                    },
-                    isError = isQtyEmpty,
-                    maxLines = 1,
-                    label = {
-                        Text(text = "Jumlah barang")
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrect = false,
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    placeholder = {
-                        Text(text = "100")
-                    },
-                    trailingIcon = {
-                        if (isQtyEmpty) {
-                            Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
-                        } else{
-                            Icon(imageVector = Icons.Outlined.Done, contentDescription ="done" )
-                        }
-                    }
-                )
-                Row (
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 15.dp, start = 20.dp, end = 20.dp, bottom = 15.dp)
-                        .height(30.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(5.dp)
-                        ),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ){
-                    Text(
-                        modifier = Modifier.padding(horizontal = 18.dp),
-                        text = "Total",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.surfaceContainerLowest
-                        )
-                    )
-                    Text(
-                        modifier = Modifier.padding(horizontal = 18.dp),
-                        text = "Rp110,000",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.surfaceContainerLowest
-                        )
-                    )
-                }
+fun ScreenshotButton(
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            scope.launch {
+                // Panggil fungsi untuk mengambil tangkapan layar
+                // dan menyimpannya ke galeri
+                val bitmap = getScreenshot(context)
+                saveScreenshotToGallery(bitmap)
             }
         }
+    }
+    Button(
+        onClick = {
+            launcher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//            scope.launch {
+//                // Ambil tangkapan layar
+//                val bitmap = getScreenshot(context)
+//                // Simpan tangkapan layar ke galeri
+//                saveScreenshotToGallery(context, bitmap)
+//            }
+        }
+    ) {
+        Text(text = "Simpan Invoice")
+    }
+}
 
+// Fungsi untuk mengambil tangkapan layar
+private fun getScreenshot(context: Context): Bitmap {
+    val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    val display = windowManager.defaultDisplay
+    val size = Point()
+    display.getSize(size)
+    val width = size.x
+    val height = size.y
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val view = View(context)
+    view.layout(0, 0, width, height)
+    view.draw(canvas)
+    return bitmap
+}
+
+// Fungsi untuk menyimpan tangkapan layar ke galeri
+private fun saveScreenshotToGallery(bitmap: Bitmap) {
+    val folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+    val file = File(folder, "Screenshot_${System.currentTimeMillis()}.png")
+    try {
+        val stream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.flush()
+        stream.close()
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.R)
+@Composable
+fun WriteToMediaStoreButton() {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            createWriteRequest(context)
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    Button(onClick = { launcher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) }) {
+        Text("Write to MediaStore")
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.R)
+private fun createWriteRequest(context: Context) {
+    val resolver: ContentResolver = context.contentResolver
+
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, "Image_${System.currentTimeMillis()}.jpg")
+        put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+        put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
+        put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
+    }
+
+    val contentUri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    val imageUri = resolver.insert(contentUri, contentValues)
+
+    imageUri?.let { uri ->
+        val imageUris = mutableListOf(uri)
+        val intentSender = MediaStore.createWriteRequest(resolver, listOf(uri))
+        intentSender.send()
+    }
+}
+
+@Preview
+@Composable
+fun WriteToMediaStoreButtonPreview() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WriteToMediaStoreButton()
+        }
     }
 }
 
 @Preview(apiLevel = 33)
 @Composable
 fun PrevReqOrderSheet(){
-    RequestOrderSheetForm()
+    ScreenshotButton()
 }

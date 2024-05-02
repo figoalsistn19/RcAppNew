@@ -1,14 +1,13 @@
 package com.inventoryapp.rcapp.util
 
 import com.google.android.gms.tasks.Task
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 
-public suspend fun <T> Task<T>.await(): T {
+suspend fun <T> Task<T>.await(): T {
     // fast path
     if (isComplete) {
         val e = exception

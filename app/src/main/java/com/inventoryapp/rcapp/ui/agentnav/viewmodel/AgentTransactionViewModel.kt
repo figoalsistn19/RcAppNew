@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
-import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +30,7 @@ class AgentTransactionViewModel @Inject constructor(
     private val _addProductInFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
     val addProductInFlow: StateFlow<Resource<FirebaseFirestore>?> = _addProductInFlow
 
-    fun addProductIn(transaction: AgentStockTransaction, idProduct: String, offering: OfferingBySales) = viewModelScope.launch {
+    fun addProductIn(transaction: AgentStockTransaction, idProduct: String, offering: OfferingForAgent) = viewModelScope.launch {
 
         val result = repository.addAgentStockTransaction(transaction, idProduct, offering) {
         }

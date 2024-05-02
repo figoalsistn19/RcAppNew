@@ -4,12 +4,12 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 data class InternalUser(
-    var idUser: String,
-    val name: String,
-    val email: String,
-    val phoneNumber: String,
-    val userRole: UserRole,
+    var idUser: String? = null,
+    val name: String? = null,
+    val email: String? = null,
+    val phoneNumber: String? = null,
+    val userRole: UserRole? = null,
     @ServerTimestamp
-    val createAt: Date
+    val createAt: Date? = null
 )
 

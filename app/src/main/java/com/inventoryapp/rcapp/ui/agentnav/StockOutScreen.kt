@@ -1,8 +1,6 @@
 package com.inventoryapp.rcapp.ui.agentnav
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,19 +63,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
-import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
-import com.inventoryapp.rcapp.util.SharedPref
-import com.inventoryapp.rcapp.util.SharedPrefConstants
-import com.inventoryapp.rcapp.util.SharedPrefConstants.USER_ID
-import com.inventoryapp.rcapp.util.SharedPrefConstants.prefUserId
 import java.util.Date
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -92,7 +86,7 @@ fun StockOutScreen(
     val context = LocalContext.current
 
     var finalPrice by remember {
-        mutableStateOf(0L)
+        mutableLongStateOf(0L)
     }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -110,7 +104,7 @@ fun StockOutScreen(
     val addStockOut = agentTransactionViewModel.addProductInFlow.collectAsState()
     val agentStocksOut by agentTransactionViewModel.agentTransactionsIn.observeAsState()
 
-    val sheetState = rememberModalBottomSheetState(true)
+    val sheetState = rememberModalBottomSheetState()
     var showAddStockOutSheet by remember { mutableStateOf(false) }
     var showDetailStockOutSheet by remember {
         mutableStateOf(false)
@@ -386,11 +380,10 @@ fun StockOutScreen(
                                             // Lakukan sesuatu dengan data
                                         } else {
                                             Toast.makeText(context,"Data tidak ditemukan", Toast.LENGTH_SHORT).show()
-
                                         }
                                     }
                                     .addOnFailureListener { exception ->
-                                        Toast.makeText(context,"Gagal mengambil data", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context,exception.message, Toast.LENGTH_SHORT).show()
                                     }
                             }
                         },
@@ -514,12 +507,12 @@ fun StockOutScreen(
                         )
                     }
                     val agentStockTransactionObj: AgentStockTransaction = getAgentStockTransaction()
-                    fun getOffering(): OfferingBySales {
-                        return OfferingBySales(
+                    fun getOffering(): OfferingForAgent {
+                        return OfferingForAgent(
                             idOffering = selectedItemId + "bysystem",
                             desc = "STOK MENIPIS",
-                            idAgent = agentProductViewModel.idAgent,
-                            nameAgent = agentProductViewModel.agentName,
+                            idAgent = agentProductViewModel.currentUser?.uid?:"",
+                            nameAgent = agentProductViewModel.currentUser?.displayName?:"",
                             statusOffering = "PENDING",
                             productsItem = listOf(
                                 ProductsItem(
@@ -535,7 +528,7 @@ fun StockOutScreen(
                             totalPrice = finalPrice * 10
                         )
                     }
-                    val offeringObj: OfferingBySales = getOffering()
+                    val offeringObj: OfferingForAgent = getOffering()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {

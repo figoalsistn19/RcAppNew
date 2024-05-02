@@ -75,7 +75,7 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.ui.agentnav.CardItem
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
@@ -107,8 +107,8 @@ fun OfferingPoForAgentScreen(
     val internalProductSearchList by internalProductViewModel.internalProductList.collectAsState()
 
     //AGENTUSER
-    val query by agentUserViewModel.searchText.collectAsState()
-    val onQueryChange by agentUserViewModel.isSearching.collectAsState()
+    val query by agentUserViewModel.searchTextAgent.collectAsState()
+    val onQueryChange by agentUserViewModel.isSearchingAgent.collectAsState()
     val agentUserList by agentUserViewModel.agentUsers.observeAsState()
     val agentSearchList by agentUserViewModel.agentUsersList.collectAsState()
 
@@ -226,11 +226,11 @@ fun OfferingPoForAgentScreen(
                 }
             }
             LaunchedEffect(Unit) {
-                offeringPoViewModel.fetchOfferingBySales()
+                offeringPoViewModel.fetchOfferingForAgent()
             }
             when (offeringAgentList) {
                 is Resource.Success -> {
-                    val offeringList = (offeringAgentList as Resource.Success<List<OfferingBySales>>).result
+                    val offeringList = (offeringAgentList as Resource.Success<List<OfferingForAgent>>).result
                     LazyColumn(
                         modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
                     ){
@@ -711,7 +711,7 @@ fun OfferingPoForAgentScreen(
                             imeAction = ImeAction.Done
                         )
                     )
-                    fun getOfferingData(): OfferingBySales {
+                    fun getOfferingData(): OfferingForAgent {
 //                        val qtyProductValue = qtyProduct.toIntOrNull() ?: 0
 //                        val qtyMinProductValue = qtyMinProduct.toIntOrNull() ?: 0
 //                        val priceValue = price.toLongOrNull() ?: 0
@@ -740,17 +740,17 @@ fun OfferingPoForAgentScreen(
                         val totalPriceAll = listProducts.fold(0L) { acc, product ->
                             acc + (product.totalPrice ?: 0)
                         }
-                        return OfferingBySales(
+                        return OfferingForAgent(
                             idAgent = selectedAgentId,
                             idOffering = "",
                             nameAgent = selectedAgentUser,
                             desc = descOffering,
-                            statusOffering = "PENDING",
+                            statusOffering = "BY SALES",
                             productsItem = listProducts,
                             totalPrice = totalPriceAll
                         )
                     }
-                    val offeringObj: OfferingBySales = getOfferingData()
+                    val offeringObj: OfferingForAgent = getOfferingData()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {
@@ -989,7 +989,7 @@ fun CardPoAgent(){
 }
 @Composable
 fun CardPoAgents(
-    cardData: OfferingBySales
+    cardData: OfferingForAgent
 ){
     val offeringSize = cardData.productsItem!!.size
     val offeringSizeMinOne = cardData.productsItem!!.size-1
@@ -1055,7 +1055,7 @@ fun CardPoAgents(
 @Composable
 fun PrevPo(){
 //    CardPoAgent()
-    CardPoAgents(cardData = OfferingBySales(
+    CardPoAgents(cardData = OfferingForAgent(
         productsItem = listOf(
         ProductsItem(
             idProduct = "wlwlwl",

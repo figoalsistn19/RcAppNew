@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentUser
@@ -23,14 +24,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AgentProductViewModel @Inject constructor(
-    private val repository: AgentRepository,
-    private val appPreferences: SharedPreferences
+    private val repository: AgentRepository
 ) : ViewModel() {
 
-//    private val _idAgentProduct = MutableStateFlow(appPreferences.getString(SharedPrefConstants.USER_ID,null))
-//    val idAgentProduct = _idAgentProduct.asStateFlow()
-    val idAgent = appPreferences.getString(SharedPrefConstants.USER_ID,null)
-    val agentName = appPreferences.getString(SharedPrefConstants.USER_NAME, null)
+    val currentUser: FirebaseUser?
+        get() = repository.currentUser
 
     // Add agent product
     private val _agentProductFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
@@ -55,9 +53,9 @@ class AgentProductViewModel @Inject constructor(
         }
     }
 
-    fun getSession(result: (AgentUser?) -> Unit){
-        repository.getSession(result)
-    }
+//    fun getSession(result: (AgentUser?) -> Unit){
+//        repository.getSession(result)
+//    }
 
     //first state whether the search is happening or not
     private val _isSearching = MutableStateFlow(false)

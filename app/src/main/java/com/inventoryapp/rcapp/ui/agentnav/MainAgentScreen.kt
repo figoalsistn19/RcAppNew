@@ -1,11 +1,20 @@
 package com.inventoryapp.rcapp.ui.agentnav
 
+//noinspection UsingMaterialAndMaterial3Libraries
 import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Badge
@@ -18,30 +27,35 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.inventoryapp.rcapp.ui.WelcomeScreen
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.internalnav.BottomBar
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_ORDER_HISTORY_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN
@@ -53,40 +67,91 @@ import kotlinx.coroutines.launch
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainAgentScreen(
+    salesOrderViewModel: SalesOrderViewModel,
     offeringPoViewModel: OfferingPoViewModel,
     agentTransactionViewModel: AgentTransactionViewModel,
     agentProductViewModel: AgentProductViewModel,
     internalProductViewModel: InternalProductViewModel,
-    authViewModel: AuthAgentViewModel?
+    authViewModel: AuthAgentViewModel?,
+    navController: NavHostController
 ){
-    val navController = rememberNavController()
+//    val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
+    val offeringAgentSearchList by offeringPoViewModel.offeringAgentList.collectAsState()
+    val navControllerNonHost = rememberNavController()
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
                 drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
             ) {
-                Column {
-                    Text("Drawer title", modifier = Modifier.padding(16.dp))
-                    Divider()
-                    NavigationDrawerItem(
-                        label = { Text(text = "Drawer Item") },
-                        selected = false,
-                        onClick = { /*TODO*/ }
-                    )
-                    IconButton(onClick = {
-                        authViewModel?.logout()
-                        navController.navigate(ROUTE_HOME) {
-                            popUpTo(ROUTE_MAIN_AGENT_SCREEN) { inclusive = true }
+                Column (
+                    modifier = Modifier.fillMaxSize(),
+                ){
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        Image(
+                            imageVector = Icons.Filled.AccountCircle,
+                            contentDescription = "foto profil",
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(80.dp)
+                        )
+                        Column (
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ){
+                            Text(
+                                text = authViewModel?.currentUser?.displayName?:"",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                            Text(
+                                text = authViewModel?.currentUser?.email?:"",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
                         }
-                    }) {
-                        Icon(imageVector = Icons.Default.Home, contentDescription = "logout")
                     }
+                    Divider()
+                    Spacer(modifier = Modifier
+                        .fillMaxWidth()
+                    )
+                    Row (
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        IconButton(onClick = {
+                            authViewModel?.logout()
+                            navController.navigate(ROUTE_LOGIN_AGENT){
+                                popUpTo(ROUTE_MAIN_AGENT_SCREEN) {inclusive = true}
+                            }
+                        },
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(40.dp)
+                        ) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "logout")
+                        }
+                        Text(
+                            text = "Keluar Aplikasi",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+
                 }
 
             }
@@ -95,7 +160,7 @@ fun MainAgentScreen(
     {
         Scaffold(
             bottomBar = {
-                BottomBar(navController = navController)
+                BottomBar(offeringAgentSearchList.size, navController = navControllerNonHost)
             },
             topBar = {
                 CenterAlignedTopAppBar(
@@ -136,28 +201,25 @@ fun MainAgentScreen(
                 )
             }
         ) {
-            NavHost(navController = navController, startDestination = BottomBarScreen.Home.route,
+            NavHost(navController = navControllerNonHost, startDestination = BottomBarScreen.Home.route,
             ){
                 composable(BottomBarScreen.Home.route){
-                    HomeAgentScreen(agentProductViewModel,navController = navController)
+                    HomeAgentScreen(agentProductViewModel,navController = navControllerNonHost)
                 }
                 composable(BottomBarScreen.Stock.route){
-                    AgentStockScreen(agentProductViewModel, internalProductViewModel, navController = navController)
+                    AgentStockScreen(agentProductViewModel, internalProductViewModel, navController = navControllerNonHost)
                 }
                 composable(BottomBarScreen.Sales.route){
-                    AgentRequestOrderScreen(offeringPoViewModel, agentProductViewModel, navController = navController)
+                    AgentRequestOrderScreen(offeringPoViewModel, agentProductViewModel, navController = navControllerNonHost)
                 }
                 composable(ROUTE_ORDER_HISTORY_SCREEN){
-                    OrderHistoryScreen(navController)
+                    OrderHistoryScreen(salesOrderViewModel, navControllerNonHost)
                 }
                 composable(ROUTE_STOCK_IN_SCREEN){
-                    StockInScreen(agentTransactionViewModel, agentProductViewModel, navController)
+                    StockInScreen(agentTransactionViewModel, agentProductViewModel, navControllerNonHost)
                 }
                 composable(ROUTE_STOCK_OUT_SCREEN){
-                    StockOutScreen(agentTransactionViewModel, agentProductViewModel, navController)
-                }
-                composable(ROUTE_HOME){
-                    WelcomeScreen(viewModel = authViewModel, navController = navController)
+                    StockOutScreen(agentTransactionViewModel, agentProductViewModel, navControllerNonHost)
                 }
             }
         }

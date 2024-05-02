@@ -41,6 +41,7 @@ import androidx.navigation.NavHostController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.ListItemForInOut
+import com.inventoryapp.rcapp.ui.agentnav.ListItemStock
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
@@ -48,6 +49,7 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_VERIFICATION_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
@@ -65,7 +67,7 @@ fun InternalHomeScreen(
         .padding(top = 55.dp)) {
         ConstraintLayout (
             modifier = Modifier
-                .size(1200.dp)
+                .size(1310.dp)
                 .padding(bottom = 20.dp)
                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
         ) {
@@ -303,7 +305,7 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_STOCK_OUT_SCREEN)
+                            navController.navigate(ROUTE_REGISTER_INTERNAL)
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.kelola_banner),
                                 contentDescription = "ini icon",
@@ -312,7 +314,7 @@ fun InternalHomeScreen(
                     }
                     Text(
                         modifier = Modifier.padding(top = 5.dp),
-                        text = "Kelola Banner",
+                        text = "Daftar karyawan",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Light,
                             fontSize = 10.sp))
@@ -332,7 +334,7 @@ fun InternalHomeScreen(
 
             when (internalProduct) {
                 is Resource.Success -> {
-                    val internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result
+                    val internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result.sortedBy { it.qtyProduct }
                     LazyColumn (modifier = Modifier
                         .constrainAs(refProductList) {
                             top.linkTo(refProduct.bottom)
@@ -342,7 +344,7 @@ fun InternalHomeScreen(
                         .padding(horizontal = 10.dp, vertical = 1.dp))
                     {
                         items(internalProductList) { item ->
-                            ListItemForInOut(
+                            ListItemStock(
                                 item
                             )
                         }

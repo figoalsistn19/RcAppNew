@@ -1,6 +1,7 @@
 package com.inventoryapp.rcapp.ui.auth.internalauth
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,18 +26,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
-import com.inventoryapp.rcapp.ui.nav.INTERNAL_NAV
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
-import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
 
@@ -50,15 +50,18 @@ fun LoginInternalScreen(viewModel:AuthInternalViewModel?, navController: NavCont
 //    fun onStart(){
 //        viewModel?.getSession { user ->
 //            if (user != null){
-//                navController.navigate(ROUTE_HOME) {
-//                    popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+//                navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN) {
+//                    popUpTo(ROUTE_LOGIN_INTERNAL) { inclusive = true }
+//                    popUpTo(ROUTE_HOME){ inclusive = true}
 //                }
 //            }
 //        }
 //    }
 
     ConstraintLayout(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().background(
+            color = MaterialTheme.colorScheme.surfaceContainerLowest
+        )
     ) {
 //        onStart()
         val (refHeader, refEmail, refPassword, refButtonLogin, refTextSignup, refLoading, refVersion) = createRefs()
@@ -137,19 +140,19 @@ fun LoginInternalScreen(viewModel:AuthInternalViewModel?, navController: NavCont
             Text("LOGIN", style = MaterialTheme.typography.titleMedium)
         }
 
-        FilledTonalButton(
-            modifier = Modifier
-                .constrainAs(refTextSignup) {
-                    top.linkTo(refButtonLogin.bottom, spacing.medium)
-                    start.linkTo(parent.start, spacing.extraLarge)
-                    end.linkTo(parent.end, spacing.extraLarge)
-                },
-            onClick = {
-                navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN)
-            }
-        ){
-            Text(text = "DAFTAR", style = MaterialTheme.typography.titleMedium)
-        }
+//        FilledTonalButton(
+//            modifier = Modifier
+//                .constrainAs(refTextSignup) {
+//                    top.linkTo(refButtonLogin.bottom, spacing.medium)
+//                    start.linkTo(parent.start, spacing.extraLarge)
+//                    end.linkTo(parent.end, spacing.extraLarge)
+//                },
+//            onClick = {
+//                navController.navigate(ROUTE_REGISTER_INTERNAL)
+//            }
+//        ){
+//            Text(text = "DAFTAR", style = MaterialTheme.typography.titleMedium)
+//        }
 
         Text(text = "Version 1.0.0",
             modifier=Modifier
@@ -177,32 +180,14 @@ fun LoginInternalScreen(viewModel:AuthInternalViewModel?, navController: NavCont
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN)
+                        navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN) {
+                            popUpTo(ROUTE_LOGIN_INTERNAL) { inclusive = true }
+                            popUpTo(ROUTE_HOME){ inclusive = true}
+                        }
                     }
                 }
             }
         }
 
-    }
-}
-
-
-
-
-
-
-@Composable
-fun Greeting2(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview2() {
-    RcAppTheme {
-        Greeting2("Android")
     }
 }

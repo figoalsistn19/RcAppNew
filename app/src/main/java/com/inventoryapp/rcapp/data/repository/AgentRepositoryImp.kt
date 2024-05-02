@@ -1,16 +1,19 @@
 package com.inventoryapp.rcapp.data.repository
 
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import com.google.gson.Gson
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.OfferingForAgent
+import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.FirebaseCoroutines
 import com.inventoryapp.rcapp.util.Resource
@@ -26,32 +29,50 @@ class AgentRepositoryImp @Inject constructor(
     private val appPreferences: SharedPreferences,
     private val gson: Gson
 ): AgentRepository {
+
+    val source = Source.DEFAULT
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
 
+    @SuppressLint("SuspiciousIndentation")
     override suspend fun login(email: String, password: String): Resource<FirebaseUser> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            val userId = result.user!!.uid // Extract the user ID
+            val documentSnapshot = database
+                .collection(FireStoreCollection.AGENTUSER)
+                .document(result.user?.uid!!)
+                .get(source).await()
+//                .whereEqualTo("email", result.user?.email) // Use userId for comparison
+                //                .whereEqualTo("verificationStatus", "APPROVED")
+            val agentUser = documentSnapshot.toObject(AgentUser::class.java)
+            val verifiedAcc = documentSnapshot.getString("verificationStatus")
 
-            val documentSnapshot = FirebaseFirestore.getInstance()
-                .collection("AgentUser")
-                .whereEqualTo("idAgent", userId) // Use userId for comparison
-                .whereEqualTo("verificationStatus", "APPROVED")
-                .get().await()
-
-            if (documentSnapshot.isEmpty) {
+            if (agentUser?.idAgent?.isEmpty()!!) {
                 // Handle case where user data or approved status not found
-                return Resource.Failure(Exception("User not found or verification not approved"))
-            } else {
-                for (doc in documentSnapshot){
-                    val agentUser = doc.toObject(AgentUser::class.java)
+                return Resource.Failure(Exception("Akun tidak ditemukan"))
+            }
+            else if (agentUser.verificationStatus.toString() == "PENDING"){
+                return Resource.Failure(Exception("Akun belum disetujui"))
+            }
+            else if (agentUser.verificationStatus.toString() == "APPROVED") {
+//                val agentUser = documentSnapshot.toObject(AgentUser::class.java)
                     appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
                     appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idAgent).apply()
+                    appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
                     appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.verificationStatus.toString()).apply()
-                }
                 Resource.Success(result.user!!)
-            }
+            } else Resource.Failure(Exception("Terjadi masalah dengan server"))
+
+//            else {
+//                for (doc in documentSnapshot){
+//                    val agentUser = doc.toObject(AgentUser::class.java)
+//                    appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
+//                    appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idAgent).apply()
+//                    appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
+//                    appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.verificationStatus.toString()).apply()
+//                }
+//                Resource.Success(result.user!!)
+//            }
         } catch (e: Exception) {
             e.printStackTrace()
             Resource.Failure(e)
@@ -75,6 +96,8 @@ class AgentRepositoryImp @Inject constructor(
                 .apply()
             appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, gson.toJson(result))
                 .apply()
+            appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, gson.toJson(result))
+                .apply()
             Resource.Success(database)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -86,7 +109,7 @@ class AgentRepositoryImp @Inject constructor(
         return try {
             val querySnapshot = database
                 .collection(FireStoreCollection.INTERNALPRODUCT)
-                .get()
+                .get(source)
                 .await()
 
             val productList = mutableListOf<InternalProduct>()
@@ -105,6 +128,7 @@ class AgentRepositoryImp @Inject constructor(
     }
 
     override fun getSession(result: (AgentUser?) -> Unit) {
+        val userId = currentUser?.uid
         val userStr = appPreferences.getString(SharedPrefConstants.USER_SESSION, null)
         val userStatus = appPreferences.getString(SharedPrefConstants.USER_STATUS,null)
         if (userStr == null && userStatus== "PENDING") {
@@ -183,7 +207,7 @@ class AgentRepositoryImp @Inject constructor(
     override suspend fun addAgentStockTransaction(
         transaction: AgentStockTransaction,
         idProduct: String,
-        offering: OfferingBySales,
+        offering: OfferingForAgent,
         result: (Resource<String>) -> Unit
     ): Resource<FirebaseFirestore> {
         return try {
@@ -199,23 +223,26 @@ class AgentRepositoryImp @Inject constructor(
             val idAgentTransaction = transactionRef.id // Dapatkan ID yang dihasilkan secara otomatis
             transaction.idAgentStockTransaction = idAgentTransaction
 
-            database.runTransaction { _transaction ->
-                val stockSnapshot = _transaction.get(stockRef)
+            database.runTransaction {
+                val stockSnapshot = it.get(stockRef)
 
                 val currentStock = stockSnapshot.getLong("qtyProduct") ?: 0
                 val stockMin = stockSnapshot.getLong("qtyMin") ?: 0
 
-                val updateReqOrderRef = database.collection(FireStoreCollection.OFFERINGBYSALES)
+                val updateReqOrderRef = database.collection(FireStoreCollection.OFFERINGFORAGENT)
                     .document(offering.idOffering!!)
 //                val idOffering = updateReqOrderRef.id
 //                offering.idOffering = idOffering
                 val updatedStock = currentStock + transaction.qtyProduct!!
 
-                _transaction.update(stockRef, "qtyProduct", updatedStock)
-                _transaction.set(transactionRef, transaction)
-                if (updatedStock <= stockMin){
-                    _transaction.set(updateReqOrderRef, offering)
+                if (updatedStock < 0){
+                    stockRef.delete()
                 }
+                it.update(stockRef, "qtyProduct", updatedStock)
+                it.set(transactionRef, transaction)
+                if (updatedStock <= stockMin){
+                    it.set(updateReqOrderRef, offering)
+                } else {it.delete(updateReqOrderRef)}
 
 //                _transaction.set(updateReqOrderRef,)
 
@@ -232,18 +259,65 @@ class AgentRepositoryImp @Inject constructor(
         return withContext(Dispatchers.IO) {
             val userId = if (currentUser != null)
                 currentUser!!.uid
-            else "ZeVxsI1nTCeZEprqlzZpti00sC42"
+            else appPreferences.getString(SharedPrefConstants.USER_ID,"null")
             val querySnapshot = database
                 .collection(FireStoreCollection.AGENTUSER)
-                .document(userId)
+                .document(userId!!)
                 .collection(FireStoreCollection.AGENTPRODUCT)
-                .get()
+                .get(source)
             when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)) {
                 is Resource.Success -> {
                     val documents = taskResult.result
                     val users = mutableListOf<AgentProduct>()
                     for (document in documents) {
                         val user = document.toObject(AgentProduct::class.java)
+                        users.add(user)
+                    }
+                    Resource.Success(users)
+                }
+
+                is Resource.Failure -> {
+                    Resource.Failure(taskResult.throwable)
+                }
+
+                Resource.Loading -> TODO()
+            }
+        }
+    }
+
+    override suspend fun addSalesOrder(
+        salesOrder: SalesOrder,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore> {
+        return try {
+            val firebaseResult = database
+                .collection(FireStoreCollection.SALESORDER)
+                .document()
+            val idSalesOrder = firebaseResult.id // Dapatkan ID yang dihasilkan secara otomatis
+            salesOrder.idOrder = idSalesOrder
+            firebaseResult.set(salesOrder).await()
+            Resource.Success(database)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun getSalesOrder(idAgent: String): Resource<List<SalesOrder>> {
+        return withContext(Dispatchers.IO) {
+//            val userId = if (currentUser != null)
+//                currentUser!!.uid
+//            else "ZeVxsI1nTCeZEprqlzZpti00sC42"
+            val querySnapshot = database
+                .collection(FireStoreCollection.SALESORDER)
+                .whereEqualTo("idAgent", idAgent)
+                .get(source)
+            when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)) {
+                is Resource.Success -> {
+                    val documents = taskResult.result
+                    val users = mutableListOf<SalesOrder>()
+                    for (document in documents) {
+                        val user = document.toObject(SalesOrder::class.java)
                         users.add(user)
                     }
                     Resource.Success(users)
@@ -267,9 +341,8 @@ class AgentRepositoryImp @Inject constructor(
                 .collection(FireStoreCollection.AGENTUSER)
                 .document(userId)
                 .collection(FireStoreCollection.AGENTTRANSACTION)
-                .get()
-            val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)
-            when (taskResult) {
+                .get(source)
+            when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)) {
                 is Resource.Success -> {
                     val documents = taskResult.result
                     val users = mutableListOf<AgentStockTransaction>()

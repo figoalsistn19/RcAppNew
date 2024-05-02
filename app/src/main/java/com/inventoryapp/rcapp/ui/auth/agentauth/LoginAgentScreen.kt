@@ -1,6 +1,7 @@
 package com.inventoryapp.rcapp.ui.auth.agentauth
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,8 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -46,14 +49,19 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
         viewModel?.getSession { user ->
             if (user != null){
                 navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
-                    popUpTo(ROUTE_MAIN_AGENT_SCREEN) { inclusive = true }
+                    popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+                    popUpTo(ROUTE_HOME){ inclusive = true}
                 }
             }
         }
     }
 
     ConstraintLayout(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainerLowest
+            )
     ) {
         onStart()
         val (refHeader, refEmail, refPassword, refButtonLogin, refTextSignup, refLoading, refVersion) = createRefs()
@@ -116,10 +124,12 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
             ),
             maxLines = 1
         )
-
         Button(
             onClick = {
                 viewModel?.loginUser(email, password)
+//                navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
+//                    popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+//                }
             },
             modifier = Modifier.constrainAs(refButtonLogin) {
                 top.linkTo(refPassword.bottom, spacing.extraLarge)
@@ -147,16 +157,15 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
         }
 
         Text(text = "Version 1.0.0",
-            modifier=Modifier
+            modifier= Modifier
                 .padding(top = 140.dp)
-                .constrainAs(refVersion){
+                .constrainAs(refVersion) {
                     bottom.linkTo(parent.bottom, spacing.small)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-            },
+                },
             fontWeight = FontWeight.Light
         )
-
         authResource?.value?.let {
             when (it) {
                 is Resource.Failure -> {
@@ -171,14 +180,15 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
                     })
                 }
                 is Resource.Success -> {
-                    LaunchedEffect(Unit) {
+                    LaunchedEffect(Unit){
                         navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
-                            popUpTo(ROUTE_MAIN_AGENT_SCREEN) { inclusive = true }
+                            popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+                            popUpTo(ROUTE_HOME){ inclusive = true}
                         }
                     }
+
                 }
             }
         }
-
     }
 }

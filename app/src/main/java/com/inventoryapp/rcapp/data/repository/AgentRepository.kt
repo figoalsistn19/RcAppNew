@@ -6,7 +6,8 @@ import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.OfferingForAgent
+import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.util.Resource
 
 interface AgentRepository {
@@ -26,11 +27,18 @@ interface AgentRepository {
     suspend fun addAgentStockTransaction(
         transaction: AgentStockTransaction,
         idProduct: String,
-        offering: OfferingBySales,
+        offering: OfferingForAgent,
         result: (Resource<String>) -> Unit
     ) :Resource<FirebaseFirestore>
 
     suspend fun getAgentProduct(): Resource<List<AgentProduct>>
+
+    suspend fun addSalesOrder(
+        salesOrder: SalesOrder,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore>
+
+    suspend fun getSalesOrder(idAgent: String): Resource<List<SalesOrder>>
 
     suspend fun getAgentTransaction(): Resource<List<AgentStockTransaction>>
     suspend fun getProductData(): Resource<List<InternalProduct>>

@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class OfferingBySales(
+data class OfferingForAgent(
     var idOffering: String? ="",
     var idAgent: String? ="",
     var nameAgent: String? = "",

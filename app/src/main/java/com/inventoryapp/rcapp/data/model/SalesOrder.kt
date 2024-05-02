@@ -7,26 +7,17 @@ import java.util.Date
 
 @Parcelize
 data class SalesOrder(
-    val idOrder: String? ="",
-    val idAgent: String? ="",
-    val nameAgent: String? ="",
-    val name: String? ="",
-    val email: String? ="",
-    val productsItem: List<ProductsItem>,
+    var idOrder: String? ="",
+    var idAgent: String? ="",
+    var nameAgent: String? ="",
+    var email: String? ="",
+    var productsItem: List<ProductsItem>?= null,
     @ServerTimestamp
-    val orderDate: Date? = null,
-    val statusOrder: String? = "",
+    var orderDate: Date? = null,
+    var statusOrder: String? = "",
     var totalPrice: Long? = null,
-    val tax: Int? = null
-) :Parcelable {
-    init {
-        var totalPriceCalculation = 0L
-        for (product in productsItem) {
-            totalPriceCalculation += product.totalPrice ?: 0
-        }
-        totalPrice = totalPriceCalculation
-    }
-}
+    var tax: Int? = null
+) :Parcelable
 
 @Parcelize
 data class ProductsItem(

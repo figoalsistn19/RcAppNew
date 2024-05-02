@@ -1,12 +1,23 @@
 package com.inventoryapp.rcapp.ui.internalnav
 
+//noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
 import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 //noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
@@ -27,18 +38,21 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,10 +64,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
+import com.inventoryapp.rcapp.ui.auth.internalauth.RegisterInternalScreen
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalTransactionViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
@@ -65,56 +81,111 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainInternalScreen(
+    internalTransactionViewModel: InternalTransactionViewModel,
+    salesOrderViewModel: SalesOrderViewModel,
     offeringPoViewModel: OfferingPoViewModel,
-    agentProductViewModel: AgentProductViewModel,
     agentUserViewModel: AgentUserViewModel,
-    authViewModel: AuthInternalViewModel,
+    authViewModel: AuthInternalViewModel?,
     internalProductViewModel: InternalProductViewModel,
-//    navController: NavHostController
+    navController: NavHostController
 ){
-//    val navController = rememberNavController()
-    val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
+    val offeringAgentSearchList by offeringPoViewModel.offeringAgentList.collectAsState()
+    val navControllerNonHost = rememberNavController()
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
                 drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
             ) {
-                Column {
-                    Text("Drawer title", modifier = Modifier.padding(16.dp))
-                    Divider()
-                    NavigationDrawerItem(
-                        label = { Text(text = "Drawer Item") },
-                        selected = false,
-                        onClick = { /*TODO*/ }
-                    )
-                    IconButton(onClick = {
-                        authViewModel.logout()
-                        navController.navigate(ROUTE_HOME)
-                    }) {
-                        Icon(imageVector = Icons.Default.Home, contentDescription = "logout")
-                    }
-                }
+                Column (
+                    modifier = Modifier.fillMaxSize(),
+                ){
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        Image(
+                            imageVector = Icons.Filled.AccountCircle,
+                            contentDescription = "foto profil",
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(80.dp)
+                        )
+                        Column (
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ){
+                            Text(
+                                text = authViewModel?.currentUser?.displayName?:"",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                            Text(
+                                text = authViewModel?.currentUser?.email?:"",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    fontStyle = FontStyle.Italic
+                                ),
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                        }
 
+                    }
+                    Divider()
+                    Spacer(modifier = Modifier
+                        .fillMaxWidth()
+                    )
+                    Row (
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        IconButton(onClick = {
+                            authViewModel?.logout()
+                            navController.navigate(ROUTE_LOGIN_INTERNAL){
+                                popUpTo(ROUTE_MAIN_INTERNAL_SCREEN) {inclusive = true}
+                            }
+                        },
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(40.dp)
+                        ) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "logout")
+                        }
+                        Text(
+                            text = "Keluar Aplikasi",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+
+                }
             }
         },
     )
     {
         Scaffold(
             bottomBar = {
-                BottomBarInternal(navController = navController)
+                BottomBarInternal(
+                    badgeCount = offeringAgentSearchList.size,
+                    navController = navControllerNonHost)
             },
             topBar = {
                 CenterAlignedTopAppBar(
@@ -155,142 +226,44 @@ fun MainInternalScreen(
                 )
             }
         ) {
-            NavHost(navController = navController, startDestination = BottomBarScreen.HomeInternal.route,
+            NavHost(navController = navControllerNonHost, startDestination = BottomBarScreen.HomeInternal.route,
             ){
                 composable(BottomBarScreen.HomeInternal.route){
-                    InternalHomeScreen(internalProductViewModel, navController = navController)
+                    InternalHomeScreen(internalProductViewModel, navController = navControllerNonHost)
                 }
                 composable(BottomBarScreen.StockInternal.route){
-                    InternalStockScreen(agentProductViewModel, internalProductViewModel, authViewModel, navController)
+                    InternalStockScreen(internalProductViewModel, navControllerNonHost)
                 }
                 composable(BottomBarScreen.SalesInternal.route){
-                    InternalSalesScreen(authViewModel, navController)
+                    InternalSalesScreen(salesOrderViewModel)
                 }
                 composable(ROUTE_AGENT_VERIFICATION_SCREEN){
                     AgentVerificationScreen(agentUserViewModel)
                 }
+                composable(ROUTE_REGISTER_INTERNAL){
+                    RegisterInternalScreen(viewModel = authViewModel, navController = navControllerNonHost)
+                }
                 composable(ROUTE_INTERNAL_STOCK_IN_SCREEN){
-                    InternalStockInScreen(agentProductViewModel, navController)
+                    InternalStockInScreen(internalTransactionViewModel, internalProductViewModel, navControllerNonHost)
                 }
                 composable(ROUTE_INTERNAL_STOCK_OUT_SCREEN){
-                    InternalStockOutScreen(agentProductViewModel, navController)
+                    InternalStockOutScreen(internalTransactionViewModel, internalProductViewModel, navControllerNonHost)
                 }
                 composable(ROUTE_AGENT_STOCK_MONITORING_SCREEN){
-                    AgentStockMonitoringScreen()
+                    AgentStockMonitoringScreen(agentUserViewModel)
                 }
                 composable(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN){
-                    OfferingPoForAgentScreen(offeringPoViewModel, agentUserViewModel, internalProductViewModel, navController)
+                    OfferingPoForAgentScreen(offeringPoViewModel, agentUserViewModel, internalProductViewModel, navControllerNonHost)
                 }
             }
         }
     }
-
-
-//    val state = remember { ScrollState(0) }
-//    val agentProductViewModel = AgentProductViewModel()
-//    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
-//    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-//    val scope = rememberCoroutineScope()
-////    val selectedNavBar = StateHolder(0)
-//    var selectedItemIndex by rememberSaveable {
-//        mutableStateOf(0)
-//    }
-//    val items = listOf(
-//        BottomNavAgentItem(
-//            title = "Beranda",
-//            selectedIcon = Icons.Filled.Home,
-//            unselectedIcon = Icons.Outlined.Home,
-//            hasNews = false,
-//            route = ROUTE_HOME_INTERNAL_SCREEN
-//        ), BottomNavAgentItem(
-//            title = "Stok Barang",
-//            selectedIcon = ImageVector.vectorResource(id = R.drawable._dcube),
-//            unselectedIcon = ImageVector.vectorResource(id = R.drawable.unselected_stock),
-//            hasNews = true,
-//            route = ROUTE_INTERNAL_STOCK_SCREEN
-//        ), BottomNavAgentItem(
-//            title = "Penjualan",
-//            selectedIcon = ImageVector.vectorResource(id = R.drawable._dcube),
-//            unselectedIcon = ImageVector.vectorResource(id = R.drawable.unselected_request_order),
-//            hasNews = false,
-//            badgeCount = 5,
-//            route = ROUTE_INTERNAL_SALES_SCREEN
-//        )
-//    )
-//    ModalNavigationDrawer(
-//        drawerState = drawerState,
-//        drawerContent = {
-//            ModalDrawerSheet(
-//                drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
-//            ) {
-//                Column {
-//                    Text("Drawer title", modifier = Modifier.padding(16.dp))
-//                    Divider()
-//                    NavigationDrawerItem(
-//                        label = { Text(text = "Drawer Item") },
-//                        selected = false,
-//                        onClick = { /*TODO*/ }
-//                    )
-//                    IconButton(onClick = {
-//                        viewModel!!.logout()
-//                        navController.navigate(ROUTE_HOME)
-//                    }) {
-//                        Icon(imageVector = Icons.Default.Home, contentDescription = "logout")
-//                    }
-//                }
-//
-//            }
-//        },
-//    )
-//    {
-//        Scaffold(
-//            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-//            bottomBar = {
-//                NavigationBar(
-//                    contentColor = Color.Green,
-//                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-//                    tonalElevation = 30.dp,
-//                ){
-//                    items.forEachIndexed{index, item ->
-//                        NavigationBarItem(
-//                            selected = selectedItemIndex == index,
-//                            onClick = {
-//                                selectedItemIndex = index
-//                                navController.navigate(item.route)
-//                            },
-//                            label = { Text(text = item.title) } ,
-//                            icon = { BadgedBox(
-//                                badge = {
-//                                    if (item.badgeCount != null){
-//                                        Badge {
-//                                            Text(text = item.badgeCount.toString())
-//                                        }
-//                                    }else if(item.hasNews){
-//                                        Badge()
-//                                    }
-//                                }
-//                            ) {
-//                                Icon(
-//                                    imageVector = if (index == selectedItemIndex )
-//                                    {
-//                                        item.selectedIcon
-//                                    }else item.unselectedIcon,
-//                                    contentDescription = item.title
-//                                )
-//                            }
-//                            }
-//                        )
-//                    }
-//                }
-//            }
-//        ){
-//            InternalNavigation(viewModelInternal = viewModel!! )
-//        }
-//    }
 }
 
 @Composable
-fun BottomBarInternal(navController: NavHostController) {
+fun BottomBarInternal(
+    badgeCount: Int?,
+    navController: NavHostController) {
     val screens = listOf(
         BottomBarScreen.HomeInternal,
         BottomBarScreen.StockInternal,
@@ -308,14 +281,17 @@ fun BottomBarInternal(navController: NavHostController) {
             AddItem(
                 screen = screen,
                 currentDestination = currentDestination,
-                navController = navController
+                navController = navController,
+                badgeCount = badgeCount
             )
         }
     }
 }
 
 @Composable
-fun BottomBar(navController: NavHostController) {
+fun BottomBar(
+    badgeCount: Int?,
+    navController: NavHostController) {
     val screens = listOf(
         BottomBarScreen.Home,
         BottomBarScreen.Stock,
@@ -333,7 +309,8 @@ fun BottomBar(navController: NavHostController) {
             AddItem(
                 screen = screen,
                 currentDestination = currentDestination,
-                navController = navController
+                navController = navController,
+                badgeCount = badgeCount
             )
         }
     }
@@ -349,7 +326,8 @@ sealed class BottomBarScreen(
     val unselectedIcon: ImageVector,
     val hasNews: Boolean
 ) {
-    object Home : BottomBarScreen(
+
+    data object Home : BottomBarScreen(
         title = "Beranda",
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
@@ -357,14 +335,14 @@ sealed class BottomBarScreen(
         route = ROUTE_HOME_AGENT_SCREEN
     )
 
-    object HomeInternal : BottomBarScreen(
+    data object HomeInternal : BottomBarScreen(
         title = "Beranda",
         selectedIcon = Icons.Filled.Home,
         unselectedIcon = Icons.Outlined.Home,
         hasNews = false,
         route = ROUTE_HOME_INTERNAL_SCREEN
     )
-    object Stock : BottomBarScreen(
+    data object Stock : BottomBarScreen(
         title = "Stok Barang",
         selectedIcon = Icons.Filled.Search,
         unselectedIcon = Icons.Sharp.Search,
@@ -372,7 +350,7 @@ sealed class BottomBarScreen(
         route = ROUTE_AGENT_STOCK_SCREEN
     )
 
-    object StockInternal : BottomBarScreen(
+    data object StockInternal : BottomBarScreen(
         title = "Stok Barang",
         selectedIcon = Icons.Filled.Search,
         unselectedIcon = Icons.Sharp.Search,
@@ -380,7 +358,7 @@ sealed class BottomBarScreen(
         route = ROUTE_INTERNAL_STOCK_SCREEN
     )
 
-    object Sales : BottomBarScreen(
+    data object Sales : BottomBarScreen(
         title = "Request Order",
         selectedIcon = Icons.Filled.ShoppingCart,
         unselectedIcon = Icons.Outlined.ShoppingCart,
@@ -390,7 +368,7 @@ sealed class BottomBarScreen(
     )
 
 
-    object SalesInternal : BottomBarScreen(
+    data object SalesInternal : BottomBarScreen(
         title = "Penjualan",
         selectedIcon = Icons.Filled.ShoppingCart,
         unselectedIcon = Icons.Outlined.ShoppingCart,
@@ -399,12 +377,15 @@ sealed class BottomBarScreen(
         route = ROUTE_AGENT_REQUEST_ORDER_SCREEN
     )
 }
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun RowScope.AddItem(
     screen: BottomBarScreen,
     currentDestination: NavDestination?,
+    badgeCount: Int?,
     navController: NavHostController
 ) {
+//    val offeringAgentSearchList by offeringPoViewModel.offeringAgentList.collectAsState()
     NavigationBarItem(
         label = {
             Text(text = screen.title)
@@ -414,7 +395,7 @@ fun RowScope.AddItem(
                 badge = {
                     if(screen.badgeCount != null) {
                         Badge {
-                            Text(text = screen.badgeCount.toString())
+                            Text(text = badgeCount.toString())
                         }
                     } else if(screen.hasNews) {
                         Badge()

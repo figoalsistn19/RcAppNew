@@ -2,6 +2,7 @@ package com.inventoryapp.rcapp.ui.internalnav
 
 import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,12 +15,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -36,11 +42,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -55,33 +65,43 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.R
-import com.inventoryapp.rcapp.ui.agentnav.CardItem
+import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.InternalStockTransaction
 import com.inventoryapp.rcapp.ui.agentnav.ListItemForInOut
-import com.inventoryapp.rcapp.ui.agentnav.ListProduct
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.InternalProductTestViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.StateHolder
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalTransactionViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.Resource
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.Date
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun InternalStockOutScreen(
-    agentProductViewModel: AgentProductViewModel,
+    internalTransactionViewModel: InternalTransactionViewModel,
+    internalProductViewModel: InternalProductViewModel,
     navController: NavController
 ){
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val internalProductViewModel = InternalProductTestViewModel()
     val spacing = MaterialTheme.spacing
-    val searchText by agentProductViewModel.searchText.collectAsState()
-    val isSearching by agentProductViewModel.isSearching.collectAsState()
-    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
+
+    val searchText by internalTransactionViewModel.searchText.collectAsState()
+    val isSearching by internalTransactionViewModel.isSearching.collectAsState()
+    val internalTransactionList by internalTransactionViewModel.transactionOutList.collectAsState()
+
     val searchInternalProduct by internalProductViewModel.searchText.collectAsState()
     val internalProductIsSearching by internalProductViewModel.isSearching.collectAsState()
-    val internalProductList by internalProductViewModel.productsList.collectAsState()
+    val internalProductList by internalProductViewModel.internalProductList.collectAsState()
+
+    val internalProducts by internalProductViewModel.internalProducts.observeAsState()
+    val addStockOut = internalTransactionViewModel.addInternalTransactionFlow.collectAsState()
+    val internalStocksOut by internalTransactionViewModel.agentTransactions.observeAsState()
+
     val sheetState = rememberModalBottomSheetState()
     var showAddStockOutSheet by remember { mutableStateOf(false) }
     var showDetailStockOutSheet by remember {
@@ -92,7 +112,20 @@ fun InternalStockOutScreen(
     var qtyStockOut by remember { mutableStateOf("") }
     var descStockOut by remember { mutableStateOf("") }
     val selectedCard = remember { mutableStateOf("") }
-    val selectedProductNameHolder = StateHolder(initialValue = "")
+    var selectedCardName by remember {
+        mutableStateOf("")
+    }
+
+    val refreshScope = rememberCoroutineScope()
+    var refreshing by remember { mutableStateOf(false) }
+    fun refresh() = refreshScope.launch {
+        refreshing = true
+        delay(1500)
+        internalTransactionViewModel.fetchStockIn()
+        refreshing = false
+    }
+    val state = rememberPullRefreshState(refreshing, ::refresh)
+
     Scaffold (
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         topBar = {
@@ -146,10 +179,10 @@ fun InternalStockOutScreen(
         ) {
             SearchBar(
                 query = searchText,
-                onQueryChange = agentProductViewModel::onSearchTextChange, //update the value of searchText
-                onSearch = agentProductViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
+                onQueryChange = internalTransactionViewModel::onSearchTextChange, //update the value of searchText
+                onSearch = internalTransactionViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
                 active = isSearching, //whether the user is searching or not
-                onActiveChange = { agentProductViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
+                onActiveChange = { internalTransactionViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 23.dp, top = 8.dp, end = 23.dp),
@@ -160,17 +193,63 @@ fun InternalStockOutScreen(
                     Text(text = "Cek riwayat barang keluar...")
                 }
             ) {
-                LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
-                    items(agentProductList) { item ->
-//                        ListProduct(item,
-//                            onCardClicked = {}
-//                        )
+                LazyColumn(modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp)) {
+                    items(internalTransactionList) { item ->
+                        ListItemForInOut(item)
                     }
                 }
             }
-            LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
-                items(internalProductList) { item ->
-                    ListItemForInOut(item)
+            LaunchedEffect(Unit) {
+                internalTransactionViewModel.fetchStockIn()
+            }
+            when (internalStocksOut) {
+                is Resource.Success -> {
+                    val internStockOut = (internalStocksOut as Resource.Success<List<InternalStockTransaction>>).result.filter { it.transactionType == "OUT" }
+                    Box(
+                        Modifier
+                            .pullRefresh(state)
+                            .padding(start = 8.dp, end = 8.dp, top = 25.dp, bottom = 80.dp)
+                    )
+                    {
+                        if (internStockOut.isEmpty()){
+                            Column (
+                                verticalArrangement = Arrangement.Top,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ){
+                                Text(
+                                    modifier = Modifier
+                                        .padding(top = 20.dp),
+                                    text = "Data masih kosong")
+                            }
+
+                        }
+                        else {
+                            LazyColumn(Modifier.fillMaxSize()) {
+                                if (!refreshing) {
+                                    items(internStockOut) { item ->
+                                        ListItemForInOut(item)
+                                    }
+                                }
+                            }
+                        }
+                        PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
+                    }
+                }
+                is Resource.Loading -> {
+                    // Tampilkan indikator loading jika diperlukan
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                    )
+                }
+                is Resource.Failure -> {
+                    // Tampilkan pesan error jika diperlukan
+                    val error = (internalStocksOut as Resource.Failure).throwable
+                    Text(text = "Error: ${error.message}")
+                }
+                else -> {
+                    // Tampilkan pesan default jika diperlukan
+                    Text(text = "No data available")
                 }
             }
         }
@@ -220,26 +299,23 @@ fun InternalStockOutScreen(
                             },
                             shadowElevation = 2.dp,
                             placeholder = {
-                                Text(text = "Cari pesanan disini...")
+                                Text(text = "Pilih barang dulu...")
                             }
                         ) {
-                            LazyColumn (modifier = Modifier.padding(horizontal = 10.dp)){
+                            LazyColumn(modifier = Modifier.padding(horizontal = 10.dp)) {
                                 items(internalProductList) { product ->
-//                                    CardItem(cardData = product, selectedCard = selectedCard,
-//                                        onCardClicked = { productName ->
-//                                            selectedProductNameHolder.updateValue(productName)
-//                                            println("Nama produk: $productName")
-//                                        },
-//                                        idInternalProduct = {}
-//                                    )
+                                    CardItemForInOutInternal(
+                                        cardData = product,
+                                        selectedCard = selectedCard,
+                                        onCardClicked = {
+                                            selectedCardName = it
+                                        },
+                                    )
                                 }
                             }
                         }
                     }
-
-                    if (internalProductIsSearching){
-
-                    } else {
+                    if (!internalProductIsSearching) {
                         Box(modifier = Modifier
                             .constrainAs(refListProduct) {
                                 top.linkTo(refSearchBar.bottom)
@@ -250,24 +326,57 @@ fun InternalStockOutScreen(
                             }
                             .padding(horizontal = 10.dp, vertical = 10.dp))
                         {
-                            LazyColumn(modifier = Modifier
-                                .padding(horizontal = 10.dp, vertical = 10.dp)
-                            )
-                            {
-                                items(internalProductList) { internalitem ->
-//                                    CardItem(
-//                                        internalitem,
-//                                        selectedCard,
-//                                        onCardClicked = { productName ->
-//                                            selectedProductNameHolder.updateValue(productName)
-//                                            println("Nama produk: $productName")
-//                                        },
-//                                        idInternalProduct = {}
-//                                    ) // Replace with your composable for each item
+                            LaunchedEffect(Unit) {
+                                internalProductViewModel.fetchInternalProducts()
+                            }
+                            when (internalProducts) {
+                                is Resource.Success -> {
+                                    val internalProduct = (internalProducts as Resource.Success<List<InternalProduct>>).result
+                                    if (internalProduct.isEmpty()) {
+                                        Text(
+                                            modifier = Modifier
+                                                .padding(top = 20.dp)
+                                                .align(Alignment.Center),
+                                            text = "Data masih kosong"
+                                        )
+                                    } else {
+                                        LazyColumn(modifier = Modifier
+                                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                                        )
+                                        {
+                                            items(internalProduct) { product ->
+                                                CardItemForInOutInternal(
+                                                    cardData = product,
+                                                    selectedCard = selectedCard,
+                                                    onCardClicked = {
+                                                        selectedCardName = it
+                                                    },
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                is Resource.Loading -> {
+                                    // Tampilkan indikator loading jika diperlukan
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .padding(horizontal = 10.dp, vertical = 10.dp)
+                                    )
+                                }
+
+                                is Resource.Failure -> {
+                                    // Tampilkan pesan error jika diperlukan
+                                    val error = (internalProducts as Resource.Failure).throwable
+                                    Text(text = "Error: ${error.message}")
+                                }
+
+                                else -> {
+                                    // Tampilkan pesan default jika diperlukan
+                                    Text(text = "No data available")
                                 }
                             }
                         }
-
                     }
                     Button(
                         onClick = {
@@ -320,7 +429,7 @@ fun InternalStockOutScreen(
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
                     )
                     Text(
-                        text = selectedProductNameHolder.value ,
+                        text = selectedCardName ,
                         modifier = Modifier.constrainAs(refProductName) {
                             top.linkTo(refTitleSheet.bottom, spacing.medium)
                             start.linkTo(parent.start)
@@ -338,7 +447,7 @@ fun InternalStockOutScreen(
                         isError = isQtyEmpty,
                         maxLines = 1,
                         label = {
-                            Text(text = "Stok masuk")
+                            Text(text = "Stok keluar")
                         },
                         modifier = Modifier.constrainAs(refQtyMin) {
                             top.linkTo(refProductName.bottom, spacing.medium)
@@ -384,14 +493,28 @@ fun InternalStockOutScreen(
                             imeAction = ImeAction.Done
                         )
                     )
+                    fun getInternalStockTransaction(): InternalStockTransaction {
+                        val qtyOut = qtyStockOut.toIntOrNull() ?: 0
+                        return InternalStockTransaction(
+                            idTransaction = "",
+                            idProduct = selectedCard.value,
+                            productName = selectedCardName,
+                            qtyProduct = -qtyOut,
+                            transactionType = "OUT",
+                            createAt = Date(),
+                            desc = descStockOut
+                        )
+                    }
+                    val agentStockTransactionObj: InternalStockTransaction = getInternalStockTransaction()
                     Button(
                         onClick = {
                             if (isQtyEmpty) {
                                 // Tampilkan pesan error
-                                Toast.makeText(context, "Jumlah stok masuk tidak boleh kosong!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Jumlah stok keluar tidak boleh kosong!", Toast.LENGTH_SHORT).show()
                             } else {
                                 isQtyEmpty= false
-                                navController.navigate(ROUTE_HOME_AGENT_SCREEN)
+                                internalTransactionViewModel.addInternalTransaction(agentStockTransactionObj, selectedCard.value)
+                                navController.navigate(ROUTE_INTERNAL_STOCK_OUT_SCREEN)
                             }
 
                         },
@@ -405,6 +528,19 @@ fun InternalStockOutScreen(
                             .width(200.dp)
                     ) {
                         Text(text = "Simpan")
+                    }
+                    addStockOut.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                            }
+                            is Resource.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is Resource.Success -> {
+//                                navController.navigate(ROUTE_INTERNAL_STOCK_OUT_SCREEN)
+                            }
+                        }
                     }
                 }
             }

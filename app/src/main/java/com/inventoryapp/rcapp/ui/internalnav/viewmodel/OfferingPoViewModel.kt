@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.OfferingBySales
+import com.inventoryapp.rcapp.data.model.OfferingForAgent
+import com.inventoryapp.rcapp.data.model.SalesOrder
+import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OfferingPoViewModel @Inject constructor(
-    private val repository: InternalRepository
+    private val repository: InternalRepository,
+    private val agentRepo: AgentRepository
 ): ViewModel() {
 
     //TO ADD OFFERING
@@ -31,22 +34,22 @@ class OfferingPoViewModel @Inject constructor(
     private val _addOfferingFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
     val addOfferingFlow: StateFlow<Resource<FirebaseFirestore>?> = _addOfferingFlow
 
-    fun addOffering(offering: OfferingBySales) = viewModelScope.launch {
-        val result = repository.addOfferingBySales(offering){
+    fun addOffering(offering: OfferingForAgent) = viewModelScope.launch {
+        val result = repository.addOfferingForAgent(offering){
         }
         _addOfferingFlow.value = result
     }
 
     // TO GET OFFERING
-    private val _offeringAgentsSearch = MutableStateFlow<Resource<List<OfferingBySales>>>(Resource.Loading)
+    private val _offeringAgentsSearch = MutableStateFlow<Resource<List<OfferingForAgent>>>(Resource.Loading)
 
-    private val _offeringAgents = MutableLiveData<Resource<List<OfferingBySales>>>()
-    val offeringAgents: LiveData<Resource<List<OfferingBySales>>> get() = _offeringAgents
+    private val _offeringAgents = MutableLiveData<Resource<List<OfferingForAgent>>>()
+    val offeringAgents: LiveData<Resource<List<OfferingForAgent>>> get() = _offeringAgents
 
-    fun fetchOfferingBySales() {
+    fun fetchOfferingForAgent() {
         viewModelScope.launch {
             _offeringAgents.value = Resource.Loading
-            val result = repository.getOfferingBySales()
+            val result = repository.getOfferingForAgent()
             _offeringAgents.value = result
         }
     }
@@ -59,14 +62,14 @@ class OfferingPoViewModel @Inject constructor(
     val searchText = _searchText.asStateFlow()
 
     //filter for list order by sales
-    private val _offeringAgentsList = MutableStateFlow(emptyList<OfferingBySales>())
+    private val _offeringAgentsList = MutableStateFlow(emptyList<OfferingForAgent>())
     val offeringAgentList = searchText
         .combine(_offeringAgentsList) { text, orders ->//combine searchText with _contriesList
             if (text.isBlank()) { //return the entery list of countries if not is typed
                 orders
             }
-            orders.filter { orders ->// filter and return a list of countries based on the text the user typed
-                orders.nameAgent!!.uppercase().contains(text.trim().uppercase())
+            orders.filter { offering ->// filter and return a list of countries based on the text the user typed
+                offering.nameAgent!!.uppercase().contains(text.trim().uppercase())
             }
         }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
             scope = viewModelScope,
@@ -76,13 +79,13 @@ class OfferingPoViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _offeringAgentsSearch.value = repository.getOfferingBySales()
+            _offeringAgentsSearch.value = repository.getOfferingForAgent()
             // Update filtered list based on initial data
             _offeringAgentsList.value = mapToOfferingList(_offeringAgentsSearch.value) ?: emptyList()
         }
     }
 
-    private fun mapToOfferingList(resource: Resource<List<OfferingBySales>>): List<OfferingBySales>? {
+    private fun mapToOfferingList(resource: Resource<List<OfferingForAgent>>): List<OfferingForAgent>? {
         return when (resource) {
             is Resource.Success -> resource.result
             else -> null
@@ -99,4 +102,13 @@ class OfferingPoViewModel @Inject constructor(
         }
     }
 
+    //ADD SALES ORDER FROM REQ ORDER
+    private val _addSalesOrderFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
+    val addSalesOrderFlow: StateFlow<Resource<FirebaseFirestore>?> = _addSalesOrderFlow
+
+    fun addSalesOrder(order: SalesOrder) = viewModelScope.launch {
+        val result = agentRepo.addSalesOrder(order){
+        }
+        _addSalesOrderFlow.value = result
+    }
 }

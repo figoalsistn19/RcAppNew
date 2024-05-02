@@ -7,13 +7,14 @@ import java.util.Date
 
 @Parcelize
 data class InternalStockTransaction(
-    val idAgentStockTransaction: String? ="",
-    val idProduct: String? ="",
-    val productName: String? ="",
-    val qtyProduct: Int? = null,
-    val transactionType: String? ="",
+    var idTransaction: String? ="",
+    var idProduct: String? ="",
+    var productName: String? ="",
+    var qtyProduct: Int? = null,
+    var transactionType: String? ="",
+    var userEditor: String? = "",
     @ServerTimestamp
-    val createAt: Date? = null,
-    val desc: String? =""
+    var createAt: Date? = null,
+    var desc: String? =""
 ): Parcelable
 

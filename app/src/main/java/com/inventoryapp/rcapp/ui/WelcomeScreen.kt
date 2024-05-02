@@ -1,5 +1,6 @@
 package com.inventoryapp.rcapp.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,12 +9,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,29 +32,36 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.ui.auth.FirstPageHeader
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
+import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
-import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.Resource
 
 @Composable
-fun WelcomeScreen (viewModel: AuthAgentViewModel?,navController: NavController) {
+fun WelcomeScreen (viewModelInternal: AuthInternalViewModel, navController: NavController) {
 
-    fun onStart(){
-        viewModel?.getSession { user ->
-            if (user != null){
-                navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
-                    popUpTo(ROUTE_HOME) { inclusive = true }
-                }
-            }
+    val navigateToScreen by viewModelInternal.navigateToScreen.observeAsState()
+    LaunchedEffect(navigateToScreen) {
+        viewModelInternal.checkUserLoggedIn()
+        navigateToScreen?.let { screen ->
+            navController.navigate(screen)
+            viewModelInternal.navigateToScreen(screen) // Setelah navigasi selesai, reset nilai LiveData
         }
     }
     ConstraintLayout(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLowest),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest),
     ) {
-        onStart()
-        val (refHeader, refVersion, refTitle) = createRefs()
+//        onStart()
+
+//        LaunchedEffect(Unit){
+////            viewModelInternal.getSessionUser()
+//            viewModelInternal.checkUserLoggedIn()
+//        }
+        val (refHeader, refVersion, refTitle, refLoading) = createRefs()
         val spacing = MaterialTheme.spacing
         Box(
             modifier = Modifier
@@ -88,10 +102,8 @@ fun WelcomeScreen (viewModel: AuthAgentViewModel?,navController: NavController) 
                 modifier = Modifier.padding(top = 25.dp)
             ){
                 ExtendedFloatingActionButton(
-                    onClick = { navController.navigate(ROUTE_LOGIN_INTERNAL)
-//                    {
-//                        popUpTo(ROUTE_LOGIN_INTERNAL) { inclusive = true }
-//                    }
+                    onClick = {
+                        navController.navigate(ROUTE_LOGIN_INTERNAL)
                               },
                     modifier = Modifier
                         .size(158.dp, 53.dp),
@@ -101,10 +113,8 @@ fun WelcomeScreen (viewModel: AuthAgentViewModel?,navController: NavController) 
                     Text(text = "Tim Rc", fontSize = 20.sp)
                 }
                 ExtendedFloatingActionButton(
-                    onClick = { navController.navigate(ROUTE_LOGIN_AGENT)
-//                    {
-//                        popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
-//                    }
+                    onClick = {
+                        navController.navigate(ROUTE_LOGIN_AGENT)
                               },
                     modifier = Modifier
                         .size(158.dp, 53.dp),
@@ -117,15 +127,86 @@ fun WelcomeScreen (viewModel: AuthAgentViewModel?,navController: NavController) 
         }
 
         Text(text = "Version 1.0.0",
-            modifier=Modifier
+            modifier= Modifier
                 .padding(bottom = 8.dp)
-                .constrainAs(refVersion){
+                .constrainAs(refVersion) {
                     bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
             fontWeight = FontWeight.Light
         )
+//        modelResource.value.let {
+//            when (it) {
+//                is Resource.Failure -> {
+////                    Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(context, "telah terjadi error mohon hubungi pihak perusahaan", Toast.LENGTH_SHORT).show()
+//                }
+//                is Resource.Loading -> {
+//                    CircularProgressIndicator(modifier = Modifier.constrainAs(refLoading) {
+//                        top.linkTo(parent.top)
+//                        bottom.linkTo(parent.bottom)
+//                        start.linkTo(parent.start)
+//                        end.linkTo(parent.end)
+//                    })
+//                }
+//                is Resource.Success -> {
+//                    val userRole = it.result
+//                        LaunchedEffect(Unit) {
+//                        when (userRole){
+//                            "APPROVED" -> {
+//                                navController.navigate(ROUTE_LOGIN_AGENT) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                            "PENDING" -> {
+//                                Toast.makeText(context, "Akun belum diaktifkan", Toast.LENGTH_SHORT).show()
+//                            }
+//                            "Owner" -> {
+//                                navController.navigate(ROUTE_LOGIN_INTERNAL) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                            "Admin" -> {
+//                                navController.navigate(ROUTE_LOGIN_INTERNAL) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                            "FinanceManager" -> {
+//                                navController.navigate(ROUTE_LOGIN_INTERNAL) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                            "SalesManager" -> {
+//                                navController.navigate(ROUTE_LOGIN_INTERNAL) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                            "OperationTeam" -> {
+//                                navController.navigate(ROUTE_LOGIN_INTERNAL) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                            "HeadOfWarehouse" -> {
+//                                navController.navigate(ROUTE_LOGIN_INTERNAL) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                            "Sales" -> {
+//                                navController.navigate(ROUTE_LOGIN_INTERNAL) {
+//                                    popUpTo(ROUTE_HOME){ inclusive = true}
+//                                }
+//                            }
+//                        }
+////                        navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN) {
+////                            popUpTo(ROUTE_LOGIN_INTERNAL) { inclusive = true }
+////                            popUpTo(ROUTE_HOME){ inclusive = true}
+////                        }
+//                    }
+//                }
+//                else -> Toast.makeText(context, "telah terjadi error mohon hubungi pihak perusahaan", Toast.LENGTH_SHORT).show()
+//            }
+//        }
     }
 
 }

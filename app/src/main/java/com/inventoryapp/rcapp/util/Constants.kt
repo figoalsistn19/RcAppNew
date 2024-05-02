@@ -1,37 +1,31 @@
 package com.inventoryapp.rcapp.util
 
 object FireStoreCollection{
-    val NOTE = "note"
-    val AGENTUSER = "AgentUser"
-    val INTERNALUSER = "InternalUser"
-    val OFFERINGBYSALES = "OfferingBySales"
-    val INTERNALPRODUCT = "InternalProduct"
-    val AGENTPRODUCT = "AgentProduct"
-    val AGENTTRANSACTION = "AgentTransaction"
+    const val INTERNALSTOCKTRANSACTION = "InternalStockTransaction"
+    const val AGENTUSER = "AgentUser"
+    const val INTERNALUSER = "InternalUser"
+    const val OFFERINGFORAGENT = "OfferingForAgent"
+    const val INTERNALPRODUCT = "InternalProduct"
+    const val AGENTPRODUCT = "AgentProduct"
+    const val AGENTTRANSACTION = "AgentTransaction"
+    const val SALESORDER = "SalesOrder"
+
 }
-
-
-object FireDatabase{
-    val TASK = "task"
-}
-
 
 
 object SharedPrefConstants {
-    val LOCAL_SHARED_PREF = "local_shared_pref"
-    val USER_SESSION = "user_session"
-    val USER_STATUS = "user_status"
-    val USER_ID = "user_id"
-    val USER_NAME = "user_name"
-    val prefUserId = "userId_pref"
-}
+    const val LOCAL_SHARED_PREF = "local_shared_pref"
+    //SHARED PREF FOR AGENT
+    const val USER_SESSION = "user_session"
+    const val USER_STATUS = "user_status"
+    const val USER_ID = "user_id"
+    const val USER_NAME = "user_name"
+    const val USER_EMAIL = "user_email"
 
-object FirebaseStorageConstants {
-    val ROOT_DIRECTORY = "app"
-    val NOTE_IMAGES = "note"
-}
-
-enum class HomeTabs(val index: Int, val key: String) {
-    NOTES(0, "notes"),
-    TASKS(1, "tasks"),
+    //SHARED PREF FOR INTERNAL
+    const val USER_SESSION_INTERNAL = "user_session_internal"
+    const val USER_ROLE_INTERNAL = "user_role"
+    const val USER_ID_INTERNAL = "user_id_internal"
+    const val USER_NAME_INTERNAL = "user_name_internal"
+    const val USER_EMAIL_INTERNAL = "user_email_internal"
 }

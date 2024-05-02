@@ -39,10 +39,10 @@ class InternalProductViewModel @Inject constructor(
     private val _internalProductFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
     val internalProductFlow: StateFlow<Resource<FirebaseFirestore>?> = _internalProductFlow
 
-
     fun addInternalProduct(internalProduct: InternalProduct) = viewModelScope.launch {
         val result = repository.addInternalProduct(product = internalProduct){
         }
+        _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
         _internalProductFlow.value = result
     }
 
@@ -67,13 +67,13 @@ class InternalProductViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
             initialValue = _internalProductList.value
         )
-    init {
-        viewModelScope.launch {
-            _internalProductSearch.value = repository.getInternalProducts()
-            // Update filtered list based on initial data
-            _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            _internalProductSearch.value = repository.getInternalProducts()
+//            // Update filtered list based on initial data
+//            _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
+//        }
+//    }
 
     private fun mapToInternalProductList(resource: Resource<List<InternalProduct>>): List<InternalProduct>? {
         return when (resource) {
@@ -91,5 +91,16 @@ class InternalProductViewModel @Inject constructor(
         if (!_isSearching.value) {
             onSearchTextChange("")
         }
+    }
+
+    // UPDATE INTERNAL PRODUCT
+    private val _internalProductEditFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
+    val internalProductEditFlow: StateFlow<Resource<FirebaseFirestore>?> = _internalProductEditFlow
+
+    fun editInternalProduct(internalProduct: InternalProduct) = viewModelScope.launch {
+        val result = repository.updateInternalProduct(internalProduct){
+        }
+//        _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
+        _internalProductEditFlow.value = result
     }
 }

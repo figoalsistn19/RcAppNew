@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,8 +25,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,14 +56,15 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel, navController: NavController){
+fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel?, navController: NavController){
     val state = remember { ScrollState(0) }
-    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
+    val agentProducts by agentProductViewModel!!.agentProducts.observeAsState()
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         content = {
@@ -195,21 +199,59 @@ fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel, navController:
                         },
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
                     )
-                    LazyColumn (modifier = Modifier
-                        .constrainAs(refProductList) {
-                            top.linkTo(refProduct.bottom)
-                            start.linkTo(parent.start, spacing.medium)
-                            end.linkTo(parent.end, spacing.medium)
-                        }
-                        .padding(start = 10.dp, end = 10.dp, bottom = 80.dp)
-                    ) {
-                        items(internalProducts) { item ->
-                            ListProduct(
-                                item,
-                                onCardClicked = {
-
+                    LaunchedEffect(Unit) {
+                        agentProductViewModel!!.fetchAgentProducts()
+                    }
+                    when (agentProducts) {
+                        is Resource.Success -> {
+                            val agentProduct = (agentProducts as Resource.Success<List<AgentProduct>>).result.sortedBy { it.qtyProduct }
+                            if (agentProduct.isEmpty()){
+                                Text(
+                                    modifier = Modifier.padding(top=20.dp).constrainAs(refProductList) {
+                                        top.linkTo(refProduct.bottom)
+                                        start.linkTo(parent.start, spacing.medium)
+                                        end.linkTo(parent.end, spacing.medium)
+                                    },
+                                    text = "Data masih kosong")
+                            }
+                            else {
+                                LazyColumn (modifier = Modifier
+                                    .constrainAs(refProductList) {
+                                        top.linkTo(refProduct.bottom)
+                                        start.linkTo(parent.start, spacing.medium)
+                                        end.linkTo(parent.end, spacing.medium)
+                                    }
+                                    .padding(start = 10.dp, end = 10.dp, bottom = 80.dp)
+                                ) {
+                                    items(agentProduct) { item ->
+                                        ListProductAgent(
+                                            item,
+                                            onCardClicked = {}
+                                        ) // Replace with your composable for each item
+                                    }
                                 }
-                            ) // Replace with your composable for each item
+                            }
+                        }
+                        is Resource.Loading -> {
+                            // Tampilkan indikator loading jika diperlukan
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .constrainAs(refProductList) {
+                                        top.linkTo(refProduct.bottom)
+                                        start.linkTo(parent.start, spacing.medium)
+                                        end.linkTo(parent.end, spacing.medium)
+                                    }
+                                    .padding(start = 10.dp, end = 10.dp, bottom = 80.dp)
+                            )
+                        }
+                        is Resource.Failure -> {
+                            // Tampilkan pesan error jika diperlukan
+                            val error = (agentProducts as Resource.Failure).throwable
+                            Text(text = "Error: ${error.message}")
+                        }
+                        else -> {
+                            // Tampilkan pesan default jika diperlukan
+                            Text(text = "No data available")
                         }
                     }
                 }
@@ -223,13 +265,17 @@ fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel, navController:
 @Composable
 fun ListProduct(
     item: InternalProduct,
-    onCardClicked: (String) -> Unit
+    onCardClicked: (String) -> Unit,
+    onCardData: (InternalProduct) -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp, horizontal = 10.dp)
-            .clickable { onCardClicked(item.idProduct!!) }
+            .clickable {
+                onCardClicked(item.idProduct!!)
+                onCardData(item)
+                       }
         ,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp
@@ -343,7 +389,8 @@ fun ListProductAgent(
 fun HomeAgentPreview(){
     RcAppTheme {
         ListProduct(item = internalProducts[1],
-            onCardClicked = {})
+            onCardClicked = {},
+            {})
     }
 }
 

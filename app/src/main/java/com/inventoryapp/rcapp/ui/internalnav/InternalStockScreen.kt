@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.ui.agentnav.ListProduct
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
@@ -56,6 +57,8 @@ import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
 import com.inventoryapp.rcapp.util.Resource
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,19 +67,23 @@ import java.util.Date
 )
 @Composable
 fun InternalStockScreen(
-    agentProductViewModel: AgentProductViewModel,
     internalProductViewModel: InternalProductViewModel?,
-    authViewModel: AuthInternalViewModel?,
     navController: NavController
 ){
-    val searchText by agentProductViewModel.searchText.collectAsState()
-    val isSearching by agentProductViewModel.isSearching.collectAsState()
-    val agentProductList by agentProductViewModel.agentProductList.collectAsState()
+    val searchText by internalProductViewModel?.searchText!!.collectAsState()
+    val isSearching by internalProductViewModel?.isSearching!!.collectAsState()
+    val internalProductList by internalProductViewModel?.internalProductList!!.collectAsState()
+
+    val modelResource = internalProductViewModel?.internalProductFlow?.collectAsState()
+    val modelEditResource = internalProductViewModel?.internalProductEditFlow?.collectAsState()
+    val internalProducts by internalProductViewModel!!.internalProducts.observeAsState()
+
     val sheetState = rememberModalBottomSheetState(true)
     var showAddDataProductSheet by remember { mutableStateOf(false) }
     var showEditProductSheet by remember {
         mutableStateOf(false)
     }
+    val selectedData = MutableStateFlow<InternalProduct?>(null)
     var productName by remember { mutableStateOf("") }
     var qtyProduct by remember { mutableStateOf("") }
     var qtyMinProduct by remember { mutableStateOf("") }
@@ -84,15 +91,13 @@ fun InternalStockScreen(
     var discount by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
-    val modelResource = internalProductViewModel?.internalProductFlow?.collectAsState()
-    val internalProduct by internalProductViewModel!!.internalProducts.observeAsState()
+//    val productNameForEdit = selectedData.value?.productName!!
 
     val context = LocalContext.current
     var isProductNameEmpty = true
     var isQtyProductEmpty = true
     var isQtyMinProductEmpty = true
     var isPriceEmpty = true
-    var isEditProductNameEmpty = true
     var isEditQtyMinProductEmpty = true
     var isEditPriceEmpty = true
 
@@ -104,10 +109,10 @@ fun InternalStockScreen(
             ){
                 SearchBar(
                     query = searchText,//text showed on SearchBar
-                    onQueryChange = agentProductViewModel::onSearchTextChange, //update the value of searchText
-                    onSearch = agentProductViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
+                    onQueryChange = internalProductViewModel!!::onSearchTextChange, //update the value of searchText
+                    onSearch = internalProductViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
                     active = isSearching, //whether the user is searching or not
-                    onActiveChange = { agentProductViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
+                    onActiveChange = { internalProductViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 23.dp, top = 8.dp, end = 23.dp),
@@ -119,29 +124,32 @@ fun InternalStockScreen(
                     }
                 ) {
                     LazyColumn (modifier = Modifier.padding(horizontal = 8.dp, vertical =10.dp)){
-                        items(agentProductList) { item ->
-//                            ListProduct(
-//                                item,
-//                                onCardClicked = {itemClick ->
-//                                    showEditProductSheet = true
-//                                })
+                        items(internalProductList) { item ->
+                            ListProduct(
+                                item,
+                                onCardClicked = {
+                                    showEditProductSheet = true
+                                },
+                                { selectedData.value = it}
+                            )
                         }
                     }
                 }
                 LaunchedEffect(Unit) {
-                    internalProductViewModel!!.fetchInternalProducts()
+                    internalProductViewModel.fetchInternalProducts()
                 }
 
-                when (internalProduct) {
+                when (internalProducts) {
                     is Resource.Success -> {
-                        val internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result
+                        val internalProduct = (internalProducts as Resource.Success<List<InternalProduct>>).result
                         LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
-                            items(internalProductList) { item ->
+                            items(internalProduct) { item ->
                                 ListProduct(
                                     item,
-                                    onCardClicked = {itemClick ->
+                                    onCardClicked = {
                                         showEditProductSheet = true
-                                    }
+                                    },
+                                    {selectedData.value = it}
                                 )
                             }
                         }
@@ -156,7 +164,7 @@ fun InternalStockScreen(
                     }
                     is Resource.Failure -> {
                         // Tampilkan pesan error jika diperlukan
-                        val error = (internalProduct as Resource.Failure).throwable
+                        val error = (internalProducts as Resource.Failure).throwable
                         Text(text = "Error: ${error.message}")
                     }
                     else -> {
@@ -257,9 +265,6 @@ fun InternalStockScreen(
                             imeAction = ImeAction.Done
                         ),
                         maxLines = 1,
-//                        placeholder = {
-//                            Text(text = "Jumlah produk sekarang")
-//                        },
                         trailingIcon = {
                             if (isQtyProductEmpty) {
                                 Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
@@ -290,9 +295,6 @@ fun InternalStockScreen(
                             imeAction = ImeAction.Done
                         ),
                         maxLines = 1,
-//                        placeholder = {
-//                            Text(text = "Jumlah minimal produk di gudang")
-//                        },
                         trailingIcon = {
                             if (isQtyMinProductEmpty) {
                                 Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
@@ -455,166 +457,196 @@ fun InternalStockScreen(
                 }
             }
         }
-//        if (showEditProductSheet) {
-//            ModalBottomSheet(
-//                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-//                onDismissRequest = {
-//                    showEditProductSheet = false
-//                },
-//                sheetState = sheetState
-//            ) {
-//                Column(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    verticalArrangement = Arrangement.Center,
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//                    Text(
-//                        text = "Edit Data Produk",
-//                        style = MaterialTheme.typography.titleLarge.copy(
-//                            fontWeight = FontWeight.Medium
-//                        )
-//                    )
-//                    OutlinedTextField(
-//                        value = productName,
-//                        onValueChange = {
-//                            productName = it
-//                            isEditProductNameEmpty = it.isEmpty()
-//                        },
-//                        isError = isEditProductNameEmpty,
-//                        label = {
-//                            Text(text = "Nama Produk")
-//                        },
-//                        modifier = Modifier.padding(top = 15.dp),
-//                        keyboardOptions = KeyboardOptions(
-//                            capitalization = KeyboardCapitalization.None,
-//                            autoCorrect = false,
-//                            keyboardType = KeyboardType.Text,
-//                            imeAction = ImeAction.Done
-//                        ),
-//                        maxLines = 1,
-//                        placeholder = {
-//                            Text(text = "Roti Tiro")
-//                        },
-//                        trailingIcon = {
-//                            if (isEditProductNameEmpty) {
-//                                Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
-//                            } else{
-//                                Icon(imageVector = Icons.Outlined.Done, contentDescription ="done" )
-//                            }
-//                        }
-//                    )
-//                    OutlinedTextField(
-//                        value = qtyMinProduct,
-//                        onValueChange = {
-//                            qtyMinProduct = it
-//                            isEditQtyMinProductEmpty = it.isEmpty()
-//                        },
-//                        isError = isEditQtyMinProductEmpty,
-//                        enabled = false,
-//                        label = {
-//                            Text(text = "Jumlah Produk")
-//                        },
-//                        modifier = Modifier.padding(vertical = 5.dp),
-//                        keyboardOptions = KeyboardOptions(
-//                            capitalization = KeyboardCapitalization.None,
-//                            autoCorrect = false,
-//                            keyboardType = KeyboardType.Number,
-//                            imeAction = ImeAction.Done
-//                        ),
-//                        maxLines = 1,
-//                        placeholder = {
-//                            Text(text = "Roti Tiro")
-//                        },
-//                        trailingIcon = {
-//                            if (isEditQtyMinProductEmpty) {
-//                                Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
-//                            } else{
-//                                Icon(imageVector = Icons.Outlined.Done, contentDescription ="done" )
-//                            }
-//                        }
-//                    )
-//                    OutlinedTextField(
-//                        value = price,
-//                        onValueChange = {
-//                            price = it
-//                            isEditPriceEmpty = it.isEmpty()
-//                        },
-//                        isError = isEditPriceEmpty,
-//                        label = {
-//                            Text(text = "Harga")
-//                        },
-//                        modifier = Modifier.padding(vertical = 5.dp),
-//                        keyboardOptions = KeyboardOptions(
-//                            capitalization = KeyboardCapitalization.None,
-//                            autoCorrect = false,
-//                            keyboardType = KeyboardType.Number,
-//                            imeAction = ImeAction.Done
-//                        ),
-//                        maxLines = 1,
-//                        placeholder = {
-//                            Text(text = "Rp." + "100000")
-//                        },
-//                        trailingIcon = {
-//                            if (isEditPriceEmpty) {
-//                                Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
-//                            } else{
-//                                Icon(imageVector = Icons.Outlined.Done, contentDescription ="done" )
-//                            }
-//                        }
-//                    )
-//                    OutlinedTextField(
-//                        value = discount,
-//                        onValueChange = {
-//                            discount = it
-//                        },
-//                        label = {
-//                            Text(text = "Diskon")
-//                        },
-//                        modifier = Modifier.padding(vertical = 5.dp),
-//                        keyboardOptions = KeyboardOptions(
-//                            capitalization = KeyboardCapitalization.None,
-//                            autoCorrect = false,
-//                            keyboardType = KeyboardType.Number,
-//                            imeAction = ImeAction.Done
-//                        ),
-//                        maxLines = 1,
-//                        placeholder = {
-//                            Text(text = "10" + " %")
-//                        }
-//                    )
-//                    OutlinedTextField(
-//                        value = notes,
-//                        onValueChange = {
-//                            notes = it
-//                        },
-//                        label = {
-//                            Text(text = "Catatan")
-//                        },
-//                        modifier = Modifier.padding(vertical = 5.dp),
-//                        keyboardOptions = KeyboardOptions(
-//                            capitalization = KeyboardCapitalization.None,
-//                            autoCorrect = false,
-//                            keyboardType = KeyboardType.Text,
-//                            imeAction = ImeAction.Done
-//                        ),
-//                        maxLines = 1,
-//                        placeholder = {
-//                            Text(text = "Catatan")
-//                        }
-//                    )
-//
-//                    Button(
-//                        modifier = Modifier.padding(top = 10.dp, bottom = 20.dp),
-//                        onClick = {
-//                            internalProductViewModel?.addInternalProduct(internalObj)
-//                            navController.popBackStack()
-//                        }
-//                    ) {
-//                        Text(text = "Simpan Perubahan")
-//                    }
-//                }
-//            }
-//        }
+        if (showEditProductSheet) {
+            ModalBottomSheet(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                onDismissRequest = {
+                    showEditProductSheet = false
+                },
+                sheetState = sheetState
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Edit Data Produk",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                    Text(
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        text = selectedData.value?.productName!!,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Normal
+                        )
+                    )
+                    OutlinedTextField(
+                        value = qtyMinProduct,
+                        onValueChange = {
+                            qtyMinProduct = it
+                            isEditQtyMinProductEmpty = it.isEmpty()
+                        },
+                        isError = isEditQtyMinProductEmpty,
+                        label = {
+                            Text(text = "Stok Minimum")
+                        },
+                        modifier = Modifier.padding(vertical = 5.dp),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        maxLines = 1,
+                        suffix = { Text(text = "Pcs")},
+                        placeholder = {
+                            Text(text = selectedData.value?.qtyMin.toString())
+                        },
+                        trailingIcon = {
+                            if (isEditQtyMinProductEmpty) {
+                                Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
+                            } else{
+                                Icon(imageVector = Icons.Outlined.Done, contentDescription ="done" )
+                            }
+                        }
+                    )
+                    OutlinedTextField(
+                        value = price,
+                        onValueChange = {
+                            price = it
+                            isEditPriceEmpty = it.isEmpty()
+                        },
+                        isError = isEditPriceEmpty,
+                        label = {
+                            Text(text = "Harga saat ini")
+                        },
+                        modifier = Modifier.padding(vertical = 5.dp),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        maxLines = 1,
+                        prefix = { Text(text = "Rp.")},
+                        placeholder = {
+                            Text(text = selectedData.value?.price.toString())
+                        },
+                        trailingIcon = {
+                            if (isEditPriceEmpty) {
+                                Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
+                            } else{
+                                Icon(imageVector = Icons.Outlined.Done, contentDescription ="done" )
+                            }
+                        }
+                    )
+                    OutlinedTextField(
+                        value = discount,
+                        onValueChange = {
+                            if (it.isDigitsOnly() && it.length <=2 )
+                            discount = it
+                        },
+                        label = {
+                            Text(text = "Diskon")
+                        },
+                        modifier = Modifier.padding(vertical = 5.dp),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        suffix = { Text(text = "%")},
+                        maxLines = 1,
+                        placeholder = {
+                            Text(text = selectedData.value?.discProduct.toString())
+                        }
+                    )
+                    OutlinedTextField(
+                        value = notes,
+                        onValueChange = {
+                            notes = it
+                        },
+                        label = {
+                            Text(text = "Catatan")
+                        },
+                        modifier = Modifier.padding(vertical = 5.dp),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        maxLines = 1,
+                        placeholder = {
+                            Text(text = selectedData.value?.desc!!)
+                        }
+                    )
+                    fun getInternalProductForUpdate(): InternalProduct {
+                        val qtyMinProductValue = qtyMinProduct.toIntOrNull() ?: 0
+                        val priceValue = price.toLongOrNull() ?: 0
+                        val discountValue = discount.toIntOrNull() ?:0
+                        return InternalProduct(
+                            idProduct = selectedData.value?.idProduct,
+                            qtyMin = qtyMinProductValue,
+                            discProduct = discountValue,
+                            price = priceValue,
+                            finalPrice = priceValue - (priceValue * discountValue / 100),
+                            desc = notes
+                        )
+                    }
+                    val updatedObj: InternalProduct = getInternalProductForUpdate()
+                    Button(
+                        modifier = Modifier.padding(top = 10.dp, bottom = 20.dp),
+                        onClick = {
+                            if (isQtyMinProductEmpty) {
+                                // Tampilkan pesan error
+                                Toast.makeText(
+                                    context,
+                                    "Jumlah minimum tidak boleh kosong",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            if (isEditPriceEmpty) {
+                                // Tampilkan pesan error
+                                Toast.makeText(
+                                    context,
+                                    "Harga tidak boleh kosong",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                internalProductViewModel?.editInternalProduct(updatedObj)
+                                navController.navigate(ROUTE_INTERNAL_STOCK_SCREEN) {
+                                    popUpTo(ROUTE_HOME_INTERNAL_SCREEN) { inclusive = true }
+                                }
+                                Toast.makeText(
+                                    context,
+                                    "Sukses menambahkan barang",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    ) {
+                        Text(text = "Simpan Perubahan")
+                    }
+                    modelEditResource?.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                            }
+                            is Resource.Loading -> {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                            }
+                            is Resource.Success -> {
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

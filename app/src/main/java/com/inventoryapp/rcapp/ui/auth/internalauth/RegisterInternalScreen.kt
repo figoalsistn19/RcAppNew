@@ -2,12 +2,16 @@ package com.inventoryapp.rcapp.ui.auth.internalauth
 
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -30,22 +34,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
@@ -87,20 +97,33 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
 
     ConstraintLayout(
     modifier = Modifier.fillMaxSize()
+        .background(MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
         val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoading, refConfirmPw, refPhoneNumber, refRole) = createRefs()
         val spacing = MaterialTheme.spacing
         Box(
             modifier = Modifier
                 .constrainAs(refHeader) {
-                    top.linkTo(parent.top, spacing.medium)
+                    top.linkTo(parent.top, spacing.extraLarge)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     width = Dimension.fillToConstraints
                 }
-                .wrapContentSize()
         ) {
-            AuthHeader("Daftar Internal")
+//            AuthHeader("Daftar Internal")
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val spacing = MaterialTheme.spacing
+                Image(
+                    modifier = Modifier
+                        .size(128.dp, 128.dp),
+                    painter = painterResource(id = R.drawable.rc_logo),
+                    contentDescription = stringResource(id = R.string.app_name)
+                )
+            }
         }
         OutlinedTextField(
             value = name,
@@ -261,6 +284,7 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
         Button(
             onClick = {
                 viewModel?.registerUser(name, email, password, user = userObj)
+                navController.popBackStack()
             },
             modifier = Modifier.constrainAs(refButtonSignup) {
                 top.linkTo(refRole.bottom, spacing.medium)
@@ -271,23 +295,23 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
         ) {
             Text(text = "Register", style = MaterialTheme.typography.titleMedium)
         }
-        Text(
-            modifier = Modifier
-                .constrainAs(refTextSignup) {
-                    top.linkTo(refButtonSignup.bottom, spacing.small)
-                    start.linkTo(parent.start, spacing.extraLarge)
-                    end.linkTo(parent.end, spacing.extraLarge)
-                }
-                .clickable {
-                    navController.navigate(ROUTE_LOGIN_AGENT) {
-                        popUpTo(ROUTE_REGISTER_AGENT) { inclusive = true }
-                    }
-                },
-            text = "Login disini",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+//        Text(
+//            modifier = Modifier
+//                .constrainAs(refTextSignup) {
+//                    top.linkTo(refButtonSignup.bottom, spacing.small)
+//                    start.linkTo(parent.start, spacing.extraLarge)
+//                    end.linkTo(parent.end, spacing.extraLarge)
+//                }
+//                .clickable {
+//                    navController.navigate(ROUTE_LOGIN_AGENT) {
+//                        popUpTo(ROUTE_REGISTER_AGENT) { inclusive = true }
+//                    }
+//                },
+//            text = "Login disini",
+//            style = MaterialTheme.typography.bodyLarge,
+//            textAlign = TextAlign.Center,
+//            color = MaterialTheme.colorScheme.onSurface
+//        )
         LaunchedEffect(key1 = onBackPressed) {
             if (onBackPressed.value) {
                 navController.popBackStack() // Or use other methods if needed
@@ -307,9 +331,9 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
                     })
                 }
                 is Resource.Success -> {
-                    LaunchedEffect(Unit) {
-                        navController.navigate(ROUTE_LOGIN_INTERNAL)
-                    }
+//                    LaunchedEffect(Unit) {
+//                        navController.navigate(ROUTE_HOME_INTERNAL_SCREEN)
+//                    }
                 }
             }
         }
