@@ -513,7 +513,7 @@ fun StockOutScreen(
                             desc = "STOK MENIPIS",
                             idAgent = agentProductViewModel.currentUser?.uid?:"",
                             nameAgent = agentProductViewModel.currentUser?.displayName?:"",
-                            statusOffering = "PENDING",
+                            statusOffering = "BY SYSTEM",
                             productsItem = listOf(
                                 ProductsItem(
                                     idProduct = selectedItemId,

@@ -180,7 +180,7 @@ fun OrderHistoryScreen(
                 },
                 sheetState = sheetState
             ){
-               InvoiceScreen(idOrder = selectedCard.value,selectedOrderStateFlow.value!!)
+               InvoiceScreen(selectedOrderStateFlow.value!!)
             }
         }
     }

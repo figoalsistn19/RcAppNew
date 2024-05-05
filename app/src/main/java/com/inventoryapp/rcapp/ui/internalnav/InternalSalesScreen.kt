@@ -1,6 +1,7 @@
 package com.inventoryapp.rcapp.ui.internalnav
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,11 +38,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.ui.agentnav.CardOrderHistoryForInternal
 import com.inventoryapp.rcapp.ui.agentnav.InvoiceScreenForInternal
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,6 +67,8 @@ fun InternalSalesScreen(
     val salesOrder by salesOrderViewModel?.salesOrderInternal!!.observeAsState()
     val selectedOrderStateFlow = MutableStateFlow<SalesOrder?>(null)
 
+    val modelResource = salesOrderViewModel?.deleteSalesOrderFlow?.collectAsState()
+
     val sheetState = rememberModalBottomSheetState()
     var showDetailOrder by remember { mutableStateOf(false) }
     val selectedCard = remember { mutableStateOf("") }
@@ -75,6 +82,8 @@ fun InternalSalesScreen(
         refreshing = false
     }
     val state = rememberPullRefreshState(refreshing, ::refresh)
+
+    val context = LocalContext.current
 
     val openAlertDialog = remember { mutableStateOf(false) }
 
@@ -221,6 +230,19 @@ fun InternalSalesScreen(
                     }
                 }
             }
+        modelResource?.value?.let {
+            when (it) {
+                is Resource.Failure -> {
+                    Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                }
+                is Resource.Loading -> {
+                    CircularProgressIndicator()
+                }
+                is Resource.Success -> {
+                }
+            }
+        }
+
         }
 }
 

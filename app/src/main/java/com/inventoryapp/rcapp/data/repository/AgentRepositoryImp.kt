@@ -30,7 +30,7 @@ class AgentRepositoryImp @Inject constructor(
     private val gson: Gson
 ): AgentRepository {
 
-    val source = Source.DEFAULT
+    private val source = Source.DEFAULT
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
 
@@ -233,16 +233,17 @@ class AgentRepositoryImp @Inject constructor(
                     .document(offering.idOffering!!)
 //                val idOffering = updateReqOrderRef.id
 //                offering.idOffering = idOffering
-                val updatedStock = currentStock + transaction.qtyProduct!!
+                var updatedStock = currentStock + transaction.qtyProduct!!
 
                 if (updatedStock < 0){
-                    stockRef.delete()
+                    updatedStock = 0
                 }
                 it.update(stockRef, "qtyProduct", updatedStock)
                 it.set(transactionRef, transaction)
                 if (updatedStock <= stockMin){
                     it.set(updateReqOrderRef, offering)
-                } else {it.delete(updateReqOrderRef)}
+                } else it.delete(updateReqOrderRef)
+
 
 //                _transaction.set(updateReqOrderRef,)
 

@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
@@ -30,7 +31,18 @@ class SalesOrderViewModel @Inject constructor(
     private val internalRepository: InternalRepository
 ) : ViewModel() {
 
-    val idAgent = appPreferences.getString(SharedPrefConstants.USER_ID,"Ypu9l09J8yZZQHuWXqelNLHofUb2")
+    val currentUser: FirebaseUser?
+        get() = repository.currentUser
+
+    //ADD SALES ORDER FROM REQ ORDER
+    private val _addSalesOrderFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
+    val addSalesOrderFlow: StateFlow<Resource<FirebaseFirestore>?> = _addSalesOrderFlow
+
+    fun addSalesOrder(order: SalesOrder) = viewModelScope.launch {
+        val result = repository.addSalesOrder(order){
+        }
+        _addSalesOrderFlow.value = result
+    }
 
     private val _salesOrderSearch = MutableStateFlow<Resource<List<SalesOrder>>>(
         Resource.Loading)
@@ -41,8 +53,12 @@ class SalesOrderViewModel @Inject constructor(
     fun fetchSalesOrder() {
         viewModelScope.launch {
             _salesOrder.value = Resource.Loading
-            val result = repository.getSalesOrder(idAgent!!)
+            val result = repository.getSalesOrder(currentUser?.uid!!)
             _salesOrder.value = result
+            _salesOrderSearch.value = result
+            // Update filtered list based on initial data
+            _salesOrderList.value = mapToSalesOrder(_salesOrderSearch.value)
+                ?: emptyList()
         }
     }
 
@@ -66,14 +82,14 @@ class SalesOrderViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
             initialValue = _salesOrderList.value
         )
-    init {
-        viewModelScope.launch {
-            _salesOrderSearch.value = repository.getSalesOrder(idAgent!!)
-            // Update filtered list based on initial data
-            _salesOrderList.value = mapToSalesOrder(_salesOrderSearch.value)
-                ?: emptyList()
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            _salesOrderSearch.value = repository.getSalesOrder(currentUser?.uid!!)
+//            // Update filtered list based on initial data
+//            _salesOrderList.value = mapToSalesOrder(_salesOrderSearch.value)
+//                ?: emptyList()
+//        }
+//    }
     private fun mapToSalesOrder(resource: Resource<List<SalesOrder>>): List<SalesOrder>? {
         return when (resource) {
             is Resource.Success -> resource.result
@@ -106,6 +122,10 @@ class SalesOrderViewModel @Inject constructor(
             _salesOrderInternal.value = Resource.Loading
             val result = internalRepository.getSalesOrder()
             _salesOrderInternal.value = result
+            _salesOrderInternalSearch.value = result
+            // Update filtered list based on initial data
+            _salesOrderInternalList.value = mapToSalesOrderInternal(_salesOrderInternalSearch.value)
+                ?: emptyList()
         }
     }
 

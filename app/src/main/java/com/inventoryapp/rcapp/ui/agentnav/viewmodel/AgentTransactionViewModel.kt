@@ -22,8 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AgentTransactionViewModel @Inject constructor(
-    private val repository: AgentRepository,
-    private val appPreferences: SharedPreferences
+    private val repository: AgentRepository
 ) : ViewModel() {
 
     //for add product in

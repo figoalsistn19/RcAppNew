@@ -81,7 +81,9 @@ import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
+import com.inventoryapp.rcapp.data.model.StatusOrder
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -96,12 +98,13 @@ import kotlin.math.roundToInt
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AgentRequestOrderScreen(
+    salesOrderViewModel: SalesOrderViewModel,
     offeringPoViewModel: OfferingPoViewModel,
     agentProductViewModel: AgentProductViewModel,
     navController: NavController
 ){
     val offeringAgentList by offeringPoViewModel.offeringAgents.observeAsState()
-    val modelResource = offeringPoViewModel.addSalesOrderFlow.collectAsState()
+    val modelResource = salesOrderViewModel.addSalesOrderFlow.collectAsState()
 
     var filterBySales by remember { mutableStateOf(true) }
     var filterBySystem by remember { mutableStateOf(false) }
@@ -475,7 +478,7 @@ fun AgentRequestOrderScreen(
                             idAgent = agentProductViewModel.currentUser?.uid?:"",
                             nameAgent = agentProductViewModel.currentUser?.displayName?:"",
                             email = agentProductViewModel.currentUser?.email?:"",
-                            statusOrder = "Pending",
+                            statusOrder = StatusOrder.Pending,
                             productsItem = productList,
                             totalPrice = totalPriceWithTax,
                             tax = 11,
@@ -485,7 +488,7 @@ fun AgentRequestOrderScreen(
                     val salesOrderObj: SalesOrder = getSalesOrder()
                     Button(
                         onClick = {
-                            offeringPoViewModel.addSalesOrder(salesOrderObj)
+                            salesOrderViewModel.addSalesOrder(salesOrderObj)
                             navController.navigate(ROUTE_HOME_AGENT_SCREEN)
                                   },
                         modifier = Modifier.padding(bottom = 20.dp)
@@ -521,12 +524,12 @@ fun CardOrderHistory(
     val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
     val date = order.orderDate
     val fixDate = sdf.format(date!!)
-    val color = when (order.statusOrder) {
+    val color = when (order.statusOrder.toString()) {
         "Pending" -> MaterialTheme.colorScheme.error
         "Lunas" -> MaterialTheme.colorScheme.primary
         "Selesai" -> Color.Green
-        "Dalam Proses" -> MaterialTheme.colorScheme.tertiary
-        "Dalam Perjalanan" -> MaterialTheme.colorScheme.secondary
+        "DalamProses" -> MaterialTheme.colorScheme.tertiary
+        "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
         else -> Color.Gray // Warna default untuk status yang tidak diketahui
     }
     ElevatedCard (modifier = Modifier
@@ -582,7 +585,7 @@ fun CardOrderHistory(
                     text = formattedPrice,
                     style = MaterialTheme.typography.titleMedium)
                 Text(
-                    text = order.statusOrder!!,
+                    text = order.statusOrder!!.toString(),
                     style = MaterialTheme.typography.titleSmall,
                     color = color
                 )
@@ -658,7 +661,7 @@ fun CardOrderHistoryForInternal(
     val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
     val date = order.orderDate
     val fixDate = sdf.format(date!!)
-    val color = when (order.statusOrder) {
+    val color = when (order.statusOrder.toString()) {
         "Pending" -> MaterialTheme.colorScheme.error
         "Lunas" -> MaterialTheme.colorScheme.primary
         "Selesai" -> Color.Green
@@ -736,7 +739,7 @@ fun CardOrderHistoryForInternal(
                         text = formattedPrice,
                         style = MaterialTheme.typography.titleMedium)
                     Text(
-                        text = order.statusOrder!!,
+                        text = order.statusOrder!!.toString(),
                         style = MaterialTheme.typography.titleSmall,
                         color = color
                     )
@@ -842,7 +845,7 @@ fun CardReqOrder(
     val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
     val date = reqOrder.orderDate
     val fixDate = sdf.format(date!!)
-    val color = when (reqOrder.statusOrder) {
+    val color = when (reqOrder.statusOrder.toString()) {
         "Pending" -> MaterialTheme.colorScheme.error
         "Lunas" -> MaterialTheme.colorScheme.primary
         "Selesai" -> Color.Green

@@ -1,7 +1,10 @@
 package com.inventoryapp.rcapp.ui.agentnav
 
+//noinspection UsingMaterialAndMaterial3Libraries
 import android.annotation.SuppressLint
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,9 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-//noinspection UsingMaterialAndMaterial3Libraries
 import androidx.compose.material.Divider
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -26,7 +29,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,24 +40,21 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.R
-import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.TimeZone
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SimpleDateFormat")
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SimpleDateFormat", "NewApi")
 @Composable
 fun InvoiceScreen (
-    idOrder: String,
     invoice: SalesOrder
 ){
-    val color = when (invoice.statusOrder) {
+    val color = when (invoice.statusOrder.toString()) {
         "Pending" -> MaterialTheme.colorScheme.error
         "Lunas" -> MaterialTheme.colorScheme.primary
         "Selesai" -> Color.Green
@@ -77,10 +76,8 @@ fun InvoiceScreen (
     }
     val totalTax = totalPriceCalculation * invoice.tax!!/100
 
-    val formattedItemPrice = String.format("Rp%,d", productList[0].finalPrice)
     val formattedSubtotalPrice = String.format("Rp%,d", totalPriceCalculation)
     val formattedTotalTax = String.format("Rp%,d", totalTax)
-    val formattedTotalPriceItem = String.format("Rp%,d", productList[0].totalPrice)
     Scaffold {
         contentColorFor(backgroundColor = Color.White)
         Column (verticalArrangement = Arrangement.Center,
@@ -116,14 +113,14 @@ fun InvoiceScreen (
                 )
                 {
                     Text(
-                        text = idOrder,
+                        text = invoice.idOrder!!,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         modifier = Modifier
                             .background(Color.Green, CircleShape)
                             .padding(horizontal = 7.dp),
-                        text = invoice.statusOrder!!,
+                        text = invoice.statusOrder!!.toString(),
                         style = MaterialTheme.typography.titleSmall.copy(color = color, fontWeight = FontWeight.Normal))
                 }
             }
@@ -251,7 +248,9 @@ fun InvoiceScreen (
                     LazyColumn(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp)
                     ){
-                        items(itemList!!.size){item ->
+                        items(itemList!!){
+                            val formattedTotalPriceItems = String.format("Rp%,d", it.totalPrice)
+                            val formattedItemPrice = String.format("Rp%,d", it.finalPrice)
                             Column {
                                 Row (
                                     modifier = Modifier.fillMaxWidth(),
@@ -259,11 +258,11 @@ fun InvoiceScreen (
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ){
                                     Text(
-                                        text = invoice.productsItem!![0].productName!!,
+                                        text = it.productName!!,
                                         modifier = Modifier.padding(horizontal = 5.dp)
                                     )
                                     Text(
-                                        text = formattedTotalPriceItem,
+                                        text = formattedTotalPriceItems,
                                         style = MaterialTheme.typography.labelMedium.copy(
                                             fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -274,7 +273,7 @@ fun InvoiceScreen (
                                 Row {
                                     Text(
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 1.dp),
-                                        text = invoice.productsItem!![0].quantity.toString() + " x " + formattedItemPrice,
+                                        text = it.quantity.toString() + " x " + formattedItemPrice,
                                         style = MaterialTheme.typography.labelMedium.copy(
                                             fontStyle = FontStyle.Italic,
                                             fontWeight = FontWeight.Normal,
@@ -284,6 +283,9 @@ fun InvoiceScreen (
                                 }
                             }
                         }
+//                        items(itemList!!.size){item ->
+
+//                        }
                     }
                     Divider(
                         modifier = Modifier.padding(vertical = 4.dp)
@@ -397,7 +399,7 @@ fun InvoiceScreenForInternal (
 ){
     val modelResource = salesOrderViewModel.updateStatusOrderFlow.collectAsState()
     val context = LocalContext.current
-    val color = when (invoice.statusOrder) {
+    val color = when (invoice.statusOrder.toString()) {
         "Pending" -> MaterialTheme.colorScheme.error
         "Lunas" -> MaterialTheme.colorScheme.primary
         "Selesai" -> Color.Green
@@ -419,7 +421,6 @@ fun InvoiceScreenForInternal (
     }
     val totalTax = totalPriceCalculation * invoice.tax!!/100
 
-    val formattedItemPrice = String.format("Rp%,d", productList[0].finalPrice)
     val formattedSubtotalPrice = String.format("Rp%,d", totalPriceCalculation)
     val formattedTotalTax = String.format("Rp%,d", totalTax)
     val formattedTotalPriceItem = String.format("Rp%,d", productList[0].totalPrice)
@@ -465,7 +466,7 @@ fun InvoiceScreenForInternal (
                         modifier = Modifier
                             .background(Color.Green, CircleShape)
                             .padding(horizontal = 7.dp),
-                        text = invoice.statusOrder!!,
+                        text = invoice.statusOrder!!.toString(),
                         style = MaterialTheme.typography.titleSmall.copy(color = color, fontWeight = FontWeight.Normal))
                 }
             }
@@ -593,7 +594,9 @@ fun InvoiceScreenForInternal (
                     LazyColumn(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp)
                     ){
-                        items(itemList!!.size){item ->
+                        items(itemList!!){
+                            val formattedTotalPriceItems = String.format("Rp%,d", it.totalPrice)
+                            val formattedItemPrice = String.format("Rp%,d", it.finalPrice)
                             Column {
                                 Row (
                                     modifier = Modifier.fillMaxWidth(),
@@ -601,11 +604,11 @@ fun InvoiceScreenForInternal (
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ){
                                     Text(
-                                        text = invoice.productsItem!![0].productName!!,
+                                        text = it.productName!!,
                                         modifier = Modifier.padding(horizontal = 5.dp)
                                     )
                                     Text(
-                                        text = formattedTotalPriceItem,
+                                        text = formattedTotalPriceItems,
                                         style = MaterialTheme.typography.labelMedium.copy(
                                             fontWeight = FontWeight.Medium,
                                             color = MaterialTheme.colorScheme.onSurface
@@ -616,7 +619,7 @@ fun InvoiceScreenForInternal (
                                 Row {
                                     Text(
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 1.dp),
-                                        text = invoice.productsItem!![0].quantity.toString() + " x " + formattedItemPrice,
+                                        text = it.quantity.toString() + " x " + formattedItemPrice,
                                         style = MaterialTheme.typography.labelMedium.copy(
                                             fontStyle = FontStyle.Italic,
                                             fontWeight = FontWeight.Normal,
@@ -711,7 +714,7 @@ fun InvoiceScreenForInternal (
                     }
                 }
             }
-            if (invoice.statusOrder == "Pending"){
+            if (invoice.statusOrder == StatusOrder.Pending){
                  Button(onClick = {
                      onProcessClick(invoice.idOrder!!)
                      salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamProses)
@@ -719,7 +722,7 @@ fun InvoiceScreenForInternal (
                      Text(text = "Proses pesanan")
                  }
             }
-            if (invoice.statusOrder == "DalamProses"){
+            if (invoice.statusOrder == StatusOrder.DalamProses){
                 Button(onClick = {
                     onProcessClick(invoice.idOrder!!)
                     salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamPerjalanan)
@@ -728,7 +731,7 @@ fun InvoiceScreenForInternal (
                     Text(text = "Tandai pesanan telah dikirim")
                 }
             }
-            if (invoice.statusOrder == "DalamPerjalanan"){
+            if (invoice.statusOrder == StatusOrder.DalamPerjalanan){
                 Button(onClick = {
                     onProcessClick(invoice.idOrder!!)
                     salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Lunas)
@@ -736,7 +739,7 @@ fun InvoiceScreenForInternal (
                     Text(text = "Tandai pesanan telah lunas")
                 }
             }
-            if (invoice.statusOrder == "Lunas"){
+            if (invoice.statusOrder == StatusOrder.Lunas){
                 Button(onClick = {
                     onProcessClick(invoice.idOrder!!)
                     salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Selesai)
@@ -744,11 +747,15 @@ fun InvoiceScreenForInternal (
                     Text(text = "Tandai pesanan telah selesai")
                 }
                 ScreenshotButton()
-                WriteToMediaStoreButton()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    WriteToMediaStoreButton()
+                }
             }
-            if (invoice.statusOrder == "Selesai"){
+            if (invoice.statusOrder == StatusOrder.Selesai){
                 ScreenshotButton()
-                WriteToMediaStoreButton()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    WriteToMediaStoreButton()
+                }
             }
             modelResource.value.let {
                 when (it) {
@@ -781,16 +788,16 @@ fun InvoiceScreenForInternal (
     }
 }
 
-val salesOrder = SalesOrder("wdmwdkwmd","dqwwqqwdq","wdqdqwd","dwqdqdd",
-    listOf(
-        ProductsItem(
-            "daqwdq","wdqdwqdq",100,91,19,1000,19000
-        )
-    ),
-    orderDate = Date(),
-    "Selesai",
-    1000,11
-)
+//val salesOrder = SalesOrder("wdmwdkwmd","dqwwqqwdq","wdqdqwd","dwqdqdd",
+//    listOf(
+//        ProductsItem(
+//            "daqwdq","wdqdwqdq",100,91,19,1000,19000
+//        )
+//    ),
+//    orderDate = Date(),
+//    "Selesai",
+//    1000,11
+//)
 @Preview(apiLevel = 33)
 @Composable
 fun PrevInvoiceScreen(){

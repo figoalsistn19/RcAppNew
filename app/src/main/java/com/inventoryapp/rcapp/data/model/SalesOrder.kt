@@ -14,7 +14,7 @@ data class SalesOrder(
     var productsItem: List<ProductsItem>?= null,
     @ServerTimestamp
     var orderDate: Date? = null,
-    var statusOrder: String? = "",
+    var statusOrder: StatusOrder? = null,
     var totalPrice: Long? = null,
     var tax: Int? = null
 ) :Parcelable

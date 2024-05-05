@@ -7,8 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
-import com.inventoryapp.rcapp.data.model.SalesOrder
-import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,10 +19,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@Suppress("UNUSED_EXPRESSION")
 @HiltViewModel
 class OfferingPoViewModel @Inject constructor(
-    private val repository: InternalRepository,
-    private val agentRepo: AgentRepository
+    private val repository: InternalRepository
 ): ViewModel() {
 
     //TO ADD OFFERING
@@ -102,13 +100,4 @@ class OfferingPoViewModel @Inject constructor(
         }
     }
 
-    //ADD SALES ORDER FROM REQ ORDER
-    private val _addSalesOrderFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
-    val addSalesOrderFlow: StateFlow<Resource<FirebaseFirestore>?> = _addSalesOrderFlow
-
-    fun addSalesOrder(order: SalesOrder) = viewModelScope.launch {
-        val result = agentRepo.addSalesOrder(order){
-        }
-        _addSalesOrderFlow.value = result
-    }
 }

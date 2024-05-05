@@ -46,7 +46,6 @@ import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.internalProducts
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
@@ -388,9 +387,9 @@ fun ListProductAgent(
 @Composable
 fun HomeAgentPreview(){
     RcAppTheme {
-        ListProduct(item = internalProducts[1],
-            onCardClicked = {},
-            {})
+//        ListProduct(item = internalProducts[1],
+//            onCardClicked = {},
+//            {})
     }
 }
 

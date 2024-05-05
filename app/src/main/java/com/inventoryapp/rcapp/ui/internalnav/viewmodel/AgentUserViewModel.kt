@@ -1,6 +1,5 @@
 package com.inventoryapp.rcapp.ui.internalnav.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,12 +8,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
-import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,8 +23,7 @@ import javax.inject.Inject
 @Suppress("UNUSED_EXPRESSION")
 @HiltViewModel
 class AgentUserViewModel @Inject constructor(
-    private val repository: InternalRepository,
-    private val agentRepo: AgentRepository
+    private val repository: InternalRepository
 ): ViewModel() {
 
     private val _agentUserSearch = MutableStateFlow<Resource<List<AgentUser>>>(Resource.Loading)

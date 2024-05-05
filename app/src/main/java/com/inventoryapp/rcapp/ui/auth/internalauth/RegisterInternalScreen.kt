@@ -4,15 +4,12 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
@@ -43,7 +40,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -53,13 +49,6 @@ import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.UserRole
-import com.inventoryapp.rcapp.ui.auth.AuthHeader
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
-import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
-import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
@@ -75,7 +64,7 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
     var phoneNumber by remember { mutableStateOf("") }
     val onBackPressed = remember { mutableStateOf(false) }
     val authResource =viewModel?.registerFlow?.collectAsState()
-    var list = UserRole.entries.map { it.name }
+    val list = UserRole.entries.map { it.name }
     var expanded by remember { mutableStateOf(false) }
     var selectedMenu by remember {
         mutableStateOf(list[0])
@@ -99,7 +88,7 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
     modifier = Modifier.fillMaxSize()
         .background(MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
-        val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoading, refConfirmPw, refPhoneNumber, refRole) = createRefs()
+        val (refHeader, refName, refEmail, refPassword, refButtonSignup, refLoading, refConfirmPw, refPhoneNumber, refRole) = createRefs()
         val spacing = MaterialTheme.spacing
         Box(
             modifier = Modifier
@@ -116,7 +105,6 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val spacing = MaterialTheme.spacing
                 Image(
                     modifier = Modifier
                         .size(128.dp, 128.dp),
@@ -344,7 +332,7 @@ fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: Na
 @Composable
 fun UserRoleDropdownMenu(
 ) {
-    var list = listOf("nwdnquw","weqweq","qdqddqw","dwqdq")
+    val list = listOf("nwdnquw","weqweq","qdqddqw","dwqdq")
     var expanded by remember { mutableStateOf(false) }
     var selectedMenu by remember {
         mutableStateOf(list[0])
