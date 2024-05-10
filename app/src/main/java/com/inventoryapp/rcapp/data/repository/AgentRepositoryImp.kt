@@ -12,6 +12,7 @@ import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.InternalStockTransaction
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.util.FireStoreCollection
@@ -21,6 +22,7 @@ import com.inventoryapp.rcapp.util.SharedPrefConstants
 import com.inventoryapp.rcapp.util.await
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Date
 import javax.inject.Inject
 
 class AgentRepositoryImp @Inject constructor(
@@ -286,6 +288,32 @@ class AgentRepositoryImp @Inject constructor(
         }
     }
 
+    override suspend fun getOfferingForAgentById(): Resource<List<OfferingForAgent>> {
+        return withContext(Dispatchers.IO){
+            val querySnapshot = database.collection(FireStoreCollection.OFFERINGFORAGENT)
+                .whereEqualTo("idAgent", currentUser?.uid)
+                .get(source)
+            when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)){
+                is Resource.Success -> {
+                    val documents = taskResult.result
+                    val users = mutableListOf<OfferingForAgent>()
+                    for (document in documents){
+                        val user = document.toObject(OfferingForAgent::class.java)
+                        users.add(user)
+                    }
+                    Resource.Success(users)
+                }
+
+                is Resource.Failure -> {
+                    Resource.Failure(taskResult.throwable)
+                }
+
+                Resource.Loading -> TODO()
+            }
+        }
+    }
+
+    @SuppressLint("SuspiciousIndentation")
     override suspend fun addSalesOrder(
         salesOrder: SalesOrder,
         result: (Resource<String>) -> Unit
@@ -297,6 +325,31 @@ class AgentRepositoryImp @Inject constructor(
             val idSalesOrder = firebaseResult.id // Dapatkan ID yang dihasilkan secara otomatis
             salesOrder.idOrder = idSalesOrder
             firebaseResult.set(salesOrder).await()
+
+            for (salesItem in salesOrder.productsItem!!){
+                val stockRef = database.collection(FireStoreCollection.INTERNALPRODUCT)
+                    .document(salesItem.idProduct!!)
+                val stockTransactionRef = database.collection(FireStoreCollection.INTERNALSTOCKTRANSACTION)
+
+                val stockId = stockTransactionRef.id
+                val stockObj = InternalStockTransaction(
+                    idTransaction = stockId,
+                    idProduct = salesItem.idProduct,
+                    qtyProduct = salesItem.quantity,
+                    productName = salesItem.productName,
+                    transactionType = "OUT",
+                    userEditor = currentUser?.displayName,
+                    createAt = Date(),
+                    desc = "terjual ke ${salesOrder.nameAgent}"
+                )
+                stockTransactionRef.add(stockObj).await()
+                val getCurrentStock = stockRef.get().await()
+
+                val currentStock = getCurrentStock.getLong("qtyProduct") ?: 0
+                val newStock = currentStock - salesItem.quantity!!
+                stockRef.update("qtyProduct", newStock)
+            }
+
             Resource.Success(database)
         } catch (e: Exception) {
             e.printStackTrace()

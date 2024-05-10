@@ -78,8 +78,8 @@ import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalStockTransaction
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.FireStoreCollection
@@ -714,7 +714,7 @@ fun ListItemForInOut(item: InternalStockTransaction) {
             val date = item.createAt
             val fixDate = sdf.format(date!!)
             val spacing = MaterialTheme.spacing
-            val (refIcon, refTitle, refDate, refStock) = createRefs()
+            val (refIcon, refTitle, refDate, refStock,refDesc) = createRefs()
             Image(modifier = Modifier
                 .constrainAs(refIcon){
                     top.linkTo(parent.top, spacing.medium)
@@ -741,12 +741,20 @@ fun ListItemForInOut(item: InternalStockTransaction) {
                 .constrainAs(refStock){
                     top.linkTo(parent.top)
                     end.linkTo(parent.end, spacing.small)
-                    bottom.linkTo(parent.bottom)
+                    bottom.linkTo(parent.bottom, spacing.medium)
                 },
                 text = item.qtyProduct.toString()+ " pcs",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
-        }
+            Text(modifier = Modifier
+                .constrainAs(refDesc){
+                    top.linkTo(refStock.bottom)
+                    end.linkTo(parent.end, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                text = item.desc!!,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Light))
 
+        }
     }
 }
 
@@ -767,7 +775,7 @@ fun ListItemForInOutAgent(item: AgentStockTransaction) {
             val date = item.createAt
             val fixDate = sdf.format(date!!)
             val spacing = MaterialTheme.spacing
-            val (refIcon, refTitle, refDate, refStock) = createRefs()
+            val (refIcon, refTitle, refDate, refStock,refDesc) = createRefs()
             Image(modifier = Modifier
                 .constrainAs(refIcon){
                     top.linkTo(parent.top, spacing.medium)
@@ -794,10 +802,19 @@ fun ListItemForInOutAgent(item: AgentStockTransaction) {
                 .constrainAs(refStock){
                     top.linkTo(parent.top)
                     end.linkTo(parent.end, spacing.small)
-                    bottom.linkTo(parent.bottom)
+                    bottom.linkTo(parent.bottom, spacing.medium)
                 },
                 text = item.qtyProduct.toString()+ " pcs",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
+            Text(modifier = Modifier
+                .constrainAs(refDesc){
+                    top.linkTo(refStock.bottom)
+                    end.linkTo(parent.end, spacing.small)
+                    bottom.linkTo(parent.bottom)
+                },
+                text = item.desc!!,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal))
+
         }
 
     }

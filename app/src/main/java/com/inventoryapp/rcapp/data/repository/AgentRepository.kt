@@ -33,6 +33,9 @@ interface AgentRepository {
 
     suspend fun getAgentProduct(): Resource<List<AgentProduct>>
 
+    suspend fun getOfferingForAgentById(): Resource<List<OfferingForAgent>>
+
+
     suspend fun addSalesOrder(
         salesOrder: SalesOrder,
         result: (Resource<String>) -> Unit

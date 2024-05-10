@@ -78,9 +78,9 @@ import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.ui.agentnav.CardItem
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
@@ -90,7 +90,7 @@ import com.inventoryapp.rcapp.util.Resource
 @Composable
 fun OfferingPoForAgentScreen(
     offeringPoViewModel: OfferingPoViewModel,
-    agentUserViewModel:AgentUserViewModel,
+    agentUserViewModel: AgentUserViewModel,
     internalProductViewModel: InternalProductViewModel,
     navController: NavController,
 ){

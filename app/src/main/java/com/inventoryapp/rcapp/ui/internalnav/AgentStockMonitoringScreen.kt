@@ -56,7 +56,7 @@ import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.ui.agentnav.ListProductAgent
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.delay

@@ -1,4 +1,4 @@
-package com.inventoryapp.rcapp.ui.internalnav.viewmodel
+package com.inventoryapp.rcapp.ui.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -40,6 +40,10 @@ class AgentUserViewModel @Inject constructor(
 
     private val _isSearchingAgent = MutableStateFlow(false)
     val isSearchingAgent = _isSearchingAgent.asStateFlow()
+
+    fun setIsSearching(value: Boolean) {
+        _isSearchingAgent.value = false
+    }
 
     //second state the text typed by the user
     private val _searchTextAgent = MutableStateFlow("")

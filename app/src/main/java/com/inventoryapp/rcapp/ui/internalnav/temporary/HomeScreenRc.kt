@@ -1,9 +1,10 @@
-package com.inventoryapp.rcapp.ui.internalnav
+package com.inventoryapp.rcapp.ui.internalnav.temporary
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,10 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -42,7 +44,7 @@ import androidx.navigation.NavHostController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.ListItemStock
-import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_VERIFICATION_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
@@ -50,15 +52,17 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.util.Resource
 
 @Composable
-fun InternalHomeScreen(
+fun HomeScreenRc(
     internalProductViewModel: InternalProductViewModel?,
     navController: NavHostController,
 ){
     val state = remember { ScrollState(0) }
     val internalProduct by internalProductViewModel!!.internalProducts.observeAsState()
+    val context = LocalContext.current
 
     Column (modifier = Modifier
         .verticalScroll(state)
@@ -98,7 +102,8 @@ fun InternalHomeScreen(
                     end.linkTo(parent.end, spacing.medium)
                 }
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 10.dp)
+                .horizontalScroll(rememberScrollState()),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
@@ -158,40 +163,16 @@ fun InternalHomeScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    ElevatedCard(onClick = { /*TODO*/ },
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 5.dp
-                        )
-                    ) {
-                        IconButton(onClick = {
-                            if (internalProductViewModel?.userRole!! == "HeadOfWarehouse" ){
-                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
-                            } else Toast.makeText(navController.context, "Anda tidak memiliki akses", Toast.LENGTH_SHORT).show()
-                        }) {
-                            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_masuk),
-                                contentDescription = "ini icon",
-                                tint = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 5.dp),
-                        text = "Barang Masuk",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Light,
-                            fontSize = 10.sp))
-                }
-                Column (
-                    modifier = Modifier.width(80.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    ElevatedCard(onClick = { /*TODO*/ },
+                    ElevatedCard(
+                        onClick = {},
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 3.dp
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_INTERNAL_STOCK_OUT_SCREEN)
+                            if (internalProductViewModel?.userRole != "Admin"){
+                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
+                            } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_keluar),
                                 contentDescription = "ini icon",
@@ -205,47 +186,6 @@ fun InternalHomeScreen(
                             fontWeight = FontWeight.Light,
                             fontSize = 10.sp))
                 }
-
-            }
-            Row (modifier = Modifier
-                .constrainAs(refMenuTitle) {
-                    top.linkTo(refMenuDetail.bottom, spacing.small)
-                    start.linkTo(parent.start, spacing.medium)
-                    end.linkTo(parent.end, spacing.medium)
-                }
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ){
-                Column (
-                    modifier = Modifier.width(80.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    ElevatedCard(
-                        onClick = {
-
-                        },
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 3.dp
-                        )
-                    ) {
-                        IconButton(onClick = {
-                            navController.navigate(ROUTE_AGENT_STOCK_MONITORING_SCREEN)
-                        }) {
-                            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.stock_agent),
-                                contentDescription = "ini icon",
-                                tint = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 5.dp),
-                        text = "Stok Agen",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Light,
-                            fontSize = 10.sp))
-                }
                 Column (
                     modifier = Modifier.width(80.dp),
                     verticalArrangement = Arrangement.Center,
@@ -257,42 +197,19 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_AGENT_VERIFICATION_SCREEN)
+                            if (internalProductViewModel?.userRole != "Admin"){
+                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
+                            } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
-                            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.verifikasi_agent),
+                            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_masuk),
                                 contentDescription = "ini icon",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     Text(
                         modifier = Modifier.padding(top = 5.dp),
-                        text = "Verifikasi Agen",
+                        text = "Barang Masuk",
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Light, fontSize = 10.sp))
-                }
-                Column (
-                    modifier = Modifier.width(80.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    ElevatedCard(onClick = { /*TODO*/ },
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 3.dp
-                        )
-                    ) {
-                        IconButton(onClick = {
-                            navController.navigate(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN)
-                        }) {
-                            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.buat_po_agent),
-                                contentDescription = "ini icon",
-                                tint = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                    Text(
-                        modifier = Modifier.padding(top = 5.dp),
-                        text = "Buat PO Agen",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Light,
-                            fontSize = 10.sp))
                 }
                 Column (
                     modifier = Modifier.width(80.dp),
@@ -305,25 +222,40 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_REGISTER_INTERNAL)
+                            if (internalProductViewModel?.userRole == "Admin" || internalProductViewModel?.userRole == "Owner"){
+                                navController.navigate(ROUTE_REGISTER_INTERNAL)
+                            }
+                            else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
-                            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.kelola_banner),
+                            Icon(imageVector = ImageVector.vectorResource(id = R.drawable.rc_logo),
                                 contentDescription = "ini icon",
                                 tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     Text(
                         modifier = Modifier.padding(top = 5.dp),
-                        text = "Daftar karyawan",
+                        text = "Daftar Akun",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Light,
                             fontSize = 10.sp))
                 }
             }
+//            Row (modifier = Modifier
+//                .constrainAs(refMenuTitle) {
+//                    top.linkTo(refMenuDetail.bottom, spacing.small)
+//                    start.linkTo(parent.start, spacing.medium)
+//                    end.linkTo(parent.end, spacing.medium)
+//                }
+//                .fillMaxWidth()
+//                .padding(horizontal = 10.dp, vertical = 10.dp),
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.SpaceEvenly
+//            ) {
+//            }
 
             Text(text = "Product",
                 modifier = Modifier.constrainAs(refProduct){
-                    top.linkTo(refMenuTitle.bottom,spacing.medium)
+                    top.linkTo(refMenuDetail.bottom,spacing.medium)
                     start.linkTo(parent.start,spacing.large)
                 },
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
@@ -374,11 +306,4 @@ fun InternalHomeScreen(
             }
         }
     }
-}
-
-
-@Preview(apiLevel = 33)
-@Composable
-fun PrevHomeInternal(){
-//    InternalHomeScreen(navController = rememberNavController())
 }

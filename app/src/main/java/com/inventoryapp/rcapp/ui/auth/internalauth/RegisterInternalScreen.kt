@@ -56,7 +56,7 @@ import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterInternalScreen (viewModel: AuthInternalViewModel?, navController: NavController) {
+fun RegisterInternalScreen (viewModel: AuthViewModel?, navController: NavController) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }

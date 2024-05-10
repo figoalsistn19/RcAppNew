@@ -1,6 +1,7 @@
 package com.inventoryapp.rcapp.data.repository
 
 import android.content.SharedPreferences
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -13,6 +14,7 @@ import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalStockTransaction
 import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
+import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.util.FireStoreCollection
@@ -41,79 +43,112 @@ class InternalRepositoryImp @Inject constructor(
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
 
-    override suspend fun login(email: String, password: String): Resource<FirebaseUser> {
+    override suspend fun login(
+        email: String,
+        password: String,
+    ): Resource<FirebaseUser> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            val documentSnapshot = database
-                .collection(INTERNALUSER)
-                .document(result.user?.uid!!)
-                .get(source).await()
-//                .whereEqualTo("email", result.user?.email) // Use userId for comparison
-            //                .whereEqualTo("verificationStatus", "APPROVED")
-            val agentUser = documentSnapshot.toObject(InternalUser::class.java)
-
-            if (agentUser?.idUser?.isEmpty()!!) {
-                // Handle case where user data or approved status not found
-                return Resource.Failure(Exception("Akun tidak ditemukan"))
-            } else {
-                appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
-                appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idUser).apply()
-                appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
-                appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.userRole.toString()).apply()
-                Resource.Success(result.user!!)
-            }
-//            if (agentUser.verificationStatus.toString() == "PENDING"){
-//                return Resource.Failure(Exception("Akun belum disetujui"))
-//            }
-//            if (agentUser.verificationStatus.toString() == "APPROVED") {
-////                val agentUser = documentSnapshot.toObject(AgentUser::class.java)
-//                appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
-//                appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idAgent).apply()
-//                appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
-//                appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.verificationStatus.toString()).apply()
-//                Resource.Success(result.user!!)
-//            }
-//            else Resource.Failure(Exception("Terjadi masalah dengan server"))
-
-//            else {
-//                for (doc in documentSnapshot){
-//                    val agentUser = doc.toObject(AgentUser::class.java)
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idAgent).apply()
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.verificationStatus.toString()).apply()
-//                }
-//                Resource.Success(result.user!!)
-//            }
+            var navigateToScreen = ""
+            val userId = result.user?.uid!!
+            val internalUserDoc = database.collection("InternalUser").document(userId).get().await()
+            val agentUserDoc = database.collection("AgentUser").document(userId).get().await()
+            if (agentUserDoc.exists()) {
+                // Pengguna adalah internal user
+                val agentUser = agentUserDoc.toObject(AgentUser::class.java)
+                if (agentUser!!.verificationStatus==VerifAccountStatus.PENDING){
+                    return Resource.Failure(Exception("Akun belum disetujui"))
+                } else Resource.Success(result.user!!)
+            } else if (internalUserDoc.exists()) {
+                // Pengguna adalah agent user
+                val internalUser = internalUserDoc.toObject(InternalUser::class.java)
+                if (internalUser!!.userRole == null){
+                    return Resource.Failure(Exception("Akun tidak memiliki role"))
+                } else Resource.Success(result.user!!)
+                if (internalUser.userRole.toString() == ""){
+                    return Resource.Failure(Exception("Akun tidak memiliki role"))
+                } else Resource.Success(result.user!!)
+            } else Resource.Success(result.user!!)
         } catch (e: Exception) {
             e.printStackTrace()
             Resource.Failure(e)
         }
+
+    }
+
+//    override suspend fun login(email: String, password: String): Resource<FirebaseUser> {
 //        return try {
 //            val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-//            val documentSnapshot = FirebaseFirestore.getInstance()
+//            val documentSnapshot = database
 //                .collection(INTERNALUSER)
-//                .whereEqualTo("email", email) // Use userId for comparison
+//                .document(result.user?.uid!!)
 //                .get(source).await()
+////                .whereEqualTo("email", result.user?.email) // Use userId for comparison
+//            //                .whereEqualTo("verificationStatus", "APPROVED")
+//            val agentUser = documentSnapshot.toObject(InternalUser::class.java)
 //
-//            if (documentSnapshot.isEmpty) {
+//            if (agentUser?.idUser?.isEmpty()!!) {
 //                // Handle case where user data or approved status not found
-//                return Resource.Failure(Exception("User tidak memiliki role"))
+//                return Resource.Failure(Exception("Akun tidak ditemukan"))
 //            } else {
-//                for (doc in documentSnapshot){
-//                    val user = doc.toObject(InternalUser::class.java)
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_NAME_INTERNAL, user.name).apply()
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_ID_INTERNAL, user.idUser).apply()
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL_INTERNAL, user.email).apply()
-//                    appPreferences.edit().putString(SharedPrefConstants.USER_ROLE_INTERNAL, user.userRole.toString()).apply()
-//                }
+//                appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
+//                appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idUser).apply()
+//                appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
+//                appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.userRole.toString()).apply()
 //                Resource.Success(result.user!!)
 //            }
+////            if (agentUser.verificationStatus.toString() == "PENDING"){
+////                return Resource.Failure(Exception("Akun belum disetujui"))
+////            }
+////            if (agentUser.verificationStatus.toString() == "APPROVED") {
+//////                val agentUser = documentSnapshot.toObject(AgentUser::class.java)
+////                appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
+////                appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idAgent).apply()
+////                appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
+////                appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.verificationStatus.toString()).apply()
+////                Resource.Success(result.user!!)
+////            }
+////            else Resource.Failure(Exception("Terjadi masalah dengan server"))
+//
+////            else {
+////                for (doc in documentSnapshot){
+////                    val agentUser = doc.toObject(AgentUser::class.java)
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_NAME, agentUser.name).apply()
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_ID, agentUser.idAgent).apply()
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL, agentUser.email).apply()
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser.verificationStatus.toString()).apply()
+////                }
+////                Resource.Success(result.user!!)
+////            }
 //        } catch (e: Exception) {
 //            e.printStackTrace()
 //            Resource.Failure(e)
 //        }
-    }
+////        return try {
+////            val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+////            val documentSnapshot = FirebaseFirestore.getInstance()
+////                .collection(INTERNALUSER)
+////                .whereEqualTo("email", email) // Use userId for comparison
+////                .get(source).await()
+////
+////            if (documentSnapshot.isEmpty) {
+////                // Handle case where user data or approved status not found
+////                return Resource.Failure(Exception("User tidak memiliki role"))
+////            } else {
+////                for (doc in documentSnapshot){
+////                    val user = doc.toObject(InternalUser::class.java)
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_NAME_INTERNAL, user.name).apply()
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_ID_INTERNAL, user.idUser).apply()
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_EMAIL_INTERNAL, user.email).apply()
+////                    appPreferences.edit().putString(SharedPrefConstants.USER_ROLE_INTERNAL, user.userRole.toString()).apply()
+////                }
+////                Resource.Success(result.user!!)
+////            }
+////        } catch (e: Exception) {
+////            e.printStackTrace()
+////            Resource.Failure(e)
+////        }
+//    }
 
     override suspend fun storeSession(
         id: String,
@@ -252,6 +287,23 @@ class InternalRepositoryImp @Inject constructor(
 
                 Resource.Loading -> TODO()
             }
+        }
+    }
+
+    override suspend fun getCardData(): Resource<List<ProductsItem>> {
+        return try {
+            val cartItems = mutableListOf<ProductsItem>()
+            val documents = database.collection(FireStoreCollection.CARTDATA)
+                .get(source).await()
+
+            for (document in documents) {
+                val product = document.toObject(ProductsItem::class.java)
+                cartItems.add(product)
+            }
+            Resource.Success(cartItems)
+        } catch (e:Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
         }
     }
 

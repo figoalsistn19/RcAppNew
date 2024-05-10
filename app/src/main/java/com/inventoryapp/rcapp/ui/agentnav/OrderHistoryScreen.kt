@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.SalesOrder
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,12 +1,14 @@
-package com.inventoryapp.rcapp.ui.internalnav.viewmodel
+package com.inventoryapp.rcapp.ui.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
+import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,8 +24,12 @@ import javax.inject.Inject
 @Suppress("UNUSED_EXPRESSION")
 @HiltViewModel
 class OfferingPoViewModel @Inject constructor(
-    private val repository: InternalRepository
+    private val repository: InternalRepository,
+    private val agentRepository: AgentRepository
 ): ViewModel() {
+
+    val currentUser: FirebaseUser?
+        get() = repository.currentUser
 
     //TO ADD OFFERING
     private val _internalProducts = MutableLiveData<Resource<List<InternalProduct>>>()
@@ -49,6 +55,20 @@ class OfferingPoViewModel @Inject constructor(
             _offeringAgents.value = Resource.Loading
             val result = repository.getOfferingForAgent()
             _offeringAgents.value = result
+            _offeringAgentsSearch.value = result
+            // Update filtered list based on initial data
+            _offeringAgentsList.value = mapToOfferingList(_offeringAgentsSearch.value) ?: emptyList()
+        }
+    }
+
+    private val _offeringAgentsById = MutableLiveData<Resource<List<OfferingForAgent>>>()
+    val offeringAgentsById: LiveData<Resource<List<OfferingForAgent>>> get() = _offeringAgentsById
+
+    fun fetchOfferingForAgentById(){
+        viewModelScope.launch {
+            _offeringAgentsById.value = Resource.Loading
+            val result = agentRepository.getOfferingForAgentById()
+            _offeringAgentsById.value = result
         }
     }
 
@@ -68,6 +88,20 @@ class OfferingPoViewModel @Inject constructor(
             }
             orders.filter { offering ->// filter and return a list of countries based on the text the user typed
                 offering.nameAgent!!.uppercase().contains(text.trim().uppercase())
+            }
+        }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
+            initialValue = _offeringAgentsList.value
+        )
+
+    val offeringAgentListSize = searchText
+        .combine(_offeringAgentsList) { text, orders ->//combine searchText with _contriesList
+            if (text.isBlank()) { //return the entery list of countries if not is typed
+                orders
+            }
+            orders.filter { offering ->// filter and return a list of countries based on the text the user typed
+                offering.nameAgent == currentUser?.displayName
             }
         }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
             scope = viewModelScope,

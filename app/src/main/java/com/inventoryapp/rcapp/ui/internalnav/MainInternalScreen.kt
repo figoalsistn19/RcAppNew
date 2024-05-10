@@ -2,7 +2,9 @@ package com.inventoryapp.rcapp.ui.internalnav
 
 //noinspection UsingMaterialAndMaterial3Libraries
 //noinspection UsingMaterialAndMaterial3Libraries
+//noinspection UsingMaterialAndMaterial3Libraries
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +22,6 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
@@ -52,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,13 +66,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
-import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
+import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.RegisterInternalScreen
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalTransactionViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.internalnav.temporary.HomeScreenRc
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_SCREEN
@@ -81,21 +79,24 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
-import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
+import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "MutableCollectionMutableState")
 @Composable
 fun MainInternalScreen(
     internalTransactionViewModel: InternalTransactionViewModel,
     salesOrderViewModel: SalesOrderViewModel,
     offeringPoViewModel: OfferingPoViewModel,
     agentUserViewModel: AgentUserViewModel,
-    authViewModel: AuthInternalViewModel?,
+    authViewModel: AuthViewModel?,
     internalProductViewModel: InternalProductViewModel,
     navController: NavHostController
 ){
@@ -104,8 +105,10 @@ fun MainInternalScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
-    val offeringAgentSearchList by offeringPoViewModel.offeringAgentList.collectAsState()
+    val context = LocalContext.current
+    val badgeSize by salesOrderViewModel.salesOrderInternalListSize.collectAsState()
     val navControllerNonHost = rememberNavController()
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -114,6 +117,7 @@ fun MainInternalScreen(
             ) {
                 Column (
                     modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.Start
                 ){
                     Row (
                         verticalAlignment = Alignment.CenterVertically
@@ -144,8 +148,17 @@ fun MainInternalScreen(
                                 ),
                                 modifier = Modifier.padding(start = 8.dp, top = 4.dp)
                             )
+                            if (internalProductViewModel.userRole != null){
+                                Text(
+                                    text = internalProductViewModel.userRole,
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontStyle = FontStyle.Italic
+                                    ),
+                                    modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 6.dp)
+                                )
+                            }
                         }
-
                     }
                     Divider()
                     Spacer(modifier = Modifier
@@ -157,8 +170,10 @@ fun MainInternalScreen(
                     ){
                         IconButton(onClick = {
                             authViewModel?.logout()
-                            navController.navigate(ROUTE_LOGIN_INTERNAL){
-                                popUpTo(ROUTE_MAIN_INTERNAL_SCREEN) {inclusive = true}
+                            navController.navigate("login"){
+                                popUpTo(ROUTE_HOME){
+                                    inclusive = true
+                                }
                             }
                         },
                             modifier = Modifier
@@ -184,13 +199,13 @@ fun MainInternalScreen(
         Scaffold(
             bottomBar = {
                 BottomBarInternal(
-                    badgeCount = offeringAgentSearchList.size,
+                    badgeCount = badgeSize.size,
                     navController = navControllerNonHost)
             },
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(text = "Halo Figo!",
+                        Text(text = "Halo ${authViewModel?.currentUser?.displayName}",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium))
@@ -215,12 +230,20 @@ fun MainInternalScreen(
                         }
                     },
                     actions = {
-                        BadgedBox(badge = { Badge { Text("k") } }) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                if (internalProductViewModel.userRole == "SalesManager" || internalProductViewModel.userRole == "Sales") {
+                                    navController.navigate("cart")
+                                } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
+                            }
+                        }) {
                             Icon(
-                                Icons.Filled.Notifications,
-                                contentDescription = "Home"
+                                imageVector = Icons.Filled.ShoppingCart,
+                                contentDescription = "Localized description",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        } },
+                        }
+                        },
                     scrollBehavior = scrollBehavior,
                     modifier = Modifier
                 )
@@ -229,7 +252,7 @@ fun MainInternalScreen(
             NavHost(navController = navControllerNonHost, startDestination = BottomBarScreen.HomeInternal.route,
             ){
                 composable(BottomBarScreen.HomeInternal.route){
-                    InternalHomeScreen(internalProductViewModel, navController = navControllerNonHost)
+                    HomeScreenRc(internalProductViewModel, navController = navControllerNonHost)
                 }
                 composable(BottomBarScreen.StockInternal.route){
                     InternalStockScreen(internalProductViewModel, navControllerNonHost)
@@ -354,7 +377,7 @@ sealed class BottomBarScreen(
         title = "Stok Barang",
         selectedIcon = Icons.Filled.Search,
         unselectedIcon = Icons.Sharp.Search,
-        hasNews = true,
+        hasNews = false,
         route = ROUTE_INTERNAL_STOCK_SCREEN
     )
 
@@ -363,7 +386,7 @@ sealed class BottomBarScreen(
         selectedIcon = Icons.Filled.ShoppingCart,
         unselectedIcon = Icons.Outlined.ShoppingCart,
         hasNews = false,
-        badgeCount = 5,
+        badgeCount = 1,
         route = ROUTE_AGENT_REQUEST_ORDER_SCREEN
     )
 
@@ -372,8 +395,8 @@ sealed class BottomBarScreen(
         title = "Penjualan",
         selectedIcon = Icons.Filled.ShoppingCart,
         unselectedIcon = Icons.Outlined.ShoppingCart,
-        hasNews = false,
-        badgeCount = 5,
+        hasNews = true,
+//        badgeCount = 1,
         route = ROUTE_AGENT_REQUEST_ORDER_SCREEN
     )
 }

@@ -26,7 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
@@ -45,11 +44,9 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_ORDER_HISTORY_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_OUT_SCREEN

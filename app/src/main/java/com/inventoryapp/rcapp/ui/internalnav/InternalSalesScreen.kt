@@ -43,10 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.ui.agentnav.CardOrderHistoryForInternal
 import com.inventoryapp.rcapp.ui.agentnav.InvoiceScreenForInternal
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
-import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

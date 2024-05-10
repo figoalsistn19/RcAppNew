@@ -82,9 +82,9 @@ import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
@@ -95,7 +95,7 @@ import java.util.Date
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "DefaultLocale")
 @Composable
 fun AgentRequestOrderScreen(
     salesOrderViewModel: SalesOrderViewModel,
@@ -103,7 +103,7 @@ fun AgentRequestOrderScreen(
     agentProductViewModel: AgentProductViewModel,
     navController: NavController
 ){
-    val offeringAgentList by offeringPoViewModel.offeringAgents.observeAsState()
+    val offeringAgentList by offeringPoViewModel.offeringAgentsById.observeAsState()
     val modelResource = salesOrderViewModel.addSalesOrderFlow.collectAsState()
 
     var filterBySales by remember { mutableStateOf(true) }
@@ -253,7 +253,7 @@ fun AgentRequestOrderScreen(
                 }
                 if (filterBySystem){
                     LaunchedEffect(Unit) {
-                        offeringPoViewModel.fetchOfferingForAgent()
+                        offeringPoViewModel.fetchOfferingForAgentById()
                     }
                     when (offeringAgentList) {
                         is Resource.Success -> {
@@ -306,7 +306,7 @@ fun AgentRequestOrderScreen(
                     }
                 } else {
                     LaunchedEffect(Unit) {
-                        offeringPoViewModel.fetchOfferingForAgent()
+                        offeringPoViewModel.fetchOfferingForAgentById()
                     }
                     when (offeringAgentList) {
                         is Resource.Success -> {
@@ -513,7 +513,7 @@ fun AgentRequestOrderScreen(
     }
 }
 
-@SuppressLint("SimpleDateFormat")
+@SuppressLint("SimpleDateFormat", "DefaultLocale")
 @Composable
 fun CardOrderHistory(
     order: SalesOrder, // Pass required data from LazyColumn items
@@ -531,6 +531,10 @@ fun CardOrderHistory(
         "DalamProses" -> MaterialTheme.colorScheme.tertiary
         "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
         else -> Color.Gray // Warna default untuk status yang tidak diketahui
+    }
+    var textProduct = when(order.productsItem!!.size){
+        1-> order.productsItem!![0].productName
+        else -> order.productsItem!![0].productName + " + " + (order.productsItem!!.size - 1) + " lainnya"
     }
     ElevatedCard (modifier = Modifier
         .fillMaxWidth()
@@ -556,7 +560,7 @@ fun CardOrderHistory(
                 },
             )
             Text(
-                text = order.productsItem!![0].productName!!,
+                text = textProduct!!,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.constrainAs(refIdReqOrder){
                     top.linkTo(parent.top)
@@ -649,7 +653,7 @@ fun DraggableItemWithDeleteIcon() {
     }
 }
 
-@SuppressLint("SimpleDateFormat")
+@SuppressLint("SimpleDateFormat", "DefaultLocale")
 @Composable
 fun CardOrderHistoryForInternal(
     order: SalesOrder, // Pass required data from LazyColumn items
@@ -672,6 +676,11 @@ fun CardOrderHistoryForInternal(
     val offsetX = remember { mutableFloatStateOf(0f) }
     val offsetY = remember { mutableFloatStateOf(0f) }
     var width by remember { mutableFloatStateOf(0f) }
+
+    var textProduct = when(order.productsItem!!.size){
+        1-> order.productsItem!![0].productName
+        else -> order.productsItem!![0].productName + " + " + (order.productsItem!!.size - 1) + " lainnya"
+    }
 
     Box(
         Modifier.fillMaxSize()
@@ -710,7 +719,7 @@ fun CardOrderHistoryForInternal(
                     },
                 )
                 Text(
-                    text = order.productsItem!![0].productName!!,
+                    text = textProduct!!,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.constrainAs(refIdReqOrder){
                         top.linkTo(parent.top)
@@ -738,11 +747,11 @@ fun CardOrderHistoryForInternal(
                     Text(
                         text = formattedPrice,
                         style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = order.statusOrder!!.toString(),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = color
-                    )
+//                    Text(
+//                        text = order.statusOrder!!.toString(),
+//                        style = MaterialTheme.typography.titleSmall,
+//                        color = color
+//                    )
                 }
             }
         }
@@ -750,6 +759,7 @@ fun CardOrderHistoryForInternal(
 
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun CardBySales(
     reqOrder: OfferingForAgent, // Pass required data from LazyColumn items
@@ -835,7 +845,7 @@ fun CardBySales(
     }
 }
 
-@SuppressLint("SimpleDateFormat")
+@SuppressLint("SimpleDateFormat", "DefaultLocale")
 @Composable
 fun CardReqOrder(
     reqOrder: SalesOrder, // Pass required data from LazyColumn items

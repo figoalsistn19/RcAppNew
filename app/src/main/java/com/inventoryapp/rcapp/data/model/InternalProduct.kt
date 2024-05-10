@@ -18,3 +18,13 @@ data class InternalProduct(
     var updateAt: Date? = null,
     var desc: String?= ""
 ) : Parcelable
+
+@Parcelize
+data class CartItemAgent(
+    var idProduct: String? ="",
+    var productName: String? = "",
+    var quantity: Int? = null,
+    var discProduct: Int? = null,
+    var price: Long? = null,
+) : Parcelable
+

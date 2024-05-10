@@ -49,16 +49,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.ui.agentnav.ListProduct
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -179,19 +175,21 @@ fun InternalStockScreen(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     // Your other UI content here
                     Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            showAddDataProductSheet = true
-                        },
-                        shape = FloatingActionButtonDefaults.extendedFabShape,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        elevation = FloatingActionButtonDefaults.elevation(1.dp),
-                        modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
+                    if (internalProductViewModel!!.userRole == "HeadOfWarehouse"){
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                showAddDataProductSheet = true
+                            },
+                            shape = FloatingActionButtonDefaults.extendedFabShape,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            elevation = FloatingActionButtonDefaults.elevation(1.dp),
+                            modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
 
-                    ) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
-                        Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+                        ) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
+                            Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(80.dp))

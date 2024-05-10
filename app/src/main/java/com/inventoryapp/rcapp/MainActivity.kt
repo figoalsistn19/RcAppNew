@@ -11,15 +11,15 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.remember
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
-import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalTransactionViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.MainNavigation
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     private val offeringPoViewModel by viewModels<OfferingPoViewModel>()
     private val agentTransactionViewModel by viewModels<AgentTransactionViewModel>()
     private val authAgentViewModel by viewModels<AuthAgentViewModel>()
-    private val authInternalViewModel by viewModels<AuthInternalViewModel>()
+    private val authInternalViewModel by viewModels<AuthViewModel>()
     private val internalProductViewModel by viewModels<InternalProductViewModel>()
     private val agentUserViewModel by viewModels<AgentUserViewModel>()
     private val agentProductViewModel by viewModels<AgentProductViewModel>()

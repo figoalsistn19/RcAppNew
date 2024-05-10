@@ -4,7 +4,6 @@ package com.inventoryapp.rcapp.ui.agentnav
 import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
 import java.util.TimeZone
@@ -57,7 +56,7 @@ fun InvoiceScreen (
     val color = when (invoice.statusOrder.toString()) {
         "Pending" -> MaterialTheme.colorScheme.error
         "Lunas" -> MaterialTheme.colorScheme.primary
-        "Selesai" -> Color.Green
+        "Selesai" -> MaterialTheme.colorScheme.outline
         "DalamProses" -> MaterialTheme.colorScheme.tertiary
         "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
         else -> Color.Gray // Warna default untuk status yang tidak diketahui
@@ -402,7 +401,7 @@ fun InvoiceScreenForInternal (
     val color = when (invoice.statusOrder.toString()) {
         "Pending" -> MaterialTheme.colorScheme.error
         "Lunas" -> MaterialTheme.colorScheme.primary
-        "Selesai" -> Color.Green
+        "Selesai" -> MaterialTheme.colorScheme.outline
         "DalamProses" -> MaterialTheme.colorScheme.tertiary
         "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
         else -> Color.Gray // Warna default untuk status yang tidak diketahui
@@ -462,12 +461,12 @@ fun InvoiceScreenForInternal (
                         text = invoice.idOrder!!,
                         style = MaterialTheme.typography.titleMedium
                     )
-                    Text(
-                        modifier = Modifier
-                            .background(Color.Green, CircleShape)
-                            .padding(horizontal = 7.dp),
-                        text = invoice.statusOrder!!.toString(),
-                        style = MaterialTheme.typography.titleSmall.copy(color = color, fontWeight = FontWeight.Normal))
+//                    Text(
+//                        modifier = Modifier
+//                            .background(Color.Green, CircleShape)
+//                            .padding(horizontal = 7.dp),
+//                        text = invoice.statusOrder!!.toString(),
+//                        style = MaterialTheme.typography.titleSmall.copy(color = color, fontWeight = FontWeight.Normal))
                 }
             }
             Card (
@@ -714,49 +713,49 @@ fun InvoiceScreenForInternal (
                     }
                 }
             }
-            if (invoice.statusOrder == StatusOrder.Pending){
-                 Button(onClick = {
-                     onProcessClick(invoice.idOrder!!)
-                     salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamProses)
-                 }) {
-                     Text(text = "Proses pesanan")
-                 }
-            }
-            if (invoice.statusOrder == StatusOrder.DalamProses){
-                Button(onClick = {
-                    onProcessClick(invoice.idOrder!!)
-                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamPerjalanan)
-                })
-                {
-                    Text(text = "Tandai pesanan telah dikirim")
-                }
-            }
-            if (invoice.statusOrder == StatusOrder.DalamPerjalanan){
-                Button(onClick = {
-                    onProcessClick(invoice.idOrder!!)
-                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Lunas)
-                }) {
-                    Text(text = "Tandai pesanan telah lunas")
-                }
-            }
-            if (invoice.statusOrder == StatusOrder.Lunas){
-                Button(onClick = {
-                    onProcessClick(invoice.idOrder!!)
-                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Selesai)
-                }) {
-                    Text(text = "Tandai pesanan telah selesai")
-                }
-                ScreenshotButton()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    WriteToMediaStoreButton()
-                }
-            }
-            if (invoice.statusOrder == StatusOrder.Selesai){
-                ScreenshotButton()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    WriteToMediaStoreButton()
-                }
-            }
+//            if (invoice.statusOrder == StatusOrder.Pending){
+//                 Button(onClick = {
+//                     onProcessClick(invoice.idOrder!!)
+//                     salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamProses)
+//                 }) {
+//                     Text(text = "Proses pesanan")
+//                 }
+//            }
+//            if (invoice.statusOrder == StatusOrder.DalamProses){
+//                Button(onClick = {
+//                    onProcessClick(invoice.idOrder!!)
+//                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamPerjalanan)
+//                })
+//                {
+//                    Text(text = "Tandai pesanan telah dikirim")
+//                }
+//            }
+//            if (invoice.statusOrder == StatusOrder.DalamPerjalanan){
+//                Button(onClick = {
+//                    onProcessClick(invoice.idOrder!!)
+//                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Lunas)
+//                }) {
+//                    Text(text = "Tandai pesanan telah lunas")
+//                }
+//            }
+//            if (invoice.statusOrder == StatusOrder.Lunas){
+//                Button(onClick = {
+//                    onProcessClick(invoice.idOrder!!)
+//                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Selesai)
+//                }) {
+//                    Text(text = "Tandai pesanan telah selesai")
+//                }
+//                ScreenshotButton()
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                    WriteToMediaStoreButton()
+//                }
+//            }
+//            if (invoice.statusOrder == StatusOrder.Selesai){
+//                ScreenshotButton()
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                    WriteToMediaStoreButton()
+//                }
+//            }
             modelResource.value.let {
                 when (it) {
                     is Resource.Failure -> {

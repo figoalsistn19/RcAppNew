@@ -31,18 +31,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.ui.WelcomeScreen
 import com.inventoryapp.rcapp.ui.agentnav.MainAgentScreen
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.auth.LoginScreen
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.LoginAgentScreen
 import com.inventoryapp.rcapp.ui.auth.agentauth.RegisterAgentScreen
-import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
+import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.LoginInternalScreen
 import com.inventoryapp.rcapp.ui.auth.internalauth.RegisterInternalScreen
 import com.inventoryapp.rcapp.ui.internalnav.AgentStockMonitoringScreen
 import com.inventoryapp.rcapp.ui.internalnav.AgentVerificationScreen
-import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
+import com.inventoryapp.rcapp.ui.internalnav.CartScreen
 import com.inventoryapp.rcapp.ui.internalnav.InternalHomeScreen
 import com.inventoryapp.rcapp.ui.internalnav.InternalSalesScreen
 import com.inventoryapp.rcapp.ui.internalnav.InternalStockInScreen
@@ -50,10 +51,12 @@ import com.inventoryapp.rcapp.ui.internalnav.InternalStockOutScreen
 import com.inventoryapp.rcapp.ui.internalnav.InternalStockScreen
 import com.inventoryapp.rcapp.ui.internalnav.MainInternalScreen
 import com.inventoryapp.rcapp.ui.internalnav.OfferingPoForAgentScreen
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.AgentUserViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalTransactionViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.internalnav.SalesOrderByDateScreen
+import com.inventoryapp.rcapp.ui.internalnav.temporary.CartScreenRc
+import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.theme.BtnAgenMitra
 
 @Composable
@@ -65,7 +68,7 @@ fun MainNavigation(
     agentProductViewModel: AgentProductViewModel,
     agentUserViewModel: AgentUserViewModel,
     authViewModelAgent: AuthAgentViewModel,
-    authViewModelInternal: AuthInternalViewModel,
+    authViewModelInternal: AuthViewModel,
     internalProductViewModel: InternalProductViewModel,
     navController: NavHostController = rememberNavController()
 ) {
@@ -102,6 +105,31 @@ fun MainNavigation(
         composable(ROUTE_INTERNAL_SALES_SCREEN){
             InternalSalesScreen(salesOrderViewModel)
         }
+        composable("cart"){
+            CartScreenRc(
+                agentUserViewModel,
+                internalProductViewModel = internalProductViewModel,
+                salesOrderViewModel = salesOrderViewModel,
+                navController = navController
+            )
+        }
+        composable("login"){
+            LoginScreen(viewModel = authViewModelInternal, navController = navController)
+        }
+        composable("datepicker"){
+            SalesOrderByDateScreen()
+        }
+//        composable(ROUTE_MAIN_SALES_MANAGER_SCREEN){
+//            MainSalesManagerScreen(
+//                internalTransactionViewModel = internalTransactionViewModel,
+//                salesOrderViewModel = salesOrderViewModel,
+//                offeringPoViewModel = offeringPoViewModel,
+//                agentUserViewModel = agentUserViewModel,
+//                authViewModel = authViewModelInternal,
+//                internalProductViewModel = internalProductViewModel,
+//                navController = navController
+//            )
+//        }
         composable(ROUTE_AGENT_VERIFICATION_SCREEN){
             AgentVerificationScreen(agentUserViewModel)
         }

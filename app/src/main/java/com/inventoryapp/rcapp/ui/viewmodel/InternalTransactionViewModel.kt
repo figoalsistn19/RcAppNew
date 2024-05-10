@@ -1,13 +1,11 @@
-package com.inventoryapp.rcapp.ui.internalnav.viewmodel
+package com.inventoryapp.rcapp.ui.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
-import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.InternalStockTransaction
-import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel

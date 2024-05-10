@@ -1,6 +1,5 @@
 package com.inventoryapp.rcapp.ui
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,18 +8,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,16 +27,11 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.ui.auth.FirstPageHeader
-import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
-import com.inventoryapp.rcapp.ui.auth.internalauth.AuthInternalViewModel
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
+import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
 import com.inventoryapp.rcapp.ui.theme.spacing
-import com.inventoryapp.rcapp.util.Resource
 
 @Composable
-fun WelcomeScreen (viewModelInternal: AuthInternalViewModel, navController: NavController) {
+fun WelcomeScreen (viewModelInternal: AuthViewModel, navController: NavController) {
 
     val navigateToScreen by viewModelInternal.navigateToScreen.observeAsState()
     LaunchedEffect(navigateToScreen) {
@@ -82,7 +73,7 @@ fun WelcomeScreen (viewModelInternal: AuthInternalViewModel, navController: NavC
             modifier = Modifier.constrainAs(refTitle) {
                 top.linkTo(refHeader.bottom, 20.dp)
                 bottom.linkTo(refVersion.top)
-                width = Dimension.fillToConstraints
+                width = Dimension.matchParent
             }
         ) {
             Text(
@@ -101,27 +92,27 @@ fun WelcomeScreen (viewModelInternal: AuthInternalViewModel, navController: NavC
             Row (horizontalArrangement = Arrangement.spacedBy(15.dp),
                 modifier = Modifier.padding(top = 25.dp)
             ){
+//                ExtendedFloatingActionButton(
+//                    onClick = {
+//                        navController.navigate(ROUTE_LOGIN_INTERNAL)
+//                              },
+//                    modifier = Modifier
+//                        .size(158.dp, 53.dp),
+//                    containerColor = MaterialTheme.colorScheme.onPrimary,
+//                    contentColor = MaterialTheme.colorScheme.primary
+//                ){
+//                    Text(text = "Tim Rc", fontSize = 20.sp)
+//                }
                 ExtendedFloatingActionButton(
                     onClick = {
-                        navController.navigate(ROUTE_LOGIN_INTERNAL)
-                              },
-                    modifier = Modifier
-                        .size(158.dp, 53.dp),
-                    containerColor = MaterialTheme.colorScheme.onPrimary,
-                    contentColor = MaterialTheme.colorScheme.primary
-                ){
-                    Text(text = "Tim Rc", fontSize = 20.sp)
-                }
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        navController.navigate(ROUTE_LOGIN_AGENT)
+                        navController.navigate("login")
                               },
                     modifier = Modifier
                         .size(158.dp, 53.dp),
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ){
-                    Text(text = "Agen", fontSize = 20.sp)
+                    Text(text = "Masuk", fontSize = 20.sp)
                 }
             }
         }

@@ -1,6 +1,5 @@
-package com.inventoryapp.rcapp.ui.agentnav.viewmodel
+package com.inventoryapp.rcapp.ui.viewmodel
 
-import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

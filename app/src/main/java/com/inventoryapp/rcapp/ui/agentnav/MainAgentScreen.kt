@@ -47,16 +47,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.AgentTransactionViewModel
-import com.inventoryapp.rcapp.ui.agentnav.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
 import com.inventoryapp.rcapp.ui.internalnav.BottomBar
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.OfferingPoViewModel
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
-import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_ORDER_HISTORY_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_OUT_SCREEN
@@ -133,8 +132,10 @@ fun MainAgentScreen(
                     ){
                         IconButton(onClick = {
                             authViewModel?.logout()
-                            navController.navigate(ROUTE_LOGIN_AGENT){
-                                popUpTo(ROUTE_MAIN_AGENT_SCREEN) {inclusive = true}
+                            navController.navigate("login"){
+                                popUpTo(ROUTE_HOME){
+                                    inclusive = true
+                                }
                             }
                         },
                             modifier = Modifier
@@ -210,7 +211,7 @@ fun MainAgentScreen(
                     AgentStockScreen(agentProductViewModel, internalProductViewModel, navController = navControllerNonHost)
                 }
                 composable(BottomBarScreen.Sales.route){
-                    AgentRequestOrderScreen(offeringPoViewModel, agentProductViewModel, navController = navControllerNonHost)
+                    AgentRequestOrderScreen(salesOrderViewModel, offeringPoViewModel, agentProductViewModel, navController = navControllerNonHost)
                 }
                 composable(ROUTE_ORDER_HISTORY_SCREEN){
                     OrderHistoryScreen(salesOrderViewModel, navControllerNonHost)

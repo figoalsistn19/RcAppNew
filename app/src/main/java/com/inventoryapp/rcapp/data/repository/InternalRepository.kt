@@ -9,6 +9,7 @@ import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalStockTransaction
 import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
+import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
@@ -19,7 +20,10 @@ interface InternalRepository {
     //AUTH REPO
     val currentUser: FirebaseUser?
 
-    suspend fun login (email: String, password: String): Resource<FirebaseUser>
+    suspend fun login (
+        email: String,
+        password: String,
+    ): Resource<FirebaseUser>
     suspend fun register (name: String, email: String, password: String, user: InternalUser): Resource<FirebaseUser>
     suspend fun updateUserInfo(user: InternalUser, result: (Resource<String>) -> Unit): Resource<FirebaseFirestore>
     suspend fun storeSession(id: String, result: (InternalUser?) -> Unit): Resource<FirebaseFirestore>
@@ -32,6 +36,8 @@ interface InternalRepository {
     suspend fun addInternalProduct(product: InternalProduct, result: (Resource<String>) -> Unit): Resource<FirebaseFirestore>
 
     suspend fun getInternalProducts(): Resource<List<InternalProduct>>
+
+    suspend fun getCardData(): Resource<List<ProductsItem>>
 
     suspend fun getUsers(): Resource<List<InternalUser>>
 

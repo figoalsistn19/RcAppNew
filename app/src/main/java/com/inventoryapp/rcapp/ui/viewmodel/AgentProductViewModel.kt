@@ -1,6 +1,5 @@
-package com.inventoryapp.rcapp.ui.agentnav.viewmodel
+package com.inventoryapp.rcapp.ui.viewmodel
 
-import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,10 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentProduct
-import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.util.Resource
-import com.inventoryapp.rcapp.util.SharedPrefConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

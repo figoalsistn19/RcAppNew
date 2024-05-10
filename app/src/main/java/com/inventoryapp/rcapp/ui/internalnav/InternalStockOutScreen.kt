@@ -69,8 +69,8 @@ import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalStockTransaction
 import com.inventoryapp.rcapp.ui.agentnav.ListItemForInOut
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.internalnav.viewmodel.InternalTransactionViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.InternalTransactionViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -155,19 +155,21 @@ fun InternalStockOutScreen(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     // Your other UI content here
                     Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            showAddStockOutSheet = true
-                        },
-                        shape = FloatingActionButtonDefaults.extendedFabShape,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        elevation = FloatingActionButtonDefaults.elevation(1.dp),
-                        modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
+                    if (internalProductViewModel.userRole == "HeadOfWarehouse"){
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                showAddStockOutSheet = true
+                            },
+                            shape = FloatingActionButtonDefaults.extendedFabShape,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            elevation = FloatingActionButtonDefaults.elevation(1.dp),
+                            modifier = Modifier.padding(bottom = 20.dp, end = 18.dp)
 
-                    ) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
-                        Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+                        ) {
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Tombol tambah" )
+                            Text(text = "Tambah", modifier = Modifier.padding(start = 5.dp))
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(80.dp))

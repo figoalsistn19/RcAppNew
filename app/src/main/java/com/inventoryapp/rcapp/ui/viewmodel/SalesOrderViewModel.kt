@@ -1,4 +1,4 @@
-package com.inventoryapp.rcapp.ui.agentnav.viewmodel
+package com.inventoryapp.rcapp.ui.viewmodel
 
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
@@ -12,7 +12,6 @@ import com.inventoryapp.rcapp.data.model.StatusOrder
 import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
-import com.inventoryapp.rcapp.util.SharedPrefConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -131,13 +130,28 @@ class SalesOrderViewModel @Inject constructor(
 
     private val _salesOrderInternalList = MutableStateFlow(emptyList<SalesOrder>())
 
-    val  salesOrderInternalList = searchText
+    val salesOrderInternalList = searchText
         .combine(_salesOrderInternalList) { text, agentProduct ->//combine searchText with _contriesList
             if (text.isBlank()) { //return the entery list of countries if not is typed
                 agentProduct
             }
             agentProduct.filter { salesOrder ->// filter and return a list of countries based on the text the user typed
-                salesOrder.nameAgent!!.uppercase().contains(text.trim().uppercase())
+                salesOrder.productsItem!![0].productName!!.uppercase().contains(text.trim().uppercase())
+            }
+        }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
+            initialValue = _salesOrderInternalList.value
+        )
+
+
+    val salesOrderInternalListSize = searchText
+        .combine(_salesOrderInternalList) { text, agentProduct ->//combine searchText with _contriesList
+            if (text.isBlank()) { //return the entery list of countries if not is typed
+                agentProduct
+            }
+            agentProduct.filter { salesOrder ->// filter and return a list of countries based on the text the user typed
+                salesOrder.statusOrder == StatusOrder.Pending
             }
         }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
             scope = viewModelScope,

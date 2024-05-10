@@ -1,14 +1,16 @@
-package com.inventoryapp.rcapp.ui.internalnav.viewmodel
+package com.inventoryapp.rcapp.ui.viewmodel
 
+import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
-import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
+import com.inventoryapp.rcapp.util.SharedPrefConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,18 +23,34 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InternalProductViewModel @Inject constructor(
-    private val repository: InternalRepository
+    private val repository: InternalRepository,
+    appPreferences: SharedPreferences
 ): ViewModel() {
+
+    val userRole = appPreferences.getString(SharedPrefConstants.USER_ROLE_INTERNAL,null)
 
     private val _internalProductSearch = MutableStateFlow<Resource<List<InternalProduct>>>(Resource.Loading)
 
     private val _internalProducts = MutableLiveData<Resource<List<InternalProduct>>>()
     val internalProducts: LiveData<Resource<List<InternalProduct>>> get() = _internalProducts
+
+    private val _cartData = MutableLiveData<Resource<List<ProductsItem>>>()
+    val cartData: LiveData<Resource<List<ProductsItem>>> get() = _cartData
     fun fetchInternalProducts() {
         viewModelScope.launch {
             _internalProducts.value = Resource.Loading
             val result = repository.getInternalProducts()
             _internalProducts.value = result
+            _internalProductSearch.value = repository.getInternalProducts()
+            _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
+        }
+    }
+
+    fun fetchCardData() {
+        viewModelScope.launch {
+            _cartData.value = Resource.Loading
+            val result = repository.getCardData()
+            _cartData.value = result
         }
     }
 
@@ -48,6 +66,10 @@ class InternalProductViewModel @Inject constructor(
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
+
+    fun setIsSearching(value: Boolean) {
+        _isSearching.value = false
+    }
 
     //second state the text typed by the user
     private val _searchText = MutableStateFlow("")
