@@ -147,18 +147,25 @@ fun InternalStockScreen(
                 when (internalProducts) {
                     is Resource.Success -> {
                         val internalProduct = (internalProducts as Resource.Success<List<InternalProduct>>).result
-                        LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
-                            items(internalProduct) { item ->
-                                ListProduct(
-                                    item,
-                                    onCardClicked = {
-                                        showEditProductSheet = true
-                                    },
-                                    {
-                                        selectedData = it
-                                        openAlertDialog.value = true
-                                    }
-                                )
+                        if (internalProduct.isEmpty()){
+                            Text(
+                                modifier = Modifier.padding(top=20.dp),
+                                text = "Data masih kosong")
+                        }
+                        else {
+                            LazyColumn (modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp)){
+                                items(internalProduct) { item ->
+                                    ListProduct(
+                                        item,
+                                        onCardClicked = {
+                                            showEditProductSheet = true
+                                        },
+                                        {
+                                            selectedData = it
+                                            openAlertDialog.value = true
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -174,10 +181,16 @@ fun InternalStockScreen(
                         // Tampilkan pesan error jika diperlukan
                         val error = (internalProducts as Resource.Failure).throwable
                         Text(text = "Error: ${error.message}")
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp),
+                            text = "No data available"
+                        )
                     }
                     else -> {
                         // Tampilkan pesan default jika diperlukan
-                        Text(text = "No data available")
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top =25.dp, bottom = 80.dp),
+                            text = "No data available")
                     }
                 }
             }

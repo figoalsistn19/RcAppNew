@@ -29,7 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SalesOrderViewModel @Inject constructor(
     private val repository: AgentRepository,
-    firestore: FirebaseFirestore,
+    private val firestore: FirebaseFirestore,
     private val internalRepository: InternalRepository
 ) : ViewModel() {
 
@@ -39,11 +39,19 @@ class SalesOrderViewModel @Inject constructor(
     private val _userRole = MutableLiveData<String?>()
     val userRole: LiveData<String?> = _userRole
 
-    private val userRoleRef = firestore.collection(FireStoreCollection.INTERNALUSER).document(currentUser?.uid!!)
-        .get()
-        .addOnSuccessListener {
-            _userRole.value = it.getString("userRole")
+//    private val userRoleRef = firestore.collection(FireStoreCollection.INTERNALUSER).document(currentUser?.uid!!)
+//        .get()
+//        .addOnSuccessListener {
+//            _userRole.value = it.getString("userRole")
+//        }
+
+    fun getUserRole() = viewModelScope.launch {
+        if (currentUser != null) {
+            val userRoleRef = firestore.collection(FireStoreCollection.INTERNALUSER).document(currentUser?.uid!!)
+                .get().await()
+            _userRole.value = userRoleRef.getString("userRole")
         }
+    }
 
 
     //ADD SALES ORDER FROM REQ ORDER

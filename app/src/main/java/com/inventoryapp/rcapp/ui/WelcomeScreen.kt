@@ -112,7 +112,7 @@ fun WelcomeScreen (viewModelInternal: AuthViewModel, navController: NavControlle
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ){
-                    Text(text = "Masuk", fontSize = 20.sp)
+                    Text(text = "Mulai", fontSize = 20.sp)
                 }
             }
         }

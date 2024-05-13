@@ -34,6 +34,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
 
@@ -155,7 +156,7 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController){
 //                    end.linkTo(parent.end, spacing.extraLarge)
 //                },
 //            onClick = {
-//                navController.navigate(ROUTE_REGISTER_AGENT)
+//                navController.navigate(ROUTE_REGISTER_INTERNAL)
 //            }
 //        ){
 //            Text(text = "DAFTAR", style = MaterialTheme.typography.titleMedium)

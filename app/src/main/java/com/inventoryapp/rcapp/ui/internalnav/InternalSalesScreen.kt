@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -68,16 +69,14 @@ fun InternalSalesScreen(
     val selectedOrderStateFlow = MutableStateFlow<SalesOrder?>(null)
 
     val modelResource = salesOrderViewModel?.deleteSalesOrderFlow?.collectAsState()
-    var userRole by remember {
-        mutableStateOf("")
-    }
-    val userRoleRef = firestore.collection(FireStoreCollection.INTERNALUSER).document(
-        salesOrderViewModel?.currentUser?.uid!!
-    )
-        .get()
-        .addOnSuccessListener {
-            userRole = it.getString("userRole")!!
-        }
+    val userRole = salesOrderViewModel!!.userRole.observeAsState()
+//    val userRoleRef = firestore.collection(FireStoreCollection.INTERNALUSER).document(
+//        salesOrderViewModel?.currentUser?.uid!!
+//    )
+//        .get()
+//        .addOnSuccessListener {
+//            userRole = it.getString("userRole")!!
+//        }
 
     val sheetState = rememberModalBottomSheetState()
     var showDetailOrder by remember { mutableStateOf(false) }
@@ -97,6 +96,9 @@ fun InternalSalesScreen(
 
     val openAlertDialog = remember { mutableStateOf(false) }
 
+    LaunchedEffect(Unit) {
+        salesOrderViewModel.getUserRole()
+    }
     Scaffold(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
             topBar = {
@@ -130,7 +132,7 @@ fun InternalSalesScreen(
                                     },
                                     onCardData = {
                                         selectedOrderStateFlow.value = it
-                                        if (userRole == "SalesManager"){
+                                        if (userRole.value == "SalesManager"){
                                             openAlertDialog.value = true
                                         }
                                     },
@@ -156,7 +158,9 @@ fun InternalSalesScreen(
                             {
                                 if (salesOrders.isEmpty()){
                                     Text(
-                                        modifier = Modifier.padding(top=20.dp),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(start = 8.dp, end = 8.dp, top =25.dp),
                                         text = "Data masih kosong")
                                 }
                                 else {
@@ -171,7 +175,7 @@ fun InternalSalesScreen(
                                                 },
                                                 onCardData = {
                                                     selectedOrderStateFlow.value = it
-                                                    if (userRole == "SalesManager"){
+                                                    if (userRole.value == "SalesManager"){
                                                         openAlertDialog.value = true
                                                     }
                                                 },

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "161681094913",
-    "project_id": "new-rc-super-app",
-    "storage_bucket": "new-rc-super-app.appspot.com"
+    "project_number": "904404610402",
+    "project_id": "rc-app-pkl",
+    "storage_bucket": "rc-app-pkl.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:161681094913:android:60366246b10c3099ad8300",
+        "mobilesdk_app_id": "1:904404610402:android:0894d487b69c28b348103b",
         "android_client_info": {
           "package_name": "com.inventoryapp.rcapp"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD4S8-dluCMOea5vGWyf7Tbc_59LRCEVao"
+          "current_key": "AIzaSyCPBRTc5D404wbLAmOgzYsF3RKINN40D48"
         }
       ],
       "services": {

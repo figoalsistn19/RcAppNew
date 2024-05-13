@@ -335,18 +335,32 @@ fun InternalHomeScreen(
             when (internalProduct) {
                 is Resource.Success -> {
                     val internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result.sortedBy { it.qtyProduct }
-                    LazyColumn (modifier = Modifier
-                        .constrainAs(refProductList) {
-                            top.linkTo(refProduct.bottom)
-                            start.linkTo(parent.start, spacing.medium)
-                            end.linkTo(parent.end, spacing.medium)
-                        }
-                        .padding(horizontal = 10.dp, vertical = 1.dp))
-                    {
-                        items(internalProductList) { item ->
-                            ListItemStock(
-                                item
-                            )
+                    if (internalProductList.isEmpty()){
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .constrainAs(refProductList) {
+                                    top.linkTo(refProduct.bottom)
+                                    start.linkTo(parent.start, spacing.medium)
+                                    end.linkTo(parent.end, spacing.medium)
+                                }
+                                .padding(horizontal = 10.dp, vertical = 1.dp),
+                            text = "Data masih kosong")
+                    }
+                    else {
+                        LazyColumn (modifier = Modifier
+                            .constrainAs(refProductList) {
+                                top.linkTo(refProduct.bottom)
+                                start.linkTo(parent.start, spacing.medium)
+                                end.linkTo(parent.end, spacing.medium)
+                            }
+                            .padding(horizontal = 10.dp, vertical = 1.dp))
+                        {
+                            items(internalProductList) { item ->
+                                ListItemStock(
+                                    item
+                                )
+                            }
                         }
                     }
                 }
@@ -365,11 +379,37 @@ fun InternalHomeScreen(
                 is Resource.Failure -> {
                     // Tampilkan pesan error jika diperlukan
                     val error = (internalProduct as Resource.Failure).throwable
-                    Text(text = "Error: ${error.message}")
+                    Text(
+                        modifier = Modifier
+                        .constrainAs(refProductList) {
+                            top.linkTo(refProduct.bottom)
+                            start.linkTo(parent.start, spacing.medium)
+                            end.linkTo(parent.end, spacing.medium)
+                        }
+                        .padding(horizontal = 10.dp, vertical = 1.dp),
+                        text = "Error: ${error.message}")
+                    Text(
+                        modifier = Modifier
+                            .constrainAs(refProductList) {
+                                top.linkTo(refProduct.bottom)
+                                start.linkTo(parent.start, spacing.medium)
+                                end.linkTo(parent.end, spacing.medium)
+                            }
+                            .padding(horizontal = 10.dp, vertical = 1.dp),
+                        text = "No data available")
                 }
                 else -> {
                     // Tampilkan pesan default jika diperlukan
-                    Text(text = "No data available")
+                    Text(
+                        modifier = Modifier
+                            .constrainAs(refProductList) {
+                                top.linkTo(refProduct.bottom)
+                                start.linkTo(parent.start, spacing.medium)
+                                end.linkTo(parent.end, spacing.medium)
+                            }
+                            .padding(horizontal = 10.dp, vertical = 1.dp),
+                        text = "No data available"
+                    )
                 }
             }
         }
