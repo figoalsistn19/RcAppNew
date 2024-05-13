@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Info
@@ -47,6 +48,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
@@ -226,6 +230,13 @@ fun CartScreenRc(
             label = { Text(text = "Nama agen")},
             placeholder = { Text(text = "Input nama agen")},
             maxLines = 1,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrect = false,
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            singleLine = true,
             shape = RoundedCornerShape(28.dp)
         )
         SearchBar(
@@ -446,9 +457,9 @@ fun CartScreenRc(
                                 if (cartItemsListForObj.isEmpty()){
                                     Toast.makeText(context,"Keranjang kosong", Toast.LENGTH_SHORT).show()
                                 }
-//                                if (agentUser == null){
-//                                    Toast.makeText(context,"Pilih agen dulu", Toast.LENGTH_SHORT).show()
-//                                }
+                                if (agentUserObj.isEmpty()){
+                                    Toast.makeText(context,"Pilih agen dulu", Toast.LENGTH_SHORT).show()
+                                }
                                 else openAlertDialog.value = true
                             },
                             modifier = Modifier

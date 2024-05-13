@@ -4,10 +4,12 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,14 +30,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -54,6 +61,7 @@ import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
+import kotlin.math.roundToInt
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -264,14 +272,27 @@ fun ListProduct(
     onCardClicked: (String) -> Unit,
     onCardData: (InternalProduct) -> Unit
 ) {
+    val offsetX = remember { mutableFloatStateOf(0f) }
+    val offsetY = remember { mutableFloatStateOf(0f) }
+    var width by remember { mutableFloatStateOf(0f) }
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
+            .onSizeChanged { width = it.width.toFloat() }
             .padding(vertical = 6.dp, horizontal = 10.dp)
+            .offset { IntOffset(offsetX.floatValue.roundToInt(), offsetY.floatValue.roundToInt()) }
             .clickable {
                 onCardClicked(item.idProduct!!)
                 onCardData(item)
                        }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures { _, dragAmount ->
+                    val originalX = offsetX.floatValue
+                    val newValue = (originalX + dragAmount).coerceIn(0f, width - 50.dp.toPx())
+                    offsetX.floatValue = newValue
+                    onCardData(item)
+                }
+            }
         ,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
@@ -32,6 +33,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -160,7 +162,30 @@ fun MainInternalScreen(
                             }
                         }
                     }
-                    Divider()
+                    HorizontalDivider()
+                    Row (
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
+                        IconButton(onClick = {
+                            authViewModel?.resetPassword()
+                            Toast.makeText(context, "Link reset password telah dikirim ke email anda", Toast.LENGTH_SHORT).show()
+                        },
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(40.dp)
+                        ) {
+                            Icon(imageVector = Icons.Filled.Refresh, contentDescription = "logout")
+                        }
+                        Text(
+                            text = "ResetPassword",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                    HorizontalDivider()
                     Spacer(modifier = Modifier
                         .fillMaxWidth()
                     )

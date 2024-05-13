@@ -9,9 +9,12 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.data.repository.InternalRepository
+import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
+import com.inventoryapp.rcapp.util.await
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,12 +29,22 @@ import javax.inject.Inject
 @HiltViewModel
 class SalesOrderViewModel @Inject constructor(
     private val repository: AgentRepository,
-    appPreferences: SharedPreferences,
+    firestore: FirebaseFirestore,
     private val internalRepository: InternalRepository
 ) : ViewModel() {
 
     val currentUser: FirebaseUser?
         get() = repository.currentUser
+
+    private val _userRole = MutableLiveData<String?>()
+    val userRole: LiveData<String?> = _userRole
+
+    private val userRoleRef = firestore.collection(FireStoreCollection.INTERNALUSER).document(currentUser?.uid!!)
+        .get()
+        .addOnSuccessListener {
+            _userRole.value = it.getString("userRole")
+        }
+
 
     //ADD SALES ORDER FROM REQ ORDER
     private val _addSalesOrderFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)

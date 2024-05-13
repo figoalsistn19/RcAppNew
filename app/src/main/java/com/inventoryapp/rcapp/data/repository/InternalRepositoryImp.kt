@@ -1,7 +1,6 @@
 package com.inventoryapp.rcapp.data.repository
 
 import android.content.SharedPreferences
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -28,7 +27,6 @@ import com.inventoryapp.rcapp.util.Resource
 import com.inventoryapp.rcapp.util.SharedPrefConstants
 import com.inventoryapp.rcapp.util.await
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -49,7 +47,6 @@ class InternalRepositoryImp @Inject constructor(
     ): Resource<FirebaseUser> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            var navigateToScreen = ""
             val userId = result.user?.uid!!
             val internalUserDoc = database.collection("InternalUser").document(userId).get().await()
             val agentUserDoc = database.collection("AgentUser").document(userId).get().await()
@@ -183,6 +180,17 @@ class InternalRepositoryImp @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             Resource.Failure(e)
+        }
+    }
+
+    override suspend fun deleteInternalProduct(idProduct: String): Resource<Boolean> {
+        val salesOrderRef = database.collection(INTERNALPRODUCT).document(idProduct)
+        return try {
+            salesOrderRef.delete().await()
+            Resource.Success(true) // Operasi penghapusan berhasil
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e) // Operasi penghapusan gagal
         }
     }
 
@@ -349,6 +357,33 @@ class InternalRepositoryImp @Inject constructor(
                 }
 
                 Resource.Loading -> TODO()
+            }
+        }
+    }
+
+    override suspend fun getInternalUser(idUser: String): Resource<InternalUser> {
+//        val internalUserRef = database.collection(INTERNALUSER).document(idUser)
+//        return try {
+//            val documentSnapshot = internalUserRef.get(source).await()
+//            val internalUser = documentSnapshot.toObject(InternalUser::class.java)
+//            return internalUser
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            Resource.Failure("something went wrong")
+//        }
+        return withContext(Dispatchers.IO){
+            val querySnapshot = database.collection(INTERNALUSER).document(idUser).get(source)
+            when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)){
+                is Resource.Success -> {
+                    val documents = taskResult.result
+                    val internalUser = documents.toObject(InternalUser::class.java)
+                    Resource.Success(internalUser!!)
+                }
+
+                is Resource.Failure -> {
+                    Resource.Failure(taskResult.throwable)
+                }
+                else -> TODO()
             }
         }
     }

@@ -35,6 +35,9 @@ interface InternalRepository {
     //INTERNAL REPO
     suspend fun addInternalProduct(product: InternalProduct, result: (Resource<String>) -> Unit): Resource<FirebaseFirestore>
 
+    suspend fun deleteInternalProduct(
+        idProduct: String
+    ): Resource<Boolean>
     suspend fun getInternalProducts(): Resource<List<InternalProduct>>
 
     suspend fun getCardData(): Resource<List<ProductsItem>>
@@ -42,6 +45,8 @@ interface InternalRepository {
     suspend fun getUsers(): Resource<List<InternalUser>>
 
     suspend fun getAgentUsers(): Resource<List<AgentUser>>
+
+    suspend fun getInternalUser(idUser: String): Resource<InternalUser>
 
     suspend fun updateStatusAgent(
         idUser: String,

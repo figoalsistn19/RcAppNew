@@ -125,4 +125,15 @@ class InternalProductViewModel @Inject constructor(
 //        _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
         _internalProductEditFlow.value = result
     }
+
+    // DELETE INTERNAL PRODUCT
+    // DELETE SALES ORDER
+    private val _deleteInternalProductFlow = MutableStateFlow<Resource<Boolean>?>(null)
+    val deleteInternalProductFlow: StateFlow<Resource<Boolean>?> = _deleteInternalProductFlow
+
+    fun deleteInternalProduct(idProduct: String) = viewModelScope.launch {
+        _deleteInternalProductFlow.value = Resource.Loading
+        val result = repository.deleteInternalProduct(idProduct)
+        _deleteInternalProductFlow.value = result
+    }
 }

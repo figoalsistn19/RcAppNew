@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
@@ -50,11 +51,10 @@ import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.agentnav.ListProduct
-import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.util.Resource
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +72,8 @@ fun InternalStockScreen(
 
     val modelResource = internalProductViewModel?.internalProductFlow?.collectAsState()
     val modelEditResource = internalProductViewModel?.internalProductEditFlow?.collectAsState()
+    val modelResourceDelete = internalProductViewModel?.deleteInternalProductFlow?.collectAsState()
+
     val internalProducts by internalProductViewModel!!.internalProducts.observeAsState()
 
     val sheetState = rememberModalBottomSheetState(true)
@@ -79,7 +81,9 @@ fun InternalStockScreen(
     var showEditProductSheet by remember {
         mutableStateOf(false)
     }
-    val selectedData = MutableStateFlow<InternalProduct?>(null)
+    var selectedData by remember {
+        mutableStateOf<InternalProduct?>(null)
+    }
     var productName by remember { mutableStateOf("") }
     var qtyProduct by remember { mutableStateOf("") }
     var qtyMinProduct by remember { mutableStateOf("") }
@@ -96,6 +100,8 @@ fun InternalStockScreen(
     var isPriceEmpty = true
     var isEditQtyMinProductEmpty = true
     var isEditPriceEmpty = true
+    val openAlertDialog = remember { mutableStateOf(false) }
+
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -126,7 +132,10 @@ fun InternalStockScreen(
                                 onCardClicked = {
                                     showEditProductSheet = true
                                 },
-                                { selectedData.value = it}
+                                {
+                                    selectedData = it
+                                    openAlertDialog.value = true
+                                }
                             )
                         }
                     }
@@ -145,7 +154,10 @@ fun InternalStockScreen(
                                     onCardClicked = {
                                         showEditProductSheet = true
                                     },
-                                    {selectedData.value = it}
+                                    {
+                                        selectedData = it
+                                        openAlertDialog.value = true
+                                    }
                                 )
                             }
                         }
@@ -196,6 +208,39 @@ fun InternalStockScreen(
             }
         }
     ) {
+        when {
+            // ...
+            openAlertDialog.value -> {
+                AlertDialogExample(
+                    onDismissRequest = {
+                        openAlertDialog.value = false
+                        internalProductViewModel?.fetchInternalProducts()
+                    },
+                    onConfirmation = {
+                        openAlertDialog.value = false
+                        internalProductViewModel!!.deleteInternalProduct(selectedData?.idProduct!!)
+                        internalProductViewModel.fetchInternalProducts()
+                        println("Confirmation registered") // Add logic here to handle confirmation.
+                    },
+                    dialogTitle = "Yakin untuk hapus pesanan ?",
+                    dialogText = "Jika memilih confirm maka pesanan akan di hapus",
+                    icon = Icons.Default.Info
+                )
+            }
+        }
+        modelResourceDelete?.value?.let {
+            when (it) {
+                is Resource.Failure -> {
+                    Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                }
+                is Resource.Loading -> {
+                    CircularProgressIndicator()
+                }
+                is Resource.Success -> {
+                    Toast.makeText(context, "Sukses menghapus barang", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
         if (showAddDataProductSheet) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -476,7 +521,7 @@ fun InternalStockScreen(
                     )
                     Text(
                         modifier = Modifier.padding(vertical = 6.dp),
-                        text = selectedData.value?.productName!!,
+                        text = selectedData?.productName!!,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Normal
                         )
@@ -501,7 +546,7 @@ fun InternalStockScreen(
                         maxLines = 1,
                         suffix = { Text(text = "Pcs")},
                         placeholder = {
-                            Text(text = selectedData.value?.qtyMin.toString())
+                            Text(text = selectedData?.qtyMin.toString())
                         },
                         trailingIcon = {
                             if (isEditQtyMinProductEmpty) {
@@ -531,7 +576,7 @@ fun InternalStockScreen(
                         maxLines = 1,
                         prefix = { Text(text = "Rp.")},
                         placeholder = {
-                            Text(text = selectedData.value?.price.toString())
+                            Text(text = selectedData?.price.toString())
                         },
                         trailingIcon = {
                             if (isEditPriceEmpty) {
@@ -560,7 +605,7 @@ fun InternalStockScreen(
                         suffix = { Text(text = "%")},
                         maxLines = 1,
                         placeholder = {
-                            Text(text = selectedData.value?.discProduct.toString())
+                            Text(text = selectedData?.discProduct.toString())
                         }
                     )
                     OutlinedTextField(
@@ -580,7 +625,7 @@ fun InternalStockScreen(
                         ),
                         maxLines = 1,
                         placeholder = {
-                            Text(text = selectedData.value?.desc!!)
+                            Text(text = selectedData?.desc!!)
                         }
                     )
                     fun getInternalProductForUpdate(): InternalProduct {
@@ -588,7 +633,7 @@ fun InternalStockScreen(
                         val priceValue = price.toLongOrNull() ?: 0
                         val discountValue = discount.toIntOrNull() ?:0
                         return InternalProduct(
-                            idProduct = selectedData.value?.idProduct,
+                            idProduct = selectedData?.idProduct,
                             qtyMin = qtyMinProductValue,
                             discProduct = discountValue,
                             price = priceValue,

@@ -40,10 +40,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.ui.agentnav.CardOrderHistoryForInternal
 import com.inventoryapp.rcapp.ui.agentnav.InvoiceScreenForInternal
 import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +59,7 @@ import kotlinx.coroutines.launch
 fun InternalSalesScreen(
     salesOrderViewModel: SalesOrderViewModel?,
 ){
+    val firestore = FirebaseFirestore.getInstance()
     val searchText by salesOrderViewModel!!.searchText.collectAsState()
     val isSearching by salesOrderViewModel!!.isSearching.collectAsState()
     val salesOrderList by salesOrderViewModel!!.salesOrderInternalList.collectAsState()
@@ -65,6 +68,16 @@ fun InternalSalesScreen(
     val selectedOrderStateFlow = MutableStateFlow<SalesOrder?>(null)
 
     val modelResource = salesOrderViewModel?.deleteSalesOrderFlow?.collectAsState()
+    var userRole by remember {
+        mutableStateOf("")
+    }
+    val userRoleRef = firestore.collection(FireStoreCollection.INTERNALUSER).document(
+        salesOrderViewModel?.currentUser?.uid!!
+    )
+        .get()
+        .addOnSuccessListener {
+            userRole = it.getString("userRole")!!
+        }
 
     val sheetState = rememberModalBottomSheetState()
     var showDetailOrder by remember { mutableStateOf(false) }
@@ -75,7 +88,7 @@ fun InternalSalesScreen(
     fun refresh() = refreshScope.launch {
         refreshing = true
         delay(1500)
-        salesOrderViewModel?.fetchSalesOrderInternal()
+        salesOrderViewModel.fetchSalesOrderInternal()
         refreshing = false
     }
     val state = rememberPullRefreshState(refreshing, ::refresh)
@@ -92,7 +105,7 @@ fun InternalSalesScreen(
                 ){
                     SearchBar(
                         query = searchText,//text showed on SearchBar
-                        onQueryChange = salesOrderViewModel!!::onSearchTextChange, //update the value of searchText
+                        onQueryChange = salesOrderViewModel::onSearchTextChange, //update the value of searchText
                         onSearch = salesOrderViewModel::onSearchTextChange, //the callback to be invoked when the input service triggers the ImeAction.Search action
                         active = isSearching, //whether the user is searching or not
                         onActiveChange = { salesOrderViewModel.onToogleSearch() }, //the callback to be invoked when this search bar's active state is changed
@@ -117,11 +130,13 @@ fun InternalSalesScreen(
                                     },
                                     onCardData = {
                                         selectedOrderStateFlow.value = it
-                                        openAlertDialog.value = true
+                                        if (userRole == "SalesManager"){
+                                            openAlertDialog.value = true
+                                        }
                                     },
                                     onClickHold = {
                                         selectedCard.value
-                                        openAlertDialog.value = true
+//                                        openAlertDialog.value = true
                                     }
                                 )
                             }
@@ -156,11 +171,13 @@ fun InternalSalesScreen(
                                                 },
                                                 onCardData = {
                                                     selectedOrderStateFlow.value = it
-                                                    openAlertDialog.value = true
+                                                    if (userRole == "SalesManager"){
+                                                        openAlertDialog.value = true
+                                                    }
                                                 },
                                                 onClickHold = {
                                                     selectedCard.value = it
-                                                    openAlertDialog.value = true
+//                                                    openAlertDialog.value = true
                                                 }
                                             )
                                         }
@@ -196,11 +213,11 @@ fun InternalSalesScreen(
                     AlertDialogExample(
                         onDismissRequest = {
                             openAlertDialog.value = false
-                            salesOrderViewModel?.fetchSalesOrderInternal()
+                            salesOrderViewModel.fetchSalesOrderInternal()
                         },
                         onConfirmation = {
                             openAlertDialog.value = false
-                            salesOrderViewModel!!.deleteSalesOrder(selectedOrderStateFlow.value?.idOrder!!)
+                            salesOrderViewModel.deleteSalesOrder(selectedOrderStateFlow.value?.idOrder!!)
                             salesOrderViewModel.fetchSalesOrderInternal()
                             println("Confirmation registered") // Add logic here to handle confirmation.
                         },
@@ -214,13 +231,13 @@ fun InternalSalesScreen(
                 ModalBottomSheet(
                     onDismissRequest = {
                         showDetailOrder=false
-                        salesOrderViewModel?.fetchSalesOrderInternal()
+                        salesOrderViewModel.fetchSalesOrderInternal()
                     },
                     sheetState = sheetState
                 ){
                     InvoiceScreenForInternal(
                         selectedOrderStateFlow.value!!,
-                        salesOrderViewModel!!
+                        salesOrderViewModel
                     ) {
                         showDetailOrder = false
                         salesOrderViewModel.fetchSalesOrderInternal()
