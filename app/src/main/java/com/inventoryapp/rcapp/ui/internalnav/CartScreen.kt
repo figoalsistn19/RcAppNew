@@ -257,7 +257,7 @@ fun CartScreen(
                                 .addOnSuccessListener {
                                     Toast.makeText(context,"Barang berhasil ditambahkan", Toast.LENGTH_SHORT).show()
                                     internalProductViewModel.setIsSearching(false)
-                                    internalProductViewModel.fetchCardData()
+                                    internalProductViewModel.fetchCartData()
                                 }
                                 .addOnFailureListener {
                                     Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show()
@@ -274,7 +274,7 @@ fun CartScreen(
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             LaunchedEffect(Unit) {
-                internalProductViewModel.fetchCardData()
+                internalProductViewModel.fetchCartData()
             }
             when (cartItems) {
                 is Resource.Success -> {
@@ -323,7 +323,7 @@ fun CartScreen(
                                         .document(cartItem.idProduct!!).delete()
                                         .addOnSuccessListener {
                                             Toast.makeText(context,"Barang berhasil dihapus", Toast.LENGTH_SHORT).show()
-                                            internalProductViewModel.fetchCardData()
+                                            internalProductViewModel.fetchCartData()
                                         }
                                         .addOnFailureListener {
                                             Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show()

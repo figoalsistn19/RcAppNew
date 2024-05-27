@@ -55,6 +55,7 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.util.Resource
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,9 +82,8 @@ fun InternalStockScreen(
     var showEditProductSheet by remember {
         mutableStateOf(false)
     }
-    var selectedData by remember {
-        mutableStateOf<InternalProduct?>(null)
-    }
+    val selectedData = MutableStateFlow<InternalProduct?>(null)
+
     var productName by remember { mutableStateOf("") }
     var qtyProduct by remember { mutableStateOf("") }
     var qtyMinProduct by remember { mutableStateOf("") }
@@ -133,7 +133,7 @@ fun InternalStockScreen(
                                     showEditProductSheet = true
                                 },
                                 {
-                                    selectedData = it
+                                    selectedData.value = it
                                     openAlertDialog.value = true
                                 }
                             )
@@ -158,10 +158,11 @@ fun InternalStockScreen(
                                     ListProduct(
                                         item,
                                         onCardClicked = {
+                                            selectedData.value = it
                                             showEditProductSheet = true
                                         },
                                         {
-                                            selectedData = it
+                                            selectedData.value = it
                                             openAlertDialog.value = true
                                         }
                                     )
@@ -200,7 +201,7 @@ fun InternalStockScreen(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     // Your other UI content here
                     Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
-                    if (internalProductViewModel!!.userRole == "HeadOfWarehouse"){
+                    if (internalProductViewModel!!.userRole == "HeadOfWarehouse"|| internalProductViewModel.userRole == "Admin"){
                         ExtendedFloatingActionButton(
                             onClick = {
                                 showAddDataProductSheet = true
@@ -231,12 +232,12 @@ fun InternalStockScreen(
                     },
                     onConfirmation = {
                         openAlertDialog.value = false
-                        internalProductViewModel!!.deleteInternalProduct(selectedData?.idProduct!!)
+                        internalProductViewModel!!.deleteInternalProduct(selectedData.value?.idProduct!!)
                         internalProductViewModel.fetchInternalProducts()
                         println("Confirmation registered") // Add logic here to handle confirmation.
                     },
-                    dialogTitle = "Yakin untuk hapus pesanan ?",
-                    dialogText = "Jika memilih confirm maka pesanan akan di hapus",
+                    dialogTitle = "Yakin untuk hapus produk ?",
+                    dialogText = "Jika memilih confirm maka produk akan di hapus",
                     icon = Icons.Default.Info
                 )
             }
@@ -534,7 +535,7 @@ fun InternalStockScreen(
                     )
                     Text(
                         modifier = Modifier.padding(vertical = 6.dp),
-                        text = selectedData?.productName!!,
+                        text = selectedData.value?.productName!!,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Normal
                         )
@@ -559,7 +560,7 @@ fun InternalStockScreen(
                         maxLines = 1,
                         suffix = { Text(text = "Pcs")},
                         placeholder = {
-                            Text(text = selectedData?.qtyMin.toString())
+                            Text(text = selectedData.value?.qtyMin.toString())
                         },
                         trailingIcon = {
                             if (isEditQtyMinProductEmpty) {
@@ -589,7 +590,7 @@ fun InternalStockScreen(
                         maxLines = 1,
                         prefix = { Text(text = "Rp.")},
                         placeholder = {
-                            Text(text = selectedData?.price.toString())
+                            Text(text = selectedData.value?.price.toString())
                         },
                         trailingIcon = {
                             if (isEditPriceEmpty) {
@@ -618,7 +619,7 @@ fun InternalStockScreen(
                         suffix = { Text(text = "%")},
                         maxLines = 1,
                         placeholder = {
-                            Text(text = selectedData?.discProduct.toString())
+                            Text(text = selectedData.value?.discProduct.toString())
                         }
                     )
                     OutlinedTextField(
@@ -638,7 +639,7 @@ fun InternalStockScreen(
                         ),
                         maxLines = 1,
                         placeholder = {
-                            Text(text = selectedData?.desc!!)
+                            Text(text = selectedData.value?.desc!!)
                         }
                     )
                     fun getInternalProductForUpdate(): InternalProduct {
@@ -646,7 +647,7 @@ fun InternalStockScreen(
                         val priceValue = price.toLongOrNull() ?: 0
                         val discountValue = discount.toIntOrNull() ?:0
                         return InternalProduct(
-                            idProduct = selectedData?.idProduct,
+                            idProduct = selectedData.value?.idProduct,
                             qtyMin = qtyMinProductValue,
                             discProduct = discountValue,
                             price = priceValue,

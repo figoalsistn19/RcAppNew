@@ -82,7 +82,7 @@ fun InternalHomeScreen(
                     12.dp, 12.dp
                 )){
                 Image(modifier = Modifier.fillMaxWidth()
-                    , painter = painterResource(id = R.drawable.rc_logo) , contentDescription ="description" )
+                    , painter = painterResource(id = R.drawable.home_card) , contentDescription ="description" )
             }
             Text(text = "Menu",
                 modifier = Modifier.constrainAs(refMenu){

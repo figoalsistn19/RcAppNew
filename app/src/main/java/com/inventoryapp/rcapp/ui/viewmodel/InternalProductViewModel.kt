@@ -25,7 +25,8 @@ import javax.inject.Inject
 class InternalProductViewModel @Inject constructor(
     private val repository: InternalRepository,
     appPreferences: SharedPreferences
-): ViewModel() {
+): ViewModel()
+{
 
     val userRole = appPreferences.getString(SharedPrefConstants.USER_ROLE_INTERNAL,null)
 
@@ -46,7 +47,7 @@ class InternalProductViewModel @Inject constructor(
         }
     }
 
-    fun fetchCardData() {
+    fun fetchCartData() {
         viewModelScope.launch {
             _cartData.value = Resource.Loading
             val result = repository.getCardData()

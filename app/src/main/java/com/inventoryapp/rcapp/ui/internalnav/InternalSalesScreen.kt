@@ -41,12 +41,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.ui.agentnav.CardOrderHistoryForInternal
 import com.inventoryapp.rcapp.ui.agentnav.InvoiceScreenForInternal
 import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
-import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,7 +58,7 @@ import kotlinx.coroutines.launch
 fun InternalSalesScreen(
     salesOrderViewModel: SalesOrderViewModel?,
 ){
-    val firestore = FirebaseFirestore.getInstance()
+//    val firestore = FirebaseFirestore.getInstance()
     val searchText by salesOrderViewModel!!.searchText.collectAsState()
     val isSearching by salesOrderViewModel!!.isSearching.collectAsState()
     val salesOrderList by salesOrderViewModel!!.salesOrderInternalList.collectAsState()
@@ -132,7 +130,7 @@ fun InternalSalesScreen(
                                     },
                                     onCardData = {
                                         selectedOrderStateFlow.value = it
-                                        if (userRole.value == "SalesManager"){
+                                        if (userRole.value == "SalesManager"||userRole.value == "Admin"){
                                             openAlertDialog.value = true
                                         }
                                     },
@@ -175,7 +173,7 @@ fun InternalSalesScreen(
                                                 },
                                                 onCardData = {
                                                     selectedOrderStateFlow.value = it
-                                                    if (userRole.value == "SalesManager"){
+                                                    if (userRole.value == "SalesManager"||userRole.value == "Admin"){
                                                         openAlertDialog.value = true
                                                     }
                                                 },

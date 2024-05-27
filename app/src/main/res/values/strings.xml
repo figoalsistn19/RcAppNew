@@ -8,6 +8,6 @@
     <string name="enter_pw">Masukan password</string>
     <string name="enter_no_telp">Masukan no telepon</string>
     <string name="enter_email">Enter email address</string>
-    <string name="welcoming_word">klik masuk untuk memasuki aplikasi</string>
+    <string name="welcoming_word">klik mulai untuk memasuki aplikasi</string>
     <string name="title_activity_agent">AgentActivity</string>
 </resources>

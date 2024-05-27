@@ -31,7 +31,8 @@ class SalesOrderViewModel @Inject constructor(
     private val repository: AgentRepository,
     private val firestore: FirebaseFirestore,
     private val internalRepository: InternalRepository
-) : ViewModel() {
+) : ViewModel()
+{
 
     val currentUser: FirebaseUser?
         get() = repository.currentUser

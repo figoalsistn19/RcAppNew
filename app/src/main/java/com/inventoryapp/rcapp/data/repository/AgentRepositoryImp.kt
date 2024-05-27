@@ -335,7 +335,7 @@ class AgentRepositoryImp @Inject constructor(
                 val stockObj = InternalStockTransaction(
                     idTransaction = stockId,
                     idProduct = salesItem.idProduct,
-                    qtyProduct = salesItem.quantity,
+                    qtyProduct = -salesItem.quantity!!,
                     productName = salesItem.productName,
                     transactionType = "OUT",
                     userEditor = currentUser?.displayName,
@@ -346,7 +346,7 @@ class AgentRepositoryImp @Inject constructor(
                 val getCurrentStock = stockRef.get().await()
 
                 val currentStock = getCurrentStock.getLong("qtyProduct") ?: 0
-                val newStock = currentStock - salesItem.quantity!!
+                val newStock = currentStock + salesItem.quantity!!
                 stockRef.update("qtyProduct", newStock)
             }
 

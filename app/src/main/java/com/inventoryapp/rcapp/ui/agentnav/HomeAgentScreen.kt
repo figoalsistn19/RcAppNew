@@ -269,7 +269,7 @@ fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel?, navController
 @Composable
 fun ListProduct(
     item: InternalProduct,
-    onCardClicked: (String) -> Unit,
+    onCardClicked: (InternalProduct) -> Unit,
     onCardData: (InternalProduct) -> Unit
 ) {
     val offsetX = remember { mutableFloatStateOf(0f) }
@@ -282,8 +282,8 @@ fun ListProduct(
             .padding(vertical = 6.dp, horizontal = 10.dp)
             .offset { IntOffset(offsetX.floatValue.roundToInt(), offsetY.floatValue.roundToInt()) }
             .clickable {
-                onCardClicked(item.idProduct!!)
-                onCardData(item)
+                onCardClicked(item)
+//                onCardData(item)
                        }
             .pointerInput(Unit) {
                 detectHorizontalDragGestures { _, dragAmount ->

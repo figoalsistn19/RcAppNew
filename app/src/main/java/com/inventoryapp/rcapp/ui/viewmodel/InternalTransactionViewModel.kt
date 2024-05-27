@@ -21,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class InternalTransactionViewModel @Inject constructor(
     private val repository: InternalRepository
-): ViewModel() {
+): ViewModel()
+{
     //for add product in
     private val _addProductInFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
     val addInternalTransactionFlow: StateFlow<Resource<FirebaseFirestore>?> = _addProductInFlow

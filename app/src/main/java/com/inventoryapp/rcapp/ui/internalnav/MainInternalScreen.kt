@@ -257,7 +257,7 @@ fun MainInternalScreen(
                     actions = {
                         IconButton(onClick = {
                             scope.launch {
-                                if (internalProductViewModel.userRole == "SalesManager" || internalProductViewModel.userRole == "Sales") {
+                                if (internalProductViewModel.userRole == "SalesManager" || internalProductViewModel.userRole == "Sales"|| internalProductViewModel.userRole == "Admin") {
                                     navController.navigate("cart")
                                 } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                             }

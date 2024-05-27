@@ -36,8 +36,6 @@ class MainActivity : AppCompatActivity() {
     private val internalProductViewModel by viewModels<InternalProductViewModel>()
     private val agentUserViewModel by viewModels<AgentUserViewModel>()
     private val agentProductViewModel by viewModels<AgentProductViewModel>()
-//    private val internal: Internal
-//    private val viewModel by lazy { ViewModelProviders.of(this, InternalProductVMFactory(InternalImp(InternalRepoImp()))).get(InternalProductViewModel::class.java) }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -119,17 +119,6 @@ fun MainNavigation(
         composable("datepicker"){
             SalesOrderByDateScreen()
         }
-//        composable(ROUTE_MAIN_SALES_MANAGER_SCREEN){
-//            MainSalesManagerScreen(
-//                internalTransactionViewModel = internalTransactionViewModel,
-//                salesOrderViewModel = salesOrderViewModel,
-//                offeringPoViewModel = offeringPoViewModel,
-//                agentUserViewModel = agentUserViewModel,
-//                authViewModel = authViewModelInternal,
-//                internalProductViewModel = internalProductViewModel,
-//                navController = navController
-//            )
-//        }
         composable(ROUTE_AGENT_VERIFICATION_SCREEN){
             AgentVerificationScreen(agentUserViewModel)
         }

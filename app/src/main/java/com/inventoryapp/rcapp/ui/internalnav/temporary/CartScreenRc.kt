@@ -27,9 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
@@ -53,7 +51,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
@@ -61,11 +58,8 @@ import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
-import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.ui.agentnav.ListProduct
 import com.inventoryapp.rcapp.ui.internalnav.AlertDialogExample
-import com.inventoryapp.rcapp.ui.internalnav.CardAgentDetailForCart
-import com.inventoryapp.rcapp.ui.internalnav.CardAgentVerification
 import com.inventoryapp.rcapp.ui.internalnav.CartItemRow
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
@@ -73,7 +67,6 @@ import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -143,7 +136,7 @@ fun CartScreenRc(
         TopAppBar(
             title = {
                 Text(
-                    text = "Keranjang Belanja",
+                    text = "Keranjang",
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleLarge.copy(
@@ -261,8 +254,7 @@ fun CartScreenRc(
                 items(internalProductList) { item ->
                     ListProduct(
                         item,
-                        onCardClicked = {},
-                        onCardData = { it ->
+                        onCardClicked = {it ->
 //                            internalProduct.value = it
                             val finalPrice = it.price!! - (it.price!! * it.discProduct!!/100)
                             val productItem = ProductsItem(
@@ -280,12 +272,13 @@ fun CartScreenRc(
                                 .addOnSuccessListener {
                                     Toast.makeText(context,"Barang berhasil ditambahkan", Toast.LENGTH_SHORT).show()
                                     internalProductViewModel.setIsSearching(false)
-                                    internalProductViewModel.fetchCardData()
+                                    internalProductViewModel.fetchCartData()
                                 }
                                 .addOnFailureListener {
                                     Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show()
                                 }
-                        }
+                        },
+                        onCardData = { }
                     )
                 }
             }
@@ -297,7 +290,7 @@ fun CartScreenRc(
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             LaunchedEffect(Unit) {
-                internalProductViewModel.fetchCardData()
+                internalProductViewModel.fetchCartData()
             }
             when (cartItems) {
                 is Resource.Success -> {
@@ -319,6 +312,7 @@ fun CartScreenRc(
                                         cartItem.finalPrice = finalPriceProduct!!
                                         // Lakukan sesuatu dengan data
                                     } else {
+                                        cartItem.finalPrice = cartItem.finalPrice
                                         Toast.makeText(context,"Data tidak ditemukan", Toast.LENGTH_SHORT).show()
                                     }
                                 }
@@ -332,7 +326,7 @@ fun CartScreenRc(
 //                                mutableLongStateOf(cartItem.finalPrice!! * quantity)
 //                            }
                             cartItem.quantity = quantity
-                            var priceBefore = cartItem.price!! * quantity
+                            val priceBefore = cartItem.price!! * quantity
                             cartItem.totalPrice = cartItem.finalPrice!! * quantity
                             CartItemRow(
                                 cartItem = cartItem,
@@ -346,7 +340,7 @@ fun CartScreenRc(
                                         .document(cartItem.idProduct!!).delete()
                                         .addOnSuccessListener {
                                             Toast.makeText(context,"Barang berhasil dihapus", Toast.LENGTH_SHORT).show()
-                                            internalProductViewModel.fetchCardData()
+                                            internalProductViewModel.fetchCartData()
                                         }
                                         .addOnFailureListener {
                                             Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show()
@@ -498,7 +492,7 @@ fun CartScreenRc(
                         onConfirmation = {
                             openAlertDialog.value = false
                             salesOrderViewModel!!.addSalesOrder(salesOrderObj)
-                            Toast.makeText(context, "Pesanan berhasil dikirim", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Pesanan berhasil dibuat", Toast.LENGTH_SHORT).show()
                             navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN)
                             println("Confirmation registered") // Add logic here to handle confirmation.
                         },

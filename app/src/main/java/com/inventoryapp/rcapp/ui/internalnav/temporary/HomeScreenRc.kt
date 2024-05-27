@@ -86,7 +86,7 @@ fun HomeScreenRc(
                     12.dp, 12.dp
                 )){
                 Image(modifier = Modifier.fillMaxWidth()
-                    , painter = painterResource(id = R.drawable.rc_logo) , contentDescription ="description" )
+                    , painter = painterResource(id = R.drawable.home_card) , contentDescription ="description" )
             }
             Text(text = "Menu",
                 modifier = Modifier.constrainAs(refMenu){
@@ -170,9 +170,10 @@ fun HomeScreenRc(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel?.userRole != "Admin"){
-                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
-                            } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
+                            navController.navigate(ROUTE_INTERNAL_STOCK_OUT_SCREEN)
+//                            if (internalProductViewModel?.userRole != "Admin"){
+//                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
+//                            } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_keluar),
                                 contentDescription = "ini icon",
@@ -197,9 +198,10 @@ fun HomeScreenRc(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel?.userRole != "Admin"){
-                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
-                            } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
+                            navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
+//                            if (internalProductViewModel?.userRole != "Admin"){
+//                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
+//                            } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_masuk),
                                 contentDescription = "ini icon",

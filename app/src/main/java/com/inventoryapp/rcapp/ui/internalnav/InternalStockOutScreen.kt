@@ -155,7 +155,7 @@ fun InternalStockOutScreen(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     // Your other UI content here
                     Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
-                    if (internalProductViewModel.userRole == "HeadOfWarehouse"){
+                    if (internalProductViewModel.userRole == "HeadOfWarehouse"||internalProductViewModel.userRole == "Admin"){
                         ExtendedFloatingActionButton(
                             onClick = {
                                 showAddStockOutSheet = true
