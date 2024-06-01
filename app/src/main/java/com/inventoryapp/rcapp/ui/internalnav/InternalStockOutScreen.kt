@@ -68,6 +68,7 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalStockTransaction
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.agentnav.ListItemForInOut
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalTransactionViewModel
@@ -155,7 +156,7 @@ fun InternalStockOutScreen(
                 Row(modifier = Modifier.fillMaxWidth()) {
                     // Your other UI content here
                     Spacer(modifier = Modifier.weight(1f)) // Add flexibility with weight
-                    if (internalProductViewModel.userRole == "HeadOfWarehouse"){
+                    if (internalProductViewModel.role.value != UserRole.HeadOfWarehouse){
                         ExtendedFloatingActionButton(
                             onClick = {
                                 showAddStockOutSheet = true

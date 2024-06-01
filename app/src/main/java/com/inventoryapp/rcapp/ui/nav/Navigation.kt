@@ -30,6 +30,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.ui.WelcomeScreen
+import com.inventoryapp.rcapp.ui.agentnav.CartScreenForAgent
 import com.inventoryapp.rcapp.ui.agentnav.MainAgentScreen
 import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
@@ -106,10 +107,17 @@ fun MainNavigation(
             InternalSalesScreen(salesOrderViewModel)
         }
         composable("cart"){
-            CartScreenRc(
+            CartScreen(
                 agentUserViewModel,
                 internalProductViewModel = internalProductViewModel,
                 salesOrderViewModel = salesOrderViewModel,
+                navController = navController
+            )
+        }
+        composable("cartAgent"){
+            CartScreenForAgent(
+                salesOrderViewModel = salesOrderViewModel,
+                internalProductViewModel = internalProductViewModel,
                 navController = navController
             )
         }
@@ -130,24 +138,24 @@ fun MainNavigation(
 //                navController = navController
 //            )
 //        }
-        composable(ROUTE_AGENT_VERIFICATION_SCREEN){
-            AgentVerificationScreen(agentUserViewModel)
-        }
-        composable(ROUTE_REGISTER_INTERNAL){
-            RegisterInternalScreen(viewModel = authViewModelInternal, navController = navController)
-        }
-        composable(ROUTE_INTERNAL_STOCK_IN_SCREEN){
-            InternalStockInScreen(internalTransactionViewModel, internalProductViewModel, navController)
-        }
-        composable(ROUTE_INTERNAL_STOCK_OUT_SCREEN){
-            InternalStockOutScreen(internalTransactionViewModel, internalProductViewModel, navController)
-        }
-        composable(ROUTE_AGENT_STOCK_MONITORING_SCREEN){
-            AgentStockMonitoringScreen(agentUserViewModel)
-        }
-        composable(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN){
-            OfferingPoForAgentScreen(offeringPoViewModel, agentUserViewModel, internalProductViewModel, navController)
-        }
+//        composable(ROUTE_AGENT_VERIFICATION_SCREEN){
+//            AgentVerificationScreen(agentUserViewModel)
+//        }
+//        composable(ROUTE_REGISTER_INTERNAL){
+//            RegisterInternalScreen(viewModel = authViewModelInternal, navController = navController)
+//        }
+//        composable(ROUTE_INTERNAL_STOCK_IN_SCREEN){
+//            InternalStockInScreen(internalTransactionViewModel, internalProductViewModel, navController)
+//        }
+//        composable(ROUTE_INTERNAL_STOCK_OUT_SCREEN){
+//            InternalStockOutScreen(internalTransactionViewModel, internalProductViewModel, navController)
+//        }
+//        composable(ROUTE_AGENT_STOCK_MONITORING_SCREEN){
+//            AgentStockMonitoringScreen(agentUserViewModel)
+//        }
+//        composable(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN){
+//            OfferingPoForAgentScreen(offeringPoViewModel, agentUserViewModel, internalProductViewModel, navController)
+//        }
     }
 }
 

@@ -1,11 +1,11 @@
 package com.inventoryapp.rcapp.data.repository
 
 import android.content.SharedPreferences
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.Source
 import com.google.gson.Gson
 import com.inventoryapp.rcapp.data.model.AgentProduct
@@ -16,6 +16,7 @@ import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.FireStoreCollection.AGENTUSER
@@ -28,7 +29,6 @@ import com.inventoryapp.rcapp.util.Resource
 import com.inventoryapp.rcapp.util.SharedPrefConstants
 import com.inventoryapp.rcapp.util.await
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -49,7 +49,6 @@ class InternalRepositoryImp @Inject constructor(
     ): Resource<FirebaseUser> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            var navigateToScreen = ""
             val userId = result.user?.uid!!
             val internalUserDoc = database.collection("InternalUser").document(userId).get().await()
             val agentUserDoc = database.collection("AgentUser").document(userId).get().await()
@@ -290,7 +289,7 @@ class InternalRepositoryImp @Inject constructor(
         }
     }
 
-    override suspend fun getCardData(): Resource<List<ProductsItem>> {
+    override suspend fun getCartData(): Resource<List<ProductsItem>> {
         return try {
             val cartItems = mutableListOf<ProductsItem>()
             val documents = database.collection(FireStoreCollection.CARTDATA)
@@ -306,6 +305,35 @@ class InternalRepositoryImp @Inject constructor(
             Resource.Failure(e)
         }
     }
+
+    override suspend fun getCartDataAgent(): Resource<List<ProductsItem>> {
+        return try {
+            val cartItems = mutableListOf<ProductsItem>()
+            val documents = database.collection(AGENTUSER)
+                .document(currentUser?.uid!!)
+                .collection(FireStoreCollection.CARTDATAAGENT)
+                .get(source).await()
+
+            for (document in documents) {
+                val product = document.toObject(ProductsItem::class.java)
+                cartItems.add(product)
+            }
+            Resource.Success(cartItems)
+        } catch (e:Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
+        }
+    }
+
+    override suspend fun deletePoAgent(idOffering: String): Resource<Boolean> {
+        val offeringPoForAgentRef = database.collection(OFFERINGFORAGENT).document(idOffering)
+        return try {
+            offeringPoForAgentRef.delete().await()
+            Resource.Success(true) // Operasi penghapusan berhasil
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Resource.Failure(e) // Operasi penghapusan gagal
+        }    }
 
     override suspend fun getUsers(): Resource<List<InternalUser>> {
         return withContext(Dispatchers.IO) {
@@ -463,24 +491,12 @@ class InternalRepositoryImp @Inject constructor(
         }
     }
 
-    override suspend fun deleteOfferingForAgent(idOffering: String): Resource<FirebaseFirestore> {
-        return try {
-            val offeringForAgentRef = database
-                .collection(OFFERINGFORAGENT)
-                .document(idOffering)
-            offeringForAgentRef.delete()
-            Resource.Success(database)
-        }catch (e:Exception){
-            e.printStackTrace()
-            Resource.Failure(e)
-        }
-    }
-
     override suspend fun getSalesOrder(): Resource<List<SalesOrder>> {
         return withContext(Dispatchers.IO) {
             val source = Source.DEFAULT
             val querySnapshot = database
                 .collection(SALESORDER)
+                .orderBy("orderDate", Query.Direction.DESCENDING)
                 .get(source)
             when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)) {
                 is Resource.Success -> {
@@ -501,6 +517,18 @@ class InternalRepositoryImp @Inject constructor(
         }
     }
 
+    override suspend fun getRole(): UserRole? {
+        return withContext(Dispatchers.IO) {
+            if (currentUser != null){
+                val source = Source.DEFAULT
+                val userRef = database.collection(INTERNALUSER).document(currentUser!!.uid).get(source)
+                val document = userRef.await()
+                val user = document.toObject(InternalUser::class.java)
+                user?.userRole
+            } else UserRole.HeadOfWarehouse
+        }
+    }
+
     override suspend fun addInternalStockTransaction(
         transaction: InternalStockTransaction,
         idProduct: String,
@@ -511,7 +539,6 @@ class InternalRepositoryImp @Inject constructor(
                 .document(idProduct)
             val transactionRef = database.collection(FireStoreCollection.INTERNALSTOCKTRANSACTION)
                 .document()
-
 
             val idTransaction = transactionRef.id // Dapatkan ID yang dihasilkan secara otomatis
             transaction.idTransaction = idTransaction

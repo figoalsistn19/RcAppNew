@@ -2,6 +2,7 @@ package com.inventoryapp.rcapp.ui.agentnav
 
 //noinspection UsingMaterialAndMaterial3Libraries
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -47,6 +49,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
@@ -191,12 +194,18 @@ fun MainAgentScreen(
                         }
                     },
                     actions = {
-                        BadgedBox(badge = { Badge { Text("k") } }) {
+                        IconButton(onClick = {
+                            scope.launch {
+                                navController.navigate("cartAgent")
+                            }
+                        }) {
                             Icon(
-                                Icons.Filled.Notifications,
-                                contentDescription = "Home"
+                                imageVector = Icons.Filled.ShoppingCart,
+                                contentDescription = "Localized description",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        } },
+                        }
+                    },
                     scrollBehavior = scrollBehavior,
                     modifier = Modifier
                 )

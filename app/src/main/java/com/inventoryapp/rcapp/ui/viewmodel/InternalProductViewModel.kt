@@ -5,12 +5,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.ProductsItem
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.data.repository.InternalRepository
 import com.inventoryapp.rcapp.util.Resource
-import com.inventoryapp.rcapp.util.SharedPrefConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +28,14 @@ class InternalProductViewModel @Inject constructor(
     appPreferences: SharedPreferences
 ): ViewModel() {
 
-    val userRole = appPreferences.getString(SharedPrefConstants.USER_ROLE_INTERNAL,null)
+    val currentUser: FirebaseUser?
+        get() = repository.currentUser
+
+    private val _role = MutableLiveData<UserRole?>()
+    val role: LiveData<UserRole?> get() = _role
+    val userRole = viewModelScope.launch {
+        _role.value = repository.getRole()
+    }
 
     private val _internalProductSearch = MutableStateFlow<Resource<List<InternalProduct>>>(Resource.Loading)
 
@@ -49,8 +57,18 @@ class InternalProductViewModel @Inject constructor(
     fun fetchCardData() {
         viewModelScope.launch {
             _cartData.value = Resource.Loading
-            val result = repository.getCardData()
+            val result = repository.getCartData()
             _cartData.value = result
+        }
+    }
+
+    private val _cartDataAgent = MutableLiveData<Resource<List<ProductsItem>>>()
+    val cartDataAgent: LiveData<Resource<List<ProductsItem>>> get() = _cartDataAgent
+    fun fetchCartDataAgent() {
+        viewModelScope.launch {
+            _cartDataAgent.value = Resource.Loading
+            val result = repository.getCartDataAgent()
+            _cartDataAgent.value = result
         }
     }
 
@@ -89,13 +107,13 @@ class InternalProductViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),//it will allow the StateFlow survive 5 seconds before it been canceled
             initialValue = _internalProductList.value
         )
-//    init {
-//        viewModelScope.launch {
-//            _internalProductSearch.value = repository.getInternalProducts()
-//            // Update filtered list based on initial data
-//            _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
-//        }
-//    }
+    init {
+        viewModelScope.launch {
+            _internalProductSearch.value = repository.getInternalProducts()
+            // Update filtered list based on initial data
+            _internalProductList.value = mapToInternalProductList(_internalProductSearch.value) ?: emptyList()
+        }
+    }
 
     private fun mapToInternalProductList(resource: Resource<List<InternalProduct>>): List<InternalProduct>? {
         return when (resource) {

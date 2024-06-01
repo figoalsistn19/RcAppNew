@@ -43,13 +43,10 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavHostController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.agentnav.ListItemStock
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
-import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_VERIFICATION_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
-import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
@@ -170,7 +167,7 @@ fun HomeScreenRc(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel?.userRole != "Admin"){
+                            if (internalProductViewModel!!.role.value != UserRole.Admin){
                                 navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
                             } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
@@ -197,7 +194,7 @@ fun HomeScreenRc(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel?.userRole != "Admin"){
+                            if (internalProductViewModel!!.role.value != UserRole.Admin){
                                 navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
                             } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
@@ -222,7 +219,7 @@ fun HomeScreenRc(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel?.userRole == "Admin" || internalProductViewModel?.userRole == "Owner"){
+                            if (internalProductViewModel!!.role.value != UserRole.Admin || internalProductViewModel.role.value != UserRole.Owner){
                                 navController.navigate(ROUTE_REGISTER_INTERNAL)
                             }
                             else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()

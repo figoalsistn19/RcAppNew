@@ -3,7 +3,6 @@ package com.inventoryapp.rcapp.data.repository
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentProduct
-import com.inventoryapp.rcapp.data.model.AgentStockTransaction
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.InternalStockTransaction
@@ -11,7 +10,7 @@ import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
-import com.inventoryapp.rcapp.data.model.StatusOrder
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.util.Resource
 
@@ -37,7 +36,13 @@ interface InternalRepository {
 
     suspend fun getInternalProducts(): Resource<List<InternalProduct>>
 
-    suspend fun getCardData(): Resource<List<ProductsItem>>
+    suspend fun getCartData(): Resource<List<ProductsItem>>
+
+    suspend fun getCartDataAgent(): Resource<List<ProductsItem>>
+
+    suspend fun deletePoAgent(
+        idOffering: String
+    ):Resource<Boolean>
 
     suspend fun getUsers(): Resource<List<InternalUser>>
 
@@ -70,10 +75,9 @@ interface InternalRepository {
 
     suspend fun getOfferingForAgent(): Resource<List<OfferingForAgent>>
 
-    suspend fun deleteOfferingForAgent(
-        idOffering: String
-    ): Resource<FirebaseFirestore>
     suspend fun getSalesOrder(): Resource<List<SalesOrder>>
+
+    suspend fun getRole(): UserRole?
 
     suspend fun addInternalStockTransaction(
         transaction: InternalStockTransaction,

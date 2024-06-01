@@ -1,8 +1,6 @@
 package com.inventoryapp.rcapp.ui.internalnav
 
-//noinspection UsingMaterialAndMaterial3Libraries
-//noinspection UsingMaterialAndMaterial3Libraries
-//noinspection UsingMaterialAndMaterial3Libraries
+
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -15,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-//noinspection UsingMaterialAndMaterial3Libraries
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
@@ -32,6 +28,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,9 +63,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
 import com.inventoryapp.rcapp.ui.auth.internalauth.RegisterInternalScreen
-import com.inventoryapp.rcapp.ui.internalnav.temporary.HomeScreenRc
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_SCREEN
@@ -148,9 +145,9 @@ fun MainInternalScreen(
                                 ),
                                 modifier = Modifier.padding(start = 8.dp, top = 4.dp)
                             )
-                            if (internalProductViewModel.userRole != null){
+                            if (internalProductViewModel.role.value != null){
                                 Text(
-                                    text = internalProductViewModel.userRole,
+                                    text = internalProductViewModel.role.value.toString(),
                                     style = MaterialTheme.typography.titleLarge.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontStyle = FontStyle.Italic
@@ -160,7 +157,7 @@ fun MainInternalScreen(
                             }
                         }
                     }
-                    Divider()
+                    HorizontalDivider()
                     Spacer(modifier = Modifier
                         .fillMaxWidth()
                     )
@@ -232,7 +229,7 @@ fun MainInternalScreen(
                     actions = {
                         IconButton(onClick = {
                             scope.launch {
-                                if (internalProductViewModel.userRole == "SalesManager" || internalProductViewModel.userRole == "Sales") {
+                                if (internalProductViewModel.role.value != UserRole.SalesManager || internalProductViewModel.role.value != UserRole.Sales || internalProductViewModel.role.value != UserRole.Admin) {
                                     navController.navigate("cart")
                                 } else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                             }
@@ -252,7 +249,7 @@ fun MainInternalScreen(
             NavHost(navController = navControllerNonHost, startDestination = BottomBarScreen.HomeInternal.route,
             ){
                 composable(BottomBarScreen.HomeInternal.route){
-                    HomeScreenRc(internalProductViewModel, navController = navControllerNonHost)
+                    InternalHomeScreen(internalProductViewModel, navController = navControllerNonHost)
                 }
                 composable(BottomBarScreen.StockInternal.route){
                     InternalStockScreen(internalProductViewModel, navControllerNonHost)

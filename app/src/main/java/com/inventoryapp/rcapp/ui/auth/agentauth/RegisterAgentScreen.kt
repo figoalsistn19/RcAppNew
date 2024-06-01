@@ -228,8 +228,22 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
         )
         Button(
             onClick = {
-                viewModel?.registerUser(name, email, password, user = userObj)
-
+                if (name.isEmpty()){
+                    Toast.makeText(context, "nama tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (email.isEmpty()){
+                    Toast.makeText(context, "email tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (password.isEmpty()){
+                    Toast.makeText(context, "password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (confirmPassword.isEmpty()){
+                    Toast.makeText(context, "konfirmasi password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (address.isEmpty()){
+                    Toast.makeText(context, "alamat tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (phoneNumber.isEmpty()){
+                    Toast.makeText(context, "no telepon tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                } else {
+                    viewModel?.registerUser(name, email, password, user = userObj)
+                    navController.popBackStack()
+                }
             },
             modifier = Modifier.constrainAs(refButtonSignup) {
                 top.linkTo(refPhoneNumber.bottom, spacing.medium)
@@ -238,7 +252,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
                 width = Dimension.fillToConstraints
             }
         ) {
-            Text(text = "register", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Register", style = MaterialTheme.typography.titleMedium)
         }
         Text(
             modifier = Modifier
@@ -248,7 +262,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
                     end.linkTo(parent.end, spacing.extraLarge)
                 }
                 .clickable {
-                    navController.navigate(ROUTE_LOGIN_AGENT) {
+                    navController.navigate("login") {
                         popUpTo(ROUTE_REGISTER_AGENT) { inclusive = true }
                     }
                 },

@@ -10,6 +10,7 @@ object FireStoreCollection{
     const val AGENTTRANSACTION = "AgentTransaction"
     const val SALESORDER = "SalesOrder"
     const val CARTDATA = "CartData"
+    const val CARTDATAAGENT = "CartDataAgent"
 
 }
 

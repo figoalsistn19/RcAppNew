@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,17 +15,23 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -52,14 +59,18 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,7 +78,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
@@ -78,14 +89,18 @@ import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.ui.agentnav.CardItem
+import com.inventoryapp.rcapp.ui.agentnav.CardOrderHistoryForInternal
+import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
-import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
-import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun OfferingPoForAgentScreen(
@@ -113,11 +128,27 @@ fun OfferingPoForAgentScreen(
     val agentSearchList by agentUserViewModel.agentUsersList.collectAsState()
 
     val modelResource = offeringPoViewModel.addOfferingFlow.collectAsState()
+    val modelResourceDelete = offeringPoViewModel.deleteOfferingFlow.collectAsState()
+
 
     val sheetState = rememberModalBottomSheetState(true)
     var showAddPoForAgentSheet by remember { mutableStateOf(false) }
     var showPickItemSheet by remember { mutableStateOf(false) }
     var showDetailPoSheet by remember { mutableStateOf(false) }
+
+    val refreshScope = rememberCoroutineScope()
+    var refreshing by remember { mutableStateOf(false) }
+    fun refresh() = refreshScope.launch {
+        refreshing = true
+        delay(1500)
+        offeringPoViewModel.fetchOfferingForAgent()
+        refreshing = false
+    }
+    val state = rememberPullRefreshState(refreshing, ::refresh)
+
+    val openAlertDialog = remember { mutableStateOf(false) }
+
+    val selectedCard = remember { mutableStateOf("") }
 
     var selectedProductName by remember {
         mutableStateOf("")
@@ -221,7 +252,13 @@ fun OfferingPoForAgentScreen(
             ) {
                 LazyColumn {
                     items(offeringAgentSearchList) { user ->
-                        CardPoAgents(cardData = user)
+                        CardPoAgents(
+                            cardData = user,
+                            onCardSwipe = {
+                                selectedCard.value = it
+                                openAlertDialog.value = true
+                            }
+                        )
                     }
                 }
             }
@@ -231,13 +268,34 @@ fun OfferingPoForAgentScreen(
             when (offeringAgentList) {
                 is Resource.Success -> {
                     val offeringList = (offeringAgentList as Resource.Success<List<OfferingForAgent>>).result
-                    LazyColumn(
-                        modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
+                    Box(
+                        Modifier
+                            .pullRefresh(state)
+                            .padding(top = 8.dp, bottom = 80.dp)
                     ){
-                        items(offeringList){ offering ->
-                            CardPoAgents(cardData = offering)
+                        if (offeringList.isEmpty()){
+                            Text(
+                                modifier = Modifier.padding(top=20.dp),
+                                text = "Data masih kosong")
                         }
+                        else {
+                            LazyColumn(
+                                modifier = Modifier.padding(top=8.dp, bottom = 80.dp)
+                            ){
+                                items(offeringList){ offering ->
+                                    CardPoAgents(
+                                        cardData = offering,
+                                        onCardSwipe = {
+                                            selectedCard.value = it
+                                            openAlertDialog.value = true
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
                     }
+
                 }
 
                 is Resource.Loading -> {
@@ -255,6 +313,26 @@ fun OfferingPoForAgentScreen(
                     // Tampilkan pesan default jika diperlukan
                     Text(text = "No data available")
                 }
+            }
+        }
+        when {
+            // ...
+            openAlertDialog.value -> {
+                AlertDialogExample(
+                    onDismissRequest = {
+                        openAlertDialog.value = false
+                        offeringPoViewModel.fetchOfferingForAgent()
+                    },
+                    onConfirmation = {
+                        openAlertDialog.value = false
+                        offeringPoViewModel.deleteOffering(selectedCard.value)
+                        offeringPoViewModel.fetchOfferingForAgent()
+                        println("Confirmation registered") // Add logic here to handle confirmation.
+                    },
+                    dialogTitle = "Yakin untuk hapus pesanan ?",
+                    dialogText = "Jika memilih confirm maka pesanan akan di hapus",
+                    icon = Icons.Default.Info
+                )
             }
         }
         if (showAddPoForAgentSheet) {
@@ -785,6 +863,18 @@ fun OfferingPoForAgentScreen(
                             }
                         }
                     }
+                    modelResourceDelete.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                            }
+                            is Resource.Loading -> {
+                                CircularProgressIndicator()
+                            }
+                            is Resource.Success -> {
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -926,70 +1016,10 @@ fun CardAgent(
     }
 }
 
-
-@Composable
-fun CardPoAgent(){
-    Card (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = 15.dp, vertical = 5.dp
-            )
-            .clickable {
-
-            },
-        elevation = CardDefaults.cardElevation(3.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainerLowest)
-    ){
-        Row (
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.price_tag),
-                contentDescription = "price tag"
-            )
-            Column (
-                modifier = Modifier.padding(start = 8.dp)
-            ){
-                Text(
-                    text = "Toko Rina",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Roti Tiro",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleSmall
-                    )
-                Text(
-                    text = "23 Desember 2023・23:14",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.Light
-                    )
-                )
-            }
-            Row (
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ){
-                Column (
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.End
-                ){
-                    Text(text = "Rp100,000")
-                    Text(text = "pending")
-                }
-            }
-        }
-    }
-}
 @Composable
 fun CardPoAgents(
-    cardData: OfferingForAgent
+    cardData: OfferingForAgent,
+    onCardSwipe: (String)-> Unit
 ){
     val offeringSize = cardData.productsItem!!.size
     val offeringSizeMinOne = cardData.productsItem!!.size-1
@@ -998,71 +1028,87 @@ fun CardPoAgents(
         1 -> cardData.productsItem!![0].productName!!
         else -> cardData.productsItem!![0].productName!! + " + " + offeringSizeMinOne.toString() + " lainnya"
     }
-    Card (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = 15.dp, vertical = 5.dp
-            )
-            .clickable {
+    val offsetX = remember { mutableFloatStateOf(0f) }
+    val offsetY = remember { mutableFloatStateOf(0f) }
+    var width by remember { mutableFloatStateOf(0f) }
 
-            },
-        elevation = CardDefaults.cardElevation(3.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainerLowest)
+    Box(
+        Modifier.fillMaxSize()
+            .onSizeChanged { width = it.width.toFloat() }
     ){
-        Row (
+        Card (
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.price_tag),
-                contentDescription = "price tag"
-            )
-            Column (
-                modifier = Modifier.padding(start = 8.dp)
-            ){
-                Text(
-                    text = cardData.nameAgent!!,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                .padding(
+                    horizontal = 15.dp, vertical = 5.dp
                 )
-                Text(
-                    text = productName,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleSmall
+                .offset { IntOffset(offsetX.floatValue.roundToInt(), offsetY.floatValue.roundToInt()) }
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures { _, dragAmount ->
+                        val originalX = offsetX.floatValue
+                        val newValue = (originalX + dragAmount).coerceIn(0f, width - 50.dp.toPx())
+                        offsetX.floatValue = newValue
+                        onCardSwipe(cardData.idOffering!!)
+                    }
+                },
+            elevation = CardDefaults.cardElevation(3.dp),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceContainerLowest)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.price_tag),
+                    contentDescription = "price tag"
                 )
-            }
-            Row (
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ){
-                Column (
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.End
-                ){
-                    Text(text = cardData.totalPrice.toString())
-                    Text(text = cardData.statusOffering!!)
+                Column(
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = cardData.nameAgent!!,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = productName,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(text = cardData.totalPrice.toString())
+                        Text(text = cardData.statusOffering!!)
+                    }
                 }
             }
         }
     }
+
 }
 
-@Preview(apiLevel = 33)
-@Composable
-fun PrevPo(){
-//    CardPoAgent()
-    CardPoAgents(cardData = OfferingForAgent(
-        productsItem = listOf(
-        ProductsItem(
-            idProduct = "wlwlwl",
-            productName = "Roti Tiro",
-            price = 1000,
-            quantity = 100,
-            discProduct = 10
-        )
-    )))
-}
+//@Preview(apiLevel = 33)
+//@Composable
+//fun PrevPo(){
+////    CardPoAgent()
+//    CardPoAgents(cardData = OfferingForAgent(
+//        productsItem = listOf(
+//        ProductsItem(
+//            idProduct = "wlwlwl",
+//            productName = "Roti Tiro",
+//            price = 1000,
+//            quantity = 100,
+//            discProduct = 10
+//        )
+//    )))
+//}

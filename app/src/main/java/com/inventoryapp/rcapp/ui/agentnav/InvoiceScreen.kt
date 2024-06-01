@@ -14,15 +14,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
+import androidx.compose.material3.Divider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,7 +54,9 @@ import java.text.SimpleDateFormat
 import java.util.TimeZone
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SimpleDateFormat", "NewApi")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SimpleDateFormat", "NewApi",
+    "DefaultLocale"
+)
 @Composable
 fun InvoiceScreen (
     invoice: SalesOrder
@@ -148,7 +156,7 @@ fun InvoiceScreen (
                         color = MaterialTheme.colorScheme.primary
                                 )
                     )
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(vertical = 15.dp)
                     )
                     Column (
@@ -286,7 +294,7 @@ fun InvoiceScreen (
 
 //                        }
                     }
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                     Row (
@@ -370,8 +378,8 @@ fun InvoiceScreen (
                     }
                 }
             }
-            ScreenshotButton()
-            WriteToMediaStoreButton()
+//            ScreenshotButton()
+//            WriteToMediaStoreButton()
 //            IconButton(
 //                modifier = Modifier.padding(vertical = 15.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape).width(160.dp).height(40.dp),
 //                onClick = { /*TODO*/ }
@@ -389,7 +397,7 @@ fun InvoiceScreen (
     }
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SimpleDateFormat")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SimpleDateFormat", "DefaultLocale")
 @Composable
 fun InvoiceScreenForInternal (
     invoice: SalesOrder,
@@ -461,12 +469,12 @@ fun InvoiceScreenForInternal (
                         text = invoice.idOrder!!,
                         style = MaterialTheme.typography.titleMedium
                     )
-//                    Text(
-//                        modifier = Modifier
-//                            .background(Color.Green, CircleShape)
-//                            .padding(horizontal = 7.dp),
-//                        text = invoice.statusOrder!!.toString(),
-//                        style = MaterialTheme.typography.titleSmall.copy(color = color, fontWeight = FontWeight.Normal))
+                    Text(
+                        modifier = Modifier
+                            .background(Color.Green, CircleShape)
+                            .padding(horizontal = 7.dp),
+                        text = invoice.statusOrder!!.toString(),
+                        style = MaterialTheme.typography.titleSmall.copy(color = color, fontWeight = FontWeight.Normal))
                 }
             }
             Card (
@@ -494,7 +502,7 @@ fun InvoiceScreenForInternal (
                             color = MaterialTheme.colorScheme.primary
                         )
                     )
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(vertical = 15.dp)
                     )
                     Column (
@@ -629,7 +637,7 @@ fun InvoiceScreenForInternal (
                             }
                         }
                     }
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
                     Row (
@@ -713,49 +721,49 @@ fun InvoiceScreenForInternal (
                     }
                 }
             }
-//            if (invoice.statusOrder == StatusOrder.Pending){
-//                 Button(onClick = {
-//                     onProcessClick(invoice.idOrder!!)
-//                     salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamProses)
-//                 }) {
-//                     Text(text = "Proses pesanan")
-//                 }
-//            }
-//            if (invoice.statusOrder == StatusOrder.DalamProses){
-//                Button(onClick = {
-//                    onProcessClick(invoice.idOrder!!)
-//                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamPerjalanan)
-//                })
-//                {
-//                    Text(text = "Tandai pesanan telah dikirim")
-//                }
-//            }
-//            if (invoice.statusOrder == StatusOrder.DalamPerjalanan){
-//                Button(onClick = {
-//                    onProcessClick(invoice.idOrder!!)
-//                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Lunas)
-//                }) {
-//                    Text(text = "Tandai pesanan telah lunas")
-//                }
-//            }
-//            if (invoice.statusOrder == StatusOrder.Lunas){
-//                Button(onClick = {
-//                    onProcessClick(invoice.idOrder!!)
-//                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Selesai)
-//                }) {
-//                    Text(text = "Tandai pesanan telah selesai")
-//                }
-//                ScreenshotButton()
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                    WriteToMediaStoreButton()
-//                }
-//            }
-//            if (invoice.statusOrder == StatusOrder.Selesai){
-//                ScreenshotButton()
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                    WriteToMediaStoreButton()
-//                }
-//            }
+            if (invoice.statusOrder == StatusOrder.Pending){
+                 Button(onClick = {
+                     onProcessClick(invoice.idOrder!!)
+                     salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamProses)
+                 }) {
+                     Text(text = "Proses pesanan")
+                 }
+            }
+            if (invoice.statusOrder == StatusOrder.DalamProses){
+                Button(onClick = {
+                    onProcessClick(invoice.idOrder!!)
+                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.DalamPerjalanan)
+                })
+                {
+                    Text(text = "Tandai pesanan telah dikirim")
+                }
+            }
+            if (invoice.statusOrder == StatusOrder.DalamPerjalanan){
+                Button(onClick = {
+                    onProcessClick(invoice.idOrder!!)
+                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Lunas)
+                }) {
+                    Text(text = "Tandai pesanan telah lunas")
+                }
+            }
+            if (invoice.statusOrder == StatusOrder.Lunas){
+                Button(onClick = {
+                    onProcessClick(invoice.idOrder!!)
+                    salesOrderViewModel.updateStatusOrder(invoice.idOrder!!,StatusOrder.Selesai)
+                }) {
+                    Text(text = "Tandai pesanan telah selesai")
+                }
+                ScreenshotButton()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    WriteToMediaStoreButton()
+                }
+            }
+            if (invoice.statusOrder == StatusOrder.Selesai){
+                ScreenshotButton()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    WriteToMediaStoreButton()
+                }
+            }
             modelResource.value.let {
                 when (it) {
                     is Resource.Failure -> {
@@ -768,8 +776,6 @@ fun InvoiceScreenForInternal (
                     else -> {}
                 }
             }
-
-
 //            IconButton(
 //                modifier = Modifier.padding(vertical = 15.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape).width(160.dp).height(40.dp),
 //                onClick = { /*TODO*/ }

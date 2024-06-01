@@ -271,8 +271,22 @@ fun RegisterInternalScreen (viewModel: AuthViewModel?, navController: NavControl
         }
         Button(
             onClick = {
-                viewModel?.registerUser(name, email, password, user = userObj)
-                navController.popBackStack()
+                if (name.isEmpty()){
+                    Toast.makeText(context, "nama tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (email.isEmpty()){
+                    Toast.makeText(context, "email tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (password.isEmpty()){
+                    Toast.makeText(context, "password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (confirmPassword.isEmpty()){
+                    Toast.makeText(context, "konfirmasi password tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (phoneNumber.isEmpty()){
+                    Toast.makeText(context, "no telepon tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                }else if (selectedMenu.isEmpty()){
+                    Toast.makeText(context, "pilih role tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                } else {
+                    viewModel?.registerUser(name, email, password, user = userObj)
+                    navController.popBackStack()
+                }
             },
             modifier = Modifier.constrainAs(refButtonSignup) {
                 top.linkTo(refRole.bottom, spacing.medium)

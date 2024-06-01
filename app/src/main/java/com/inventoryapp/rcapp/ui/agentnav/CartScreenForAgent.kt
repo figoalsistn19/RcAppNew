@@ -1,14 +1,11 @@
-package com.inventoryapp.rcapp.ui.internalnav
+package com.inventoryapp.rcapp.ui.agentnav
 
 import android.annotation.SuppressLint
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,19 +17,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
@@ -50,41 +42,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
-import com.inventoryapp.rcapp.R
-import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
-import com.inventoryapp.rcapp.data.model.VerifAccountStatus
-import com.inventoryapp.rcapp.ui.agentnav.ListProduct
-import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
-import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
-import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.internalnav.AlertDialogExample
+import com.inventoryapp.rcapp.ui.internalnav.CartItemRow
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
+import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 
 @SuppressLint("DefaultLocale", "StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreen(
-    agentUserViewModel: AgentUserViewModel?,
+fun CartScreenForAgent(
     salesOrderViewModel: SalesOrderViewModel?,
     internalProductViewModel: InternalProductViewModel?,
     navController: NavController
@@ -93,23 +74,16 @@ fun CartScreen(
     val isSearching by internalProductViewModel!!.isSearching.collectAsState()
     val internalProductList by internalProductViewModel!!.internalProductList.collectAsState()
 
-    val query by agentUserViewModel!!.searchTextAgent.collectAsState()
-    val onQueryChange by agentUserViewModel!!.isSearchingAgent.collectAsState()
-    val agentSearchList by agentUserViewModel!!.agentUsersList.collectAsState()
-
     val modelResource = salesOrderViewModel?.addSalesOrderFlow?.collectAsState()
 
-    val cartItems by internalProductViewModel!!.cartData.observeAsState()
+    val cartItems by internalProductViewModel!!.cartDataAgent.observeAsState()
     val openAlertDialog = remember { mutableStateOf(false) }
 
+    val agentUser = internalProductViewModel?.currentUser
     val db = FirebaseFirestore.getInstance()
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    var agentUser by remember {
-        mutableStateOf<AgentUser?>(null)
-    }
 
     var cartItemsListForObj by remember {
         mutableStateOf(listOf<ProductsItem>())
@@ -167,49 +141,6 @@ fun CartScreen(
                 }
             }
         )
-        val selectedOrderStateFlow = MutableStateFlow<AgentUser?>(null)
-        SearchBar(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 10.dp),
-            query = query,
-            onQueryChange = agentUserViewModel!!::onSearchTextChange,
-            onSearch = agentUserViewModel::onSearchTextChange,
-            active = onQueryChange,
-            onActiveChange = { agentUserViewModel.onToogleSearch()},
-            trailingIcon = {
-                Icon(imageVector = Icons.Rounded.Search, contentDescription = "cari" )
-            },
-            placeholder = {
-                Text(text = "Cari nama agen disini...")
-            },
-            shadowElevation = 2.dp,
-            colors = SearchBarDefaults.colors(MaterialTheme.colorScheme.surfaceContainerLowest)
-        ) {
-            LazyColumn {
-                items(agentSearchList.filter {
-                    it.verificationStatus == VerifAccountStatus.APPROVED
-                }) { user ->
-                    CardAgentVerification(
-                        agentUser = user,
-                        onCardClick = {},
-                        onCardData = { data ->
-                            selectedOrderStateFlow.value = data
-                            agentUser = data
-                            agentUserViewModel.setIsSearching(false)
-                        }
-                    )
-                }
-            }
-        }
-        if (agentUser != null){
-            CardAgentDetailForCart(agentUser = agentUser!!)
-        } else {
-            CardAgentDetailForCart(agentUser = AgentUser(
-                name = "Pilih agen dulu",
-                email = "pilihagen@gmail.com"
-            ))
-        }
         SearchBar(
             query = searchText,//text showed on SearchBar
             onQueryChange = internalProductViewModel!!::onSearchTextChange, //update the value of searchText
@@ -245,13 +176,15 @@ fun CartScreen(
                                 finalPrice = finalPrice,
                                 totalPrice = it.price
                             )
-                            db.collection(FireStoreCollection.CARTDATA)
+                            db.collection(FireStoreCollection.AGENTUSER)
+                                .document(agentUser!!.uid)
+                                .collection(FireStoreCollection.CARTDATAAGENT)
                                 .document(it.idProduct!!)
                                 .set(productItem)
                                 .addOnSuccessListener {
                                     Toast.makeText(context,"Barang berhasil ditambahkan", Toast.LENGTH_SHORT).show()
                                     internalProductViewModel.setIsSearching(false)
-                                    internalProductViewModel.fetchCardData()
+                                    internalProductViewModel.fetchCartDataAgent()
                                 }
                                 .addOnFailureListener {
                                     Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show()
@@ -268,7 +201,7 @@ fun CartScreen(
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             LaunchedEffect(Unit) {
-                internalProductViewModel.fetchCardData()
+                internalProductViewModel.fetchCartDataAgent()
             }
             when (cartItems) {
                 is Resource.Success -> {
@@ -317,7 +250,7 @@ fun CartScreen(
                                         .document(cartItem.idProduct!!).delete()
                                         .addOnSuccessListener {
                                             Toast.makeText(context,"Barang berhasil dihapus", Toast.LENGTH_SHORT).show()
-                                            internalProductViewModel.fetchCardData()
+                                            internalProductViewModel.fetchCartDataAgent()
                                         }
                                         .addOnFailureListener {
                                             Toast.makeText(context,it.message, Toast.LENGTH_SHORT).show()
@@ -423,18 +356,17 @@ fun CartScreen(
                             text = totalPriceAllItemFormattedPrice,
                             style = MaterialTheme.typography.titleLarge)
                     }
-//                    Spacer(modifier = Modifier.weight(1f))
                     Row {
                         Button(
                             onClick = {
                                 if (cartItemsListForObj.isEmpty()){
                                     Toast.makeText(context,"Keranjang kosong", Toast.LENGTH_SHORT).show()
                                 }
-                                if (agentUser == null){
+                                if (internalProductViewModel.currentUser == null){
                                     Toast.makeText(context,"Pilih agen dulu", Toast.LENGTH_SHORT).show()
                                 }
                                 else openAlertDialog.value = true
-                                      },
+                            },
                             modifier = Modifier
                                 .wrapContentSize()
                                 .padding(16.dp)
@@ -449,8 +381,8 @@ fun CartScreen(
 //
                 return SalesOrder(
                     idOrder = "",
-                    idAgent = agentUser?.idAgent,
-                    nameAgent = agentUser?.name,
+                    idAgent = agentUser?.uid,
+                    nameAgent = agentUser?.displayName,
                     email = agentUser?.email,
                     statusOrder = StatusOrder.Pending,
                     productsItem = cartItemsListForObj,
@@ -495,187 +427,4 @@ fun CartScreen(
             }
         }
     }
-}
-
-@Composable
-fun CardAgentDetailForCart(
-    agentUser: AgentUser
-){
-    Card (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 23.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(20.dp)
-    ){
-        Row (
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Row(
-                modifier = Modifier
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    modifier = Modifier.padding(
-                        end = 10.dp
-                    ),
-                    imageVector = ImageVector.vectorResource(id = R.drawable.profile_circle),
-                    contentDescription =""
-                )
-                Column(
-                    modifier = Modifier
-                        .padding(end = 16.dp)
-                ) {
-                    Text(text = agentUser.name!!, style = MaterialTheme.typography.titleSmall)
-                    Text(text = agentUser.email!!, style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    ))
-                }
-
-            }
-
-        }
-    }
-}
-@SuppressLint("DefaultLocale")
-@Composable
-fun CartItemRow(
-    cartItem: ProductsItem,
-    priceBeforeDisc: Long,
-    price: Long,
-    quantity: Int = 1,
-    onQuantityDecreased: (Int) -> Unit,
-    onQuantityIncreased: (Int) -> Unit,
-    onItemRemoved: (String) -> Unit
-) {
-    val formattedFirstPrice = String.format("Rp%,d", priceBeforeDisc)
-    val formattedPrice = String.format("Rp%,d", price)
-    Card (
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 23.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(20.dp)
-    ){
-        Row (
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Row(
-                modifier = Modifier
-                    .padding(top = 16.dp, bottom = 16.dp , start = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    modifier = Modifier.padding(
-                        end = 10.dp
-                    ),
-                    imageVector = ImageVector.vectorResource(id = R.drawable.tag_2),
-                    contentDescription =""
-                )
-                Column(
-                    modifier = Modifier
-                ) {
-                    Text(text = cartItem.productName!!, style = MaterialTheme.typography.titleMedium)
-                    Row {
-                        Text(
-                            modifier = Modifier,
-                            text = formattedPrice,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                            ))
-                        Text(
-                            modifier = Modifier.padding(start = 4.dp),
-                            text = formattedFirstPrice,
-                            style = MaterialTheme.typography.titleSmall.copy(
-                            textDecoration = TextDecoration.LineThrough,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        ))
-                        Text(
-                            modifier = Modifier
-//                                .background(MaterialTheme.colorScheme.errorContainer,
-//                                RoundedCornerShape(
-//                                    10.dp
-//                                ))
-                                .padding(start = 2.dp),
-                            text = " ${cartItem.discProduct}%",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.error),
-                            softWrap = true
-                        )
-                    }
-
-                }
-            }
-//            Column(
-//                modifier = Modifier,
-//                horizontalAlignment = Alignment.Start,
-//                verticalArrangement = Arrangement.Bottom
-//            ) {
-//
-//            }
-            Row (
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxHeight()
-                ) {
-                    IconButton(onClick = {
-                        onQuantityIncreased(quantity)
-                    },
-                        modifier = Modifier.size(12.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.KeyboardArrowUp,
-                            contentDescription = ""
-                        )
-                    }
-                    Text(text = quantity.toString())
-                    if (quantity != 1){
-                        IconButton(onClick = {
-                            onQuantityDecreased(quantity)
-                        },
-                            modifier = Modifier.size(12.dp),
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(12.dp),
-                                imageVector = Icons.Rounded.KeyboardArrowDown,
-                                contentDescription = ""
-                            )
-                        }
-                    }
-
-                }
-                IconButton(onClick = { onItemRemoved(cartItem.idProduct!!) }) {
-                    Icon(
-                        imageVector = Icons.Rounded.Delete,
-                        contentDescription = "Hapus"
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Preview(apiLevel = 33)
-@Composable
-fun PreviewCartScreen() {
-    CardAgentDetailForCart(agentUser =
-    AgentUser("wqd", "ewdewqdq","wdqwqd", "qwdqwd","wqdqd", VerifAccountStatus.APPROVED, Date()
-    )
-    )
 }

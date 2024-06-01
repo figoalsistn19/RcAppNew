@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,8 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -63,7 +60,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -82,11 +78,11 @@ import com.inventoryapp.rcapp.data.model.OfferingForAgent
 import com.inventoryapp.rcapp.data.model.ProductsItem
 import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
-import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
-import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
-import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -532,7 +528,7 @@ fun CardOrderHistory(
         "DalamPerjalanan" -> MaterialTheme.colorScheme.secondary
         else -> Color.Gray // Warna default untuk status yang tidak diketahui
     }
-    var textProduct = when(order.productsItem!!.size){
+    val textProduct = when(order.productsItem!!.size){
         1-> order.productsItem!![0].productName
         else -> order.productsItem!![0].productName + " + " + (order.productsItem!!.size - 1) + " lainnya"
     }
@@ -598,68 +594,12 @@ fun CardOrderHistory(
     }
 }
 
-
-@Composable
-fun DraggableItemWithDeleteIcon() {
-    // State untuk posisi horizontal
-    var offsetX by remember { mutableFloatStateOf(0f) }
-
-    // Icon Delete
-    val iconSize = 48.dp
-    val deleteIcon = Icons.Default.Delete
-
-    // Konten yang dapat digeser
-    val draggableContent = @Composable { modifier: Modifier ->
-        Box(
-            modifier = modifier
-                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                .background(Color.LightGray, RoundedCornerShape(8.dp))
-                .size(200.dp, 80.dp)
-                .pointerInput(Unit) {
-                    detectDragGestures { _, dragAmount ->
-                        offsetX += dragAmount.x
-                    }
-                }
-        ) {
-            Text(
-                text = "Swipe Me",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-
-    // Komponen utama
-    Layout(
-        content = {
-            draggableContent(Modifier)
-            Icon(
-                imageVector = deleteIcon,
-                contentDescription = "Delete",
-                modifier = Modifier.size(iconSize)
-            )
-        }
-    ) { measurables, constraints ->
-        val draggablePlaceable = measurables[0].measure(constraints)
-        val iconPlaceable = measurables[1].measure(constraints)
-
-        layout(constraints.maxWidth, constraints.maxHeight) {
-            draggablePlaceable.placeRelative(0, 0)
-            iconPlaceable.placeRelative(
-                constraints.maxWidth - iconPlaceable.width,
-                constraints.maxHeight / 2 - iconPlaceable.height / 2
-            )
-        }
-    }
-}
-
 @SuppressLint("SimpleDateFormat", "DefaultLocale")
 @Composable
 fun CardOrderHistoryForInternal(
     order: SalesOrder, // Pass required data from LazyColumn items
     onCardClick: (SalesOrder) -> Unit, // Pass lambda to handle card click
-    onCardData: (SalesOrder) -> Unit,
-    onClickHold: (String) -> Unit
+    onCardData: (String) -> Unit,
 ) {
     val formattedPrice = String.format("Rp%,d", order.totalPrice)
     val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
@@ -677,7 +617,7 @@ fun CardOrderHistoryForInternal(
     val offsetY = remember { mutableFloatStateOf(0f) }
     var width by remember { mutableFloatStateOf(0f) }
 
-    var textProduct = when(order.productsItem!!.size){
+    val textProduct = when(order.productsItem!!.size){
         1-> order.productsItem!![0].productName
         else -> order.productsItem!![0].productName + " + " + (order.productsItem!!.size - 1) + " lainnya"
     }
@@ -692,14 +632,13 @@ fun CardOrderHistoryForInternal(
             .offset { IntOffset(offsetX.floatValue.roundToInt(), offsetY.floatValue.roundToInt()) }
             .clickable {
                 onCardClick(order)
-//                onCardData(order)
             }
             .pointerInput(Unit) {
                 detectHorizontalDragGestures { _, dragAmount ->
                     val originalX = offsetX.floatValue
                     val newValue = (originalX + dragAmount).coerceIn(0f, width - 50.dp.toPx())
                     offsetX.floatValue = newValue
-                    onCardData(order)
+                    onCardData(order.idOrder!!)
                 }
             },
             elevation = CardDefaults.cardElevation(2.dp,6.dp,4.dp,3.dp,3.dp,0.dp),
@@ -747,11 +686,11 @@ fun CardOrderHistoryForInternal(
                     Text(
                         text = formattedPrice,
                         style = MaterialTheme.typography.titleMedium)
-//                    Text(
-//                        text = order.statusOrder!!.toString(),
-//                        style = MaterialTheme.typography.titleSmall,
-//                        color = color
-//                    )
+                    Text(
+                        text = order.statusOrder!!.toString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = color
+                    )
                 }
             }
         }
@@ -790,7 +729,7 @@ fun CardBySales(
             quantity(reqOrder.productsItem!![0].quantity!!)
         },
         elevation = CardDefaults.cardElevation(2.dp,6.dp,4.dp,3.dp,3.dp,0.dp),
-        colors = CardColors(MaterialTheme.colorScheme.surfaceContainerLow,MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.tertiaryContainer,MaterialTheme.colorScheme.tertiary)
+        colors = CardColors(contentColor = MaterialTheme.colorScheme.onSurface, containerColor = MaterialTheme.colorScheme.surfaceContainerLowest, disabledContentColor = MaterialTheme.colorScheme.onSurface, disabledContainerColor = MaterialTheme.colorScheme.onTertiaryContainer)
     )
     {
         ConstraintLayout (modifier = Modifier.height(70.dp)){
@@ -803,8 +742,7 @@ fun CardBySales(
                     top.linkTo(parent.top, spacing.medium)
                     start.linkTo(parent.start, spacing.small)
                     bottom.linkTo(parent.bottom, spacing.medium)
-                },
-//                tint = MaterialTheme.colorScheme.primary
+                }
             )
             Text(
                 text = reqOrder.productsItem!![0].productName!!,

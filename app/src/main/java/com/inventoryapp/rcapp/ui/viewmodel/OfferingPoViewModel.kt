@@ -134,4 +134,13 @@ class OfferingPoViewModel @Inject constructor(
         }
     }
 
+    // DELETE OFFERING
+    private val _deleteOfferingFlow = MutableStateFlow<Resource<Boolean>?>(null)
+    val deleteOfferingFlow: StateFlow<Resource<Boolean>?> = _deleteOfferingFlow
+
+    fun deleteOffering(idOffering: String) = viewModelScope.launch {
+        _deleteOfferingFlow.value = Resource.Loading
+        val result = repository.deletePoAgent(idOffering)
+        _deleteOfferingFlow.value = result
+    }
 }

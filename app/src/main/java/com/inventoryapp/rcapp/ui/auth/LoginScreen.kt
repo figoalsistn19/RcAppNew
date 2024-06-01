@@ -147,19 +147,19 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController){
         ) {
             Text("LOGIN", style = MaterialTheme.typography.titleMedium)
         }
-//        FilledTonalButton(
-//            modifier = Modifier
-//                .constrainAs(refTextSignup) {
-//                    top.linkTo(refButtonLogin.bottom, spacing.medium)
-//                    start.linkTo(parent.start, spacing.extraLarge)
-//                    end.linkTo(parent.end, spacing.extraLarge)
-//                },
-//            onClick = {
-//                navController.navigate(ROUTE_REGISTER_AGENT)
-//            }
-//        ){
-//            Text(text = "DAFTAR", style = MaterialTheme.typography.titleMedium)
-//        }
+        FilledTonalButton(
+            modifier = Modifier
+                .constrainAs(refTextSignup) {
+                    top.linkTo(refButtonLogin.bottom, spacing.medium)
+                    start.linkTo(parent.start, spacing.extraLarge)
+                    end.linkTo(parent.end, spacing.extraLarge)
+                },
+            onClick = {
+                navController.navigate(ROUTE_REGISTER_AGENT)
+            }
+        ){
+            Text(text = "DAFTAR", style = MaterialTheme.typography.titleMedium)
+        }
 
         Text(text = "Version 1.0.0",
             modifier= Modifier

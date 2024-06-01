@@ -116,11 +116,7 @@ fun InternalSalesScreen(
                                         showDetailOrder = true
                                     },
                                     onCardData = {
-                                        selectedOrderStateFlow.value = it
-                                        openAlertDialog.value = true
-                                    },
-                                    onClickHold = {
-                                        selectedCard.value
+                                        selectedCard.value = it
                                         openAlertDialog.value = true
                                     }
                                 )
@@ -155,10 +151,6 @@ fun InternalSalesScreen(
                                                     showDetailOrder = true
                                                 },
                                                 onCardData = {
-                                                    selectedOrderStateFlow.value = it
-                                                    openAlertDialog.value = true
-                                                },
-                                                onClickHold = {
                                                     selectedCard.value = it
                                                     openAlertDialog.value = true
                                                 }

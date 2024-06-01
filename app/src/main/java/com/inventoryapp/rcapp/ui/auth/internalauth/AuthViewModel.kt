@@ -67,17 +67,40 @@ class AuthViewModel @Inject constructor(
             navigateToCorrectScreen(currentUser!!.uid)
         }
     }
+
+    fun loginNavigateTo(email: String) {
+        if (email.isNotEmpty()){
+//            navigateToCorrectScreenForLogin()
+        }
+    }
     fun login(email: String, password: String)= viewModelScope.launch {
         _loginFlow.value = Resource.Loading
         val result = repository.login(email, password)
         _loginFlow.value = result
-//        if (currentUser != null) {
-//            // Pengguna sudah login
-//            navigateToCorrectScreen(currentUser)
-//        } else {
-//            // Pengguna belum login, lakukan navigasi ke layar login
-//            // Misalnya: navController.navigate(ROUTE_LOGIN_SCREEN)
-//        }
+    }
+
+    private fun navigateToCorrectScreenForLogin(userId: String)= viewModelScope.launch {
+        try {
+            val source = Source.DEFAULT
+            // Periksa apakah pengguna adalah internal user atau agent user
+            val internalUserDoc = firestore.collection(FireStoreCollection.INTERNALUSER).document(userId).get(source).await()
+            val agentUserDoc = firestore.collection(FireStoreCollection.AGENTUSER).document(userId).get(source).await()
+
+            if (agentUserDoc.exists()) {
+                // Pengguna adalah internal user
+                val agentUser = agentUserDoc.toObject(AgentUser::class.java)
+                appPreferences.edit().putString(SharedPrefConstants.USER_STATUS, agentUser?.verificationStatus.toString()).apply()
+                navigateToAgentUserScreen(agentUser!!)
+            } else if (internalUserDoc.exists()) {
+                // Pengguna adalah agent user
+                val internalUser = internalUserDoc.toObject(InternalUser::class.java)
+                appPreferences.edit().putString(SharedPrefConstants.USER_ROLE_INTERNAL, internalUser?.userRole.toString()).apply()
+                navigateToInternalUserScreen(internalUser!!)
+            }
+        } catch (e: Exception) {
+            // Penanganan jika terjadi kesalahan saat mengambil data dari Firestore
+            e.printStackTrace()
+        }
     }
 
     private fun navigateToCorrectScreen(userId: String)= viewModelScope.launch {
@@ -112,17 +135,6 @@ class AuthViewModel @Inject constructor(
     }
     private fun navigateToInternalUserScreen(internalUser: InternalUser?) {
         // Lakukan navigasi ke layar internal user dengan data internalUser
-//        val role = internalUser?.userRole
-//        when(role){
-//            UserRole.Admin -> _navigateToScreen.value = ROUTE_MAIN_INTERNAL_SCREEN
-//            UserRole.FinanceManager -> _navigateToScreen.value = ROUTE_MAIN_INTERNAL_SCREEN
-//            UserRole.HeadOfWarehouse -> _navigateToScreen.value = ROUTE_INTERNAL_STOCK_SCREEN
-//            UserRole.OperationTeam -> _navigateToScreen.value = ROUTE_INTERNAL_SALES_SCREEN
-//            UserRole.Owner -> _navigateToScreen.value = ROUTE_MAIN_INTERNAL_SCREEN
-//            UserRole.Sales -> _navigateToScreen.value = ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
-//            UserRole.SalesManager -> _navigateToScreen.value = ROUTE_MAIN_SALES_MANAGER_SCREEN
-//            else -> _navigateToScreen.value = "login"
-//        }
         _navigateToScreen.value = ROUTE_MAIN_INTERNAL_SCREEN
     }
 
@@ -141,14 +153,6 @@ class AuthViewModel @Inject constructor(
     fun getSession(result: (InternalUser?) -> Unit){
         repository.getSession(result)
     }
-
-//    private val _enteringFlow = MutableStateFlow<Resource<String>?>(null)
-//    val enteringFlow: StateFlow<Resource<String>?> = _enteringFlow
-//    fun getSessionUser() = viewModelScope.launch {
-//        _enteringFlow.value = Resource.Loading
-//        val result = repository.getSessionUser()
-//        _enteringFlow.value = result
-//    }
 
     fun logout(){
         repository.logout()

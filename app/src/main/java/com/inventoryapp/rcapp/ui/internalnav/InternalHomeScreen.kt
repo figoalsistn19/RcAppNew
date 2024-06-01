@@ -41,6 +41,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavHostController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
+import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.agentnav.ListItemStock
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
@@ -57,6 +58,7 @@ fun InternalHomeScreen(
     internalProductViewModel: InternalProductViewModel?,
     navController: NavHostController,
 ){
+
     val state = remember { ScrollState(0) }
     val internalProduct by internalProductViewModel!!.internalProducts.observeAsState()
 
@@ -164,9 +166,7 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel?.userRole!! == "HeadOfWarehouse" ){
-                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
-                            } else Toast.makeText(navController.context, "Anda tidak memiliki akses", Toast.LENGTH_SHORT).show()
+                            navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_masuk),
                                 contentDescription = "ini icon",
@@ -305,7 +305,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_REGISTER_INTERNAL)
+                            if (internalProductViewModel!!.role.value != UserRole.Admin){
+                                navController.navigate(ROUTE_REGISTER_INTERNAL)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT)
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.kelola_banner),
                                 contentDescription = "ini icon",

@@ -26,7 +26,6 @@ import javax.inject.Inject
 @HiltViewModel
 class SalesOrderViewModel @Inject constructor(
     private val repository: AgentRepository,
-    appPreferences: SharedPreferences,
     private val internalRepository: InternalRepository
 ) : ViewModel() {
 
