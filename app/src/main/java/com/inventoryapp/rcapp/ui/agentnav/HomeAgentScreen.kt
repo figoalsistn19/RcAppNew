@@ -18,7 +18,6 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +43,6 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_ORDER_HISTORY_SCREEN
@@ -52,11 +50,11 @@ import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.util.Resource
 import java.text.SimpleDateFormat
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel?, navController: NavController){
     val state = remember { ScrollState(0) }
@@ -83,7 +81,7 @@ fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel?, navController
                             12.dp, 12.dp
                         )){
                         Image(modifier = Modifier.fillMaxWidth()
-                            , painter = painterResource(id = R.drawable.rc_logo) , contentDescription ="description" )
+                            ,painter = painterResource(id = R.drawable.home_card) , contentDescription ="description" )
                     }
                     Text(text = "Menu",
                         modifier = Modifier.constrainAs(refMenu){
@@ -257,7 +255,7 @@ fun HomeAgentScreen(agentProductViewModel: AgentProductViewModel?, navController
     )
 }
 
-@SuppressLint("SimpleDateFormat")
+@SuppressLint("SimpleDateFormat", "DefaultLocale")
 @Composable
 fun ListProduct(
     item: InternalProduct,
@@ -281,9 +279,10 @@ fun ListProduct(
         ConstraintLayout (modifier = Modifier.fillMaxWidth()) {
             val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
             val date = item.updateAt
-            val fixDate = sdf.format(date)
+            val fixDate = sdf.format(date!!)
+            val formattedPrice = String.format("Rp%,d", item.finalPrice)
             val spacing = MaterialTheme.spacing
-            val (refIcon, refTitle, refDate, refStock) = createRefs()
+            val (refIcon, refTitle, refDate, refStock, refPrice) = createRefs()
             Image(modifier = Modifier
                 .constrainAs(refIcon){
                     top.linkTo(parent.top, spacing.medium)
@@ -312,9 +311,17 @@ fun ListProduct(
                 .constrainAs(refStock){
                     top.linkTo(parent.top)
                     end.linkTo(parent.end, spacing.small)
-                    bottom.linkTo(parent.bottom)
+                    bottom.linkTo(parent.bottom, spacing.medium)
                 },
                 text = item.qtyProduct.toString()+ " pcs",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
+            Text(modifier = Modifier
+                .constrainAs(refPrice){
+                    top.linkTo(refStock.bottom)
+                    end.linkTo(parent.end, spacing.small)
+                    bottom.linkTo(parent.bottom, spacing.medium)
+                },
+                text = formattedPrice,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
         }
     }
@@ -324,13 +331,13 @@ fun ListProduct(
 @Composable
 fun ListProductAgent(
     item: AgentProduct,
-    onCardClicked: (String) -> Unit
+    onCardClicked: (AgentProduct) -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp, horizontal = 10.dp)
-            .clickable { onCardClicked(item.idProduct!!) }
+            .clickable { onCardClicked(item) }
         ,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp
@@ -340,7 +347,7 @@ fun ListProductAgent(
         ConstraintLayout (modifier = Modifier.fillMaxWidth()) {
             val sdf = SimpleDateFormat("dd MMM yyyy ・ HH:mm")
             val date = item.updateAt
-            val fixDate = sdf.format(date)
+            val fixDate = sdf.format(date!!)
             val spacing = MaterialTheme.spacing
             val (refIcon, refTitle, refDate, refStock) = createRefs()
             Image(modifier = Modifier
@@ -380,7 +387,7 @@ fun ListProductAgent(
     }
 }
 
-@Preview(apiLevel = 33, showBackground = true)
+@Preview(apiLevel = 34, showBackground = true)
 @Composable
 fun HomeAgentPreview(){
     RcAppTheme {
@@ -391,7 +398,7 @@ fun HomeAgentPreview(){
 }
 
 
-@Preview(showBackground = true, apiLevel = 33)
+@Preview(showBackground = true, apiLevel = 34)
 @Composable
 fun GreetingPreview() {
     RcAppTheme {

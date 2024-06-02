@@ -47,7 +47,6 @@ class AgentRepositoryImp @Inject constructor(
 //                .whereEqualTo("email", result.user?.email) // Use userId for comparison
                 //                .whereEqualTo("verificationStatus", "APPROVED")
             val agentUser = documentSnapshot.toObject(AgentUser::class.java)
-            val verifiedAcc = documentSnapshot.getString("verificationStatus")
 
             if (agentUser?.idAgent?.isEmpty()!!) {
                 // Handle case where user data or approved status not found
@@ -130,7 +129,6 @@ class AgentRepositoryImp @Inject constructor(
     }
 
     override fun getSession(result: (AgentUser?) -> Unit) {
-        val userId = currentUser?.uid
         val userStr = appPreferences.getString(SharedPrefConstants.USER_SESSION, null)
         val userStatus = appPreferences.getString(SharedPrefConstants.USER_STATUS,null)
         if (userStr == null && userStatus== "PENDING") {
@@ -326,30 +324,6 @@ class AgentRepositoryImp @Inject constructor(
             salesOrder.idOrder = idSalesOrder
             firebaseResult.set(salesOrder).await()
 
-            for (salesItem in salesOrder.productsItem!!){
-                val stockRef = database.collection(FireStoreCollection.INTERNALPRODUCT)
-                    .document(salesItem.idProduct!!)
-                val stockTransactionRef = database.collection(FireStoreCollection.INTERNALSTOCKTRANSACTION)
-
-                val stockId = stockTransactionRef.id
-                val stockObj = InternalStockTransaction(
-                    idTransaction = stockId,
-                    idProduct = salesItem.idProduct,
-                    qtyProduct = salesItem.quantity,
-                    productName = salesItem.productName,
-                    transactionType = "OUT",
-                    userEditor = currentUser?.displayName,
-                    createAt = Date(),
-                    desc = "terjual ke ${salesOrder.nameAgent}"
-                )
-                stockTransactionRef.add(stockObj).await()
-                val getCurrentStock = stockRef.get().await()
-
-                val currentStock = getCurrentStock.getLong("qtyProduct") ?: 0
-                val newStock = currentStock - salesItem.quantity!!
-                stockRef.update("qtyProduct", newStock)
-            }
-
             Resource.Success(database)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -413,6 +387,25 @@ class AgentRepositoryImp @Inject constructor(
 
                 Resource.Loading -> TODO()
             }
+        }
+    }
+    override suspend fun updateAgentProduct(
+        agentProduct: AgentProduct,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore> {
+        return try {
+            val internalProductRef = database
+                .collection(FireStoreCollection.AGENTUSER)
+                .document(currentUser?.uid!!)
+                .collection(FireStoreCollection.AGENTPRODUCT)
+                .document(agentProduct.idProduct!!)
+
+            internalProductRef.update("qtyMin", agentProduct.qtyMin)
+
+            Resource.Success(database)
+        }catch (e:Exception){
+            e.printStackTrace()
+            Resource.Failure(e)
         }
     }
 //        val userStr = appPreferences.getString(SharedPrefConstants.USER_SESSION, null)

@@ -601,7 +601,7 @@ fun InternalStockScreen(
                     Button(
                         modifier = Modifier.padding(top = 10.dp, bottom = 20.dp),
                         onClick = {
-                            if (isQtyMinProductEmpty) {
+                            if (isEditQtyMinProductEmpty) {
                                 // Tampilkan pesan error
                                 Toast.makeText(
                                     context,

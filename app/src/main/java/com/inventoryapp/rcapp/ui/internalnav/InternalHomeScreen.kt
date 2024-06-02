@@ -58,7 +58,6 @@ fun InternalHomeScreen(
     internalProductViewModel: InternalProductViewModel?,
     navController: NavHostController,
 ){
-
     val state = remember { ScrollState(0) }
     val internalProduct by internalProductViewModel!!.internalProducts.observeAsState()
 
@@ -71,20 +70,21 @@ fun InternalHomeScreen(
                 .padding(bottom = 20.dp)
                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
         ) {
-            val (refTopAppBar, refCardPromotion, refMenu, refMenuDetail, refMenuTitle, refMenu1Detail,refMenu1Title, refProduct, refProductList) = createRefs()
+            val (refTopAppBar, refCardPromotion, refMenu, refMenuDetail, refMenuTitle, refProduct, refProductList) = createRefs()
             val spacing = MaterialTheme.spacing
             Card(modifier = Modifier
                 .constrainAs(refCardPromotion) {
                     top.linkTo(refTopAppBar.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                    width = Dimension.fillToConstraints
                 }
                 .padding(
                     12.dp, 12.dp
                 )){
-                Image(modifier = Modifier.fillMaxWidth()
-                    , painter = painterResource(id = R.drawable.rc_logo) , contentDescription ="description" )
+                Image(
+                    modifier = Modifier.fillMaxWidth(),
+                    painter = painterResource(id = R.drawable.home_card),
+                    contentDescription ="description" )
             }
             Text(text = "Menu",
                 modifier = Modifier.constrainAs(refMenu){
@@ -307,7 +307,7 @@ fun InternalHomeScreen(
                         IconButton(onClick = {
                             if (internalProductViewModel!!.role.value != UserRole.Admin){
                                 navController.navigate(ROUTE_REGISTER_INTERNAL)
-                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.kelola_banner),
                                 contentDescription = "ini icon",
@@ -379,7 +379,7 @@ fun InternalHomeScreen(
 }
 
 
-@Preview(apiLevel = 33)
+@Preview(apiLevel = 34)
 @Composable
 fun PrevHomeInternal(){
 //    InternalHomeScreen(navController = rememberNavController())

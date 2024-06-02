@@ -236,7 +236,7 @@ fun CartScreenForAgent(
 //                                mutableLongStateOf(cartItem.finalPrice!! * quantity)
 //                            }
                             cartItem.quantity = quantity
-                            cartItem.price = cartItem.price!! * quantity
+                            val priceBefore = cartItem.price!! * quantity
                             cartItem.totalPrice = cartItem.finalPrice!! * quantity
                             CartItemRow(
                                 cartItem = cartItem,
@@ -244,7 +244,7 @@ fun CartScreenForAgent(
                                 onQuantityIncreased = { quantity++ },
                                 quantity = quantity,
                                 onQuantityDecreased = { if (quantity>1) quantity-- },
-                                priceBeforeDisc = cartItem.price!!,
+                                priceBeforeDisc = priceBefore,
                                 onItemRemoved = {
                                     db.collection(FireStoreCollection.CARTDATA)
                                         .document(cartItem.idProduct!!).delete()

@@ -267,7 +267,7 @@ fun OfferingPoForAgentScreen(
             }
             when (offeringAgentList) {
                 is Resource.Success -> {
-                    val offeringList = (offeringAgentList as Resource.Success<List<OfferingForAgent>>).result
+                    val offeringList = (offeringAgentList as Resource.Success<List<OfferingForAgent>>).result.filter { it.statusOffering == "BY SALES" }
                     Box(
                         Modifier
                             .pullRefresh(state)
@@ -804,15 +804,6 @@ fun OfferingPoForAgentScreen(
                                 discProduct = selectedItemDiscount,
                                 finalPrice = selectedItemFinalPrice,
                                 totalPrice = selectedItemPrice - (selectedItemPrice * selectedItemDiscount / 100),
-                            ),
-                            ProductsItem(
-                                idProduct =  selectedProduct.value,
-                                productName =  selectedProductName,
-                                price = selectedItemPrice,
-                                quantity =  qtyValue,
-                                discProduct = selectedItemDiscount,
-                                finalPrice = selectedItemFinalPrice,
-                                totalPrice = selectedItemPrice - (selectedItemPrice * selectedItemDiscount / 100),
                             )
                         )
                         val totalPriceAll = listProducts.fold(0L) { acc, product ->
@@ -1031,6 +1022,7 @@ fun CardPoAgents(
     val offsetX = remember { mutableFloatStateOf(0f) }
     val offsetY = remember { mutableFloatStateOf(0f) }
     var width by remember { mutableFloatStateOf(0f) }
+    val formattedPrice = String.format("Rp%,d", cardData.totalPrice)
 
     Box(
         Modifier.fillMaxSize()
@@ -1069,13 +1061,12 @@ fun CardPoAgents(
                 ) {
                     Text(
                         text = cardData.nameAgent!!,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium)
                     )
                     Text(
                         text = productName,
                         color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
                     )
                 }
                 Row(
@@ -1087,7 +1078,9 @@ fun CardPoAgents(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.End
                     ) {
-                        Text(text = cardData.totalPrice.toString())
+                        Text(text = formattedPrice,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
+                        )
                         Text(text = cardData.statusOffering!!)
                     }
                 }

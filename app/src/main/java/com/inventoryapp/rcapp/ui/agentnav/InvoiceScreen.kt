@@ -803,7 +803,7 @@ fun InvoiceScreenForInternal (
 //    "Selesai",
 //    1000,11
 //)
-@Preview(apiLevel = 33)
+@Preview(apiLevel = 34)
 @Composable
 fun PrevInvoiceScreen(){
 //    InvoiceScreenForInternal(invoice = salesOrder)

@@ -630,7 +630,7 @@ fun CardItemForInOutInternal(
     }
 }
 
-@Preview(apiLevel = 33)
+@Preview(apiLevel = 34)
 @Composable
 fun PrevInternalStockIn(){
 //    InternalStockInScreen(navController = rememberNavController())

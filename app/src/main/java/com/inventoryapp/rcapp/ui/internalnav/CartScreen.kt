@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,8 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -70,10 +67,10 @@ import com.inventoryapp.rcapp.data.model.SalesOrder
 import com.inventoryapp.rcapp.data.model.StatusOrder
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.ui.agentnav.ListProduct
-import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
-import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -303,7 +300,7 @@ fun CartScreen(
 //                                mutableLongStateOf(cartItem.finalPrice!! * quantity)
 //                            }
                             cartItem.quantity = quantity
-                            cartItem.price = cartItem.price!! * quantity
+                            val priceBefore = cartItem.price!! * quantity
                             cartItem.totalPrice = cartItem.finalPrice!! * quantity
                             CartItemRow(
                                 cartItem = cartItem,
@@ -311,7 +308,7 @@ fun CartScreen(
                                 onQuantityIncreased = { quantity++ },
                                 quantity = quantity,
                                 onQuantityDecreased = { if (quantity>1) quantity-- },
-                                priceBeforeDisc = cartItem.price!!,
+                                priceBeforeDisc = priceBefore,
                                 onItemRemoved = {
                                     db.collection(FireStoreCollection.CARTDATA)
                                         .document(cartItem.idProduct!!).delete()
@@ -671,7 +668,7 @@ fun CartItemRow(
     }
 }
 
-@Preview(apiLevel = 33)
+@Preview(apiLevel = 34)
 @Composable
 fun PreviewCartScreen() {
     CardAgentDetailForCart(agentUser =

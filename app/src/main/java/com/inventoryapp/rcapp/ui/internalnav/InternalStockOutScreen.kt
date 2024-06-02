@@ -207,7 +207,7 @@ fun InternalStockOutScreen(
             }
             when (internalStocksOut) {
                 is Resource.Success -> {
-                    val internStockOut = (internalStocksOut as Resource.Success<List<InternalStockTransaction>>).result.filter { it.transactionType == "OUT" }
+                    val internStockOut = (internalStocksOut as Resource.Success<List<InternalStockTransaction>>).result.filter { it.transactionType == "OUT"}
                     Box(
                         Modifier
                             .pullRefresh(state)

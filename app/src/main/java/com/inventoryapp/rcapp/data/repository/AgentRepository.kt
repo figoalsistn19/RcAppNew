@@ -35,7 +35,10 @@ interface AgentRepository {
 
     suspend fun getOfferingForAgentById(): Resource<List<OfferingForAgent>>
 
-
+    suspend fun updateAgentProduct(
+        agentProduct: AgentProduct,
+        result: (Resource<String>) -> Unit
+    ): Resource<FirebaseFirestore>
     suspend fun addSalesOrder(
         salesOrder: SalesOrder,
         result: (Resource<String>) -> Unit

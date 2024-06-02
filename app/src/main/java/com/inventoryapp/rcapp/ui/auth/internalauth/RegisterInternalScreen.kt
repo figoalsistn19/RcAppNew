@@ -382,7 +382,7 @@ fun UserRoleDropdownMenu(
 }
 
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 34)
 @Composable
 fun RegisterScreenPreviewLight() {
     RcAppTheme {
@@ -390,7 +390,7 @@ fun RegisterScreenPreviewLight() {
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 34)
 @Composable
 fun RegisterScreenPreviewDark() {
     RcAppTheme {

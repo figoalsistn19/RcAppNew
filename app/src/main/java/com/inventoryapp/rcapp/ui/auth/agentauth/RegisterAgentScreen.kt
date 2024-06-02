@@ -2,6 +2,7 @@ package com.inventoryapp.rcapp.ui.auth.agentauth
 
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -31,12 +31,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
-import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
@@ -45,7 +43,6 @@ import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavController) {
     var name by remember { mutableStateOf("") }
@@ -54,7 +51,6 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
     var confirmPassword by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
-    val onBackPressed = remember { mutableStateOf(false) }
     val authResource =viewModel?.registerFlow?.collectAsState()
     val context = LocalContext.current
 
@@ -72,6 +68,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
     val userObj: AgentUser = getUserObj()
     ConstraintLayout(
         modifier = Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
         val (refHeader, refName, refEmail, refPassword, refButtonSignup, refTextSignup, refLoading, refConfirmPw, refPhoneNumber, refAddress) = createRefs()
         val spacing = MaterialTheme.spacing
@@ -296,7 +293,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 33)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, apiLevel = 34)
 @Composable
 fun SignupScreenPreviewLight() {
     RcAppTheme {
@@ -304,7 +301,7 @@ fun SignupScreenPreviewLight() {
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 33)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, apiLevel = 34)
 @Composable
 fun SignupScreenPreviewDark() {
     RcAppTheme {

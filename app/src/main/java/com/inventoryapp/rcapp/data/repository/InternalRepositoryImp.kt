@@ -30,6 +30,7 @@ import com.inventoryapp.rcapp.util.SharedPrefConstants
 import com.inventoryapp.rcapp.util.await
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Date
 import javax.inject.Inject
 
 class InternalRepositoryImp @Inject constructor(
@@ -409,7 +410,36 @@ class InternalRepositoryImp @Inject constructor(
                 .collection(SALESORDER)
                 .document(idSalesOrder)
 
+            val salesOrder = salesOrderRef.get().await()
+            val salesOrderObj = salesOrder.toObject(SalesOrder::class.java)
+            val salesOrderItems = salesOrderObj?.productsItem
+
             salesOrderRef.update("statusOrder", statusOrder).await()
+            if(statusOrder == "DalamPerjalanan"){
+                for (salesItem in salesOrderItems!!){
+                    val stockRef = database.collection(INTERNALPRODUCT)
+                        .document(salesItem.idProduct!!)
+                    val stockTransactionRef = database.collection(FireStoreCollection.INTERNALSTOCKTRANSACTION)
+
+                    val stockId = stockTransactionRef.id
+                    val stockObj = InternalStockTransaction(
+                        idTransaction = stockId,
+                        idProduct = salesItem.idProduct,
+                        qtyProduct = salesItem.quantity,
+                        productName = salesItem.productName,
+                        transactionType = "OUT",
+                        userEditor = currentUser?.displayName,
+                        createAt = Date(),
+                        desc = "terjual ke ${salesOrderObj.nameAgent}"
+                    )
+                    stockTransactionRef.add(stockObj).await()
+                    val getCurrentStock = stockRef.get().await()
+
+                    val currentStock = getCurrentStock.getLong("qtyProduct") ?: 0
+                    val newStock = currentStock - salesItem.quantity!!
+                    stockRef.update("qtyProduct", newStock)
+                }
+            }
             Resource.Success(database)
         } catch (e: Exception){
             e.printStackTrace()
@@ -583,6 +613,7 @@ class InternalRepositoryImp @Inject constructor(
         return withContext(Dispatchers.IO) {
             val querySnapshot = database
                 .collection(FireStoreCollection.INTERNALSTOCKTRANSACTION)
+                .orderBy("createAt", Query.Direction.DESCENDING)
                 .get(source)
             when (val taskResult = FirebaseCoroutines.awaitTask(querySnapshot)) {
                 is Resource.Success -> {

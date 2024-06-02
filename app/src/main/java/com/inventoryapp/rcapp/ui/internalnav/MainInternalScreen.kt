@@ -383,7 +383,7 @@ sealed class BottomBarScreen(
         selectedIcon = Icons.Filled.ShoppingCart,
         unselectedIcon = Icons.Outlined.ShoppingCart,
         hasNews = false,
-        badgeCount = 1,
+        badgeCount = 5,
         route = ROUTE_AGENT_REQUEST_ORDER_SCREEN
     )
 

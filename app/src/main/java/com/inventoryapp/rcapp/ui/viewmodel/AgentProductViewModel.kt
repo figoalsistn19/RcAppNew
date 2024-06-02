@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentProduct
+import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.repository.AgentRepository
 import com.inventoryapp.rcapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -116,5 +117,15 @@ class AgentProductViewModel @Inject constructor(
         if (!_isSearching.value) {
             onSearchTextChange("")
         }
+    }
+
+    // UPDATE INTERNAL PRODUCT
+    private val _agentProductEditFlow = MutableStateFlow<Resource<FirebaseFirestore>?>(null)
+    val agentProductEditFlow: StateFlow<Resource<FirebaseFirestore>?> = _agentProductEditFlow
+
+    fun editInternalProduct(agentProduct: AgentProduct) = viewModelScope.launch {
+        val result = repository.updateAgentProduct(agentProduct){
+        }
+        _agentProductEditFlow.value = result
     }
 }

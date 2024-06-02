@@ -74,12 +74,17 @@ import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME_INTERNAL_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_SCREEN
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Date
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SuspiciousIndentation")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "SuspiciousIndentation",
+    "StateFlowValueCalledInComposition"
+)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AgentStockScreen(
@@ -101,6 +106,7 @@ fun AgentStockScreen(
     }
 
     val addAgentProductResource = agentProductViewModel?.agentProductFlow?.collectAsState()
+    val modelEditResource = agentProductViewModel?.agentProductEditFlow?.collectAsState()
     val agentProducts by agentProductViewModel!!.agentProducts.observeAsState()
     val internalProducts by internalProductViewModel!!.internalProducts.observeAsState()
 
@@ -109,6 +115,10 @@ fun AgentStockScreen(
     var descProduct by remember { mutableStateOf("") }
     val selectedCard = remember { mutableStateOf("") }
 //    val selectedProductNameHolder = StateHolder(initialValue = "")
+    var qtyMinProduct by remember { mutableStateOf("") }
+    var showEditProductSheet by remember {
+        mutableStateOf(false)
+    }
     var selectedProduct by remember {
         mutableStateOf("")
     }
@@ -124,7 +134,9 @@ fun AgentStockScreen(
     var selectedItemFinalPrice by remember {
         mutableLongStateOf(0)
     }
+    val selectedData = MutableStateFlow<AgentProduct?>(null)
     var isQtyEmpty = true
+    var isEditQtyMinProductEmpty = true
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -154,6 +166,8 @@ fun AgentStockScreen(
                         items(agentProductList) { item ->
                             ListProductAgent(item,
                                 onCardClicked = {
+                                    selectedData.value = it
+                                    showEditProductSheet = true
                                 })
                         }
                     }
@@ -175,6 +189,8 @@ fun AgentStockScreen(
                                 items(agentProduct) { item ->
                                     ListProductAgent(item,
                                         onCardClicked = {
+                                            selectedData.value = it
+                                            showEditProductSheet = true
                                         })
                                 }
                             }
@@ -223,6 +239,113 @@ fun AgentStockScreen(
             }
         }
     ) {
+        if (showEditProductSheet) {
+            ModalBottomSheet(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                onDismissRequest = {
+                    showEditProductSheet = false
+                },
+                sheetState = sheetState
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Edit Data Produk",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                    Text(
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        text = selectedData.value?.productName!!,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Normal
+                        )
+                    )
+                    OutlinedTextField(
+                        value = qtyMinProduct,
+                        onValueChange = {
+                            qtyMinProduct = it
+                            isEditQtyMinProductEmpty = it.isEmpty()
+                        },
+                        isError = isEditQtyMinProductEmpty,
+                        label = {
+                            Text(text = "Stok Minimum")
+                        },
+                        modifier = Modifier.padding(vertical = 5.dp),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        maxLines = 1,
+                        suffix = { Text(text = "Pcs")},
+                        placeholder = {
+                            Text(text = selectedData.value?.qtyMin.toString())
+                        },
+                        trailingIcon = {
+                            if (isEditQtyMinProductEmpty) {
+                                Icon(Icons.Outlined.Info, contentDescription = "isi dahulu")
+                            } else{
+                                Icon(imageVector = Icons.Outlined.Done, contentDescription ="done" )
+                            }
+                        }
+                    )
+                    fun getAgentProductForUpdate(): AgentProduct {
+                        val qtyMinProductValue = qtyMinProduct.toIntOrNull() ?: 0
+                        return AgentProduct(
+                            idProduct = selectedData.value?.idProduct,
+                            qtyMin = qtyMinProductValue
+                        )
+                    }
+                    val updatedObj: AgentProduct = getAgentProductForUpdate()
+                    Button(
+                        modifier = Modifier.padding(top = 10.dp, bottom = 20.dp),
+                        onClick = {
+                            if (isEditQtyMinProductEmpty) {
+                                // Tampilkan pesan error
+                                Toast.makeText(
+                                    context,
+                                    "Jumlah minimum tidak boleh kosong",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                agentProductViewModel?.editInternalProduct(updatedObj)
+                                showEditProductSheet = false
+//                                Toast.makeText(
+//                                    context,
+//                                    "Sukses edit barang",
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+                            }
+                        }
+                    ) {
+                        Text(text = "Simpan Perubahan")
+                    }
+                    modelEditResource?.value?.let {
+                        when (it) {
+                            is Resource.Failure -> {
+                                Toast.makeText(context, it.throwable.message, Toast.LENGTH_SHORT).show()
+                            }
+                            is Resource.Loading -> {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                            }
+                            is Resource.Success -> {
+                                Toast.makeText(
+                                    context,
+                                    "Sukses edit barang",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                }
+            }
+        }
         if (showAddProductSheet) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -569,7 +692,7 @@ fun CardItem(
 //    ProductListOnly()
 //}
 
-@Preview(apiLevel = 33)
+@Preview(apiLevel = 34)
 @Composable
 fun PrevAgentStockScreen(){
 //    AgentStockScreen(navController = rememberNavController())
