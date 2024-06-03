@@ -329,8 +329,8 @@ fun OfferingPoForAgentScreen(
                         offeringPoViewModel.fetchOfferingForAgent()
                         println("Confirmation registered") // Add logic here to handle confirmation.
                     },
-                    dialogTitle = "Yakin untuk hapus pesanan ?",
-                    dialogText = "Jika memilih confirm maka pesanan akan di hapus",
+                    dialogTitle = "Yakin untuk hapus tawaran ?",
+                    dialogText = "Jika memilih confirm maka tawaran akan di hapus",
                     icon = Icons.Default.Info
                 )
             }

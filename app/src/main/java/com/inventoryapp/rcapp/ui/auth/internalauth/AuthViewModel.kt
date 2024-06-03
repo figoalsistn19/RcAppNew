@@ -30,6 +30,7 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val repository: InternalRepository,
     private val firestore: FirebaseFirestore,
+    private val firebaseAuth: FirebaseAuth,
     private val appPreferences: SharedPreferences
 ) : ViewModel()  {
 
@@ -42,6 +43,13 @@ class AuthViewModel @Inject constructor(
 
     val currentUser: FirebaseUser?
         get() = repository.currentUser
+
+    val email: String?
+        get() = repository.currentUser?.email
+    fun resetPassword() = viewModelScope.launch {
+        firebaseAuth.sendPasswordResetEmail(email!!)
+    }
+
 
 //    init {
 //        if (repository.currentUser != null){

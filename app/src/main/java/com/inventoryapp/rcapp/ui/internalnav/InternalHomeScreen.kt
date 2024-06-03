@@ -116,7 +116,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(BottomBarScreen.SalesInternal.route)
+                            if (internalProductViewModel?.role?.value != null){
+                                navController.navigate(BottomBarScreen.SalesInternal.route)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.unselected_request_order),
                                 contentDescription = "ini icon",
@@ -141,7 +143,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(BottomBarScreen.StockInternal.route)
+                            if (internalProductViewModel?.role?.value != null){
+                                navController.navigate(BottomBarScreen.StockInternal.route)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.stok_barang),
                                 contentDescription = "ini icon",
@@ -166,7 +170,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
+                            if (internalProductViewModel?.role?.value != null){
+                                navController.navigate(ROUTE_INTERNAL_STOCK_IN_SCREEN)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_masuk),
                                 contentDescription = "ini icon",
@@ -191,7 +197,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_INTERNAL_STOCK_OUT_SCREEN)
+                            if (internalProductViewModel?.role?.value != null){
+                                navController.navigate(ROUTE_INTERNAL_STOCK_OUT_SCREEN)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.barang_keluar),
                                 contentDescription = "ini icon",
@@ -232,7 +240,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_AGENT_STOCK_MONITORING_SCREEN)
+                            if (internalProductViewModel?.role?.value != null){
+                                navController.navigate(ROUTE_AGENT_STOCK_MONITORING_SCREEN)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.stock_agent),
                                 contentDescription = "ini icon",
@@ -257,7 +267,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_AGENT_VERIFICATION_SCREEN)
+                            if (internalProductViewModel?.role?.value != null){
+                                navController.navigate(ROUTE_AGENT_VERIFICATION_SCREEN)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.verifikasi_agent),
                                 contentDescription = "ini icon",
@@ -280,7 +292,9 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN)
+                            if (internalProductViewModel?.role?.value != null){
+                                navController.navigate(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN)
+                            } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.buat_po_agent),
                                 contentDescription = "ini icon",
@@ -305,7 +319,7 @@ fun InternalHomeScreen(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel!!.role.value != UserRole.Admin){
+                            if (internalProductViewModel?.role?.value == UserRole.Admin){
                                 navController.navigate(ROUTE_REGISTER_INTERNAL)
                             } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {

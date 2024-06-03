@@ -570,7 +570,7 @@ fun StockOutScreen(
     }
 }
 
-@Preview(apiLevel = 33)
+@Preview(apiLevel = 34)
 @Composable
 fun PrevStockOutScreen(){
 //    StockOutScreen(navController = rememberNavController())

@@ -33,8 +33,11 @@ class InternalProductViewModel @Inject constructor(
 
     private val _role = MutableLiveData<UserRole?>()
     val role: LiveData<UserRole?> get() = _role
-    val userRole = viewModelScope.launch {
-        _role.value = repository.getRole()
+
+    init {
+        viewModelScope.launch {
+            _role.value = repository.getRole()
+        }
     }
 
     private val _internalProductSearch = MutableStateFlow<Resource<List<InternalProduct>>>(Resource.Loading)
