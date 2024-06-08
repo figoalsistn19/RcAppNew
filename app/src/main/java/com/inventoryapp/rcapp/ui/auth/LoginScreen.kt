@@ -32,8 +32,12 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
+import com.google.firebase.firestore.FirebaseFirestore
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.theme.spacing
+import com.inventoryapp.rcapp.util.FireStoreCollection
 import com.inventoryapp.rcapp.util.Resource
 
 @Composable
@@ -43,6 +47,8 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController){
     val authResource = viewModel?.loginFlow?.collectAsState()
     val context = LocalContext.current
     val navigateToScreen by viewModel?.navigateToScreen!!.observeAsState()
+
+    val data = FirebaseFirestore.getInstance()
 
 //    fun onStart(){
 //        viewModel?.getSession { user ->
@@ -185,12 +191,30 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController){
                     })
                 }
                 is Resource.Success -> {
-                    LaunchedEffect(navigateToScreen) {
-                        viewModel.checkUserLoggedIn()
-                        navigateToScreen?.let { screen ->
-                            navController.navigate(screen)
-                            viewModel.navigateToScreen(screen) // Setelah navigasi selesai, reset nilai LiveData
+                    LaunchedEffect(Unit) {
+                        var route = ""
+                        val agent = data.collection(FireStoreCollection.AGENTUSER).whereEqualTo("email", email).get().addOnSuccessListener{
+                            if (it.documents.isNotEmpty()){
+                                navController.navigate(ROUTE_MAIN_AGENT_SCREEN)
+                            }
+                        }.addOnFailureListener{
+                            Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                         }
+                        val internal = data.collection(FireStoreCollection.INTERNALUSER).whereEqualTo("email", email).get().addOnSuccessListener{
+                            if (it.documents.isNotEmpty()){
+                                navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN)
+                            }
+                        }.addOnFailureListener{
+                            Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                        }
+
+
+
+//                        viewModel.checkUserLoggedIn()
+//                        navigateToScreen?.let { screen ->
+//                            navController.navigate(screen)
+//                            viewModel.navigateToScreen(screen) // Setelah navigasi selesai, reset nilai LiveData
+//                        }
                     }
                 }
             }
