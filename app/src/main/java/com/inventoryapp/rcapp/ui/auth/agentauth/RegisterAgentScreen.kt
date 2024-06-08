@@ -35,7 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.model.VerifAccountStatus
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
@@ -283,7 +283,7 @@ fun RegisterAgentScreen(viewModel: AuthAgentViewModel?, navController: NavContro
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        navController.navigate(ROUTE_LOGIN_AGENT) {
+                        navController.navigate(ROUTE_LOGIN) {
                             popUpTo(ROUTE_REGISTER_INTERNAL) { inclusive = true }
                         }
                     }

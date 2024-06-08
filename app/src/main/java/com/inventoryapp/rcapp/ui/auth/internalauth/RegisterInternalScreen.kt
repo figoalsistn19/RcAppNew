@@ -49,6 +49,7 @@ import androidx.navigation.compose.rememberNavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.UserRole
+import com.inventoryapp.rcapp.ui.auth.AuthViewModel
 import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource

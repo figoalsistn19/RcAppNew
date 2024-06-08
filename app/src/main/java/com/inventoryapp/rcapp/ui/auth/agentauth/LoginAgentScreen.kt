@@ -32,7 +32,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_AGENT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_AGENT
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -49,7 +49,7 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
         viewModel?.getSession { user ->
             if (user != null){
                 navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
-                    popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+                    popUpTo(ROUTE_LOGIN) { inclusive = true }
                     popUpTo(ROUTE_HOME){ inclusive = true}
                 }
             }
@@ -182,7 +182,7 @@ fun LoginAgentScreen(viewModel: AuthAgentViewModel?, navController: NavControlle
                 is Resource.Success -> {
                     LaunchedEffect(Unit){
                         navController.navigate(ROUTE_MAIN_AGENT_SCREEN) {
-                            popUpTo(ROUTE_LOGIN_AGENT) { inclusive = true }
+                            popUpTo(ROUTE_LOGIN) { inclusive = true }
                             popUpTo(ROUTE_HOME){ inclusive = true}
                         }
                     }

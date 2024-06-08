@@ -1,5 +1,6 @@
 package com.inventoryapp.rcapp.ui.auth.agentauth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -7,7 +8,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.inventoryapp.rcapp.data.model.AgentUser
 import com.inventoryapp.rcapp.data.repository.AgentRepository
-import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_AGENT
+import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN
 import com.inventoryapp.rcapp.util.Resource
 import com.inventoryapp.rcapp.util.await
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,7 +39,7 @@ class AuthAgentViewModel @Inject constructor(
             // Pengguna sudah login
             navigateBasedOnRole(currentUsers.uid)
         } else {
-            navController.navigate(ROUTE_LOGIN_AGENT)
+            navController.navigate(ROUTE_LOGIN)
             // Pengguna belum login, lakukan navigasi ke layar login
             // Misalnya: navController.navigate(ROUTE_LOGIN_SCREEN)
         }
@@ -86,6 +87,11 @@ class AuthAgentViewModel @Inject constructor(
 
     fun logout(){
         repository.logout()
+//        if (currentUser == null) {
+//            Log.d("SignOut", "User is logged out successfully")
+//        } else {
+//            Log.d("SignOut", "User is still logged in")
+//        }
         _registerFlow.value = null
         _loginFlow.value = null
     }

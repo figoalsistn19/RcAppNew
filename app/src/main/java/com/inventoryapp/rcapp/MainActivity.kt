@@ -15,7 +15,7 @@ import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
-import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
+import com.inventoryapp.rcapp.ui.auth.AuthViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalTransactionViewModel

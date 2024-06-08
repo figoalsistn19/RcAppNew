@@ -210,50 +210,52 @@ class AgentRepositoryImp @Inject constructor(
         offering: OfferingForAgent,
         result: (Resource<String>) -> Unit
     ): Resource<FirebaseFirestore> {
-        return try {
-            val stockRef = database.collection(FireStoreCollection.AGENTUSER)
-                .document(currentUser!!.uid)
-                .collection(FireStoreCollection.AGENTPRODUCT)
-                .document(idProduct)
-            val transactionRef = database.collection(FireStoreCollection.AGENTUSER)
-                .document(currentUser!!.uid)
-                .collection(FireStoreCollection.AGENTTRANSACTION)
-                .document()
+        if (currentUser != null){
+            return try {
+                val stockRef = database.collection(FireStoreCollection.AGENTUSER)
+                    .document(currentUser!!.uid)
+                    .collection(FireStoreCollection.AGENTPRODUCT)
+                    .document(idProduct)
+                val transactionRef = database.collection(FireStoreCollection.AGENTUSER)
+                    .document(currentUser!!.uid)
+                    .collection(FireStoreCollection.AGENTTRANSACTION)
+                    .document()
 
-            val idAgentTransaction = transactionRef.id // Dapatkan ID yang dihasilkan secara otomatis
-            transaction.idAgentStockTransaction = idAgentTransaction
+                val idAgentTransaction = transactionRef.id // Dapatkan ID yang dihasilkan secara otomatis
+                transaction.idAgentStockTransaction = idAgentTransaction
 
-            database.runTransaction {
-                val stockSnapshot = it.get(stockRef)
+                database.runTransaction {
+                    val stockSnapshot = it.get(stockRef)
 
-                val currentStock = stockSnapshot.getLong("qtyProduct") ?: 0
-                val stockMin = stockSnapshot.getLong("qtyMin") ?: 0
+                    val currentStock = stockSnapshot.getLong("qtyProduct") ?: 0
+                    val stockMin = stockSnapshot.getLong("qtyMin") ?: 0
 
-                val updateReqOrderRef = database.collection(FireStoreCollection.OFFERINGFORAGENT)
-                    .document(offering.idOffering!!)
+                    val updateReqOrderRef = database.collection(FireStoreCollection.OFFERINGFORAGENT)
+                        .document(offering.idOffering!!)
 //                val idOffering = updateReqOrderRef.id
 //                offering.idOffering = idOffering
-                var updatedStock = currentStock + transaction.qtyProduct!!
+                    var updatedStock = currentStock + transaction.qtyProduct!!
 
-                if (updatedStock < 0){
-                    updatedStock = 0
-                }
-                it.update(stockRef, "qtyProduct", updatedStock)
-                it.set(transactionRef, transaction)
-                if (updatedStock <= stockMin){
-                    it.set(updateReqOrderRef, offering)
-                } else it.delete(updateReqOrderRef)
+                    if (updatedStock < 0){
+                        updatedStock = 0
+                    }
+                    it.update(stockRef, "qtyProduct", updatedStock)
+                    it.set(transactionRef, transaction)
+                    if (updatedStock <= stockMin){
+                        it.set(updateReqOrderRef, offering)
+                    } else it.delete(updateReqOrderRef)
 
 
 //                _transaction.set(updateReqOrderRef,)
 
-                null
-            }.await()
-            Resource.Success(database)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Resource.Failure(e)
-        }
+                    null
+                }.await()
+                Resource.Success(database)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Resource.Failure(e)
+            }
+        } else return Resource.Failure(Exception("User not found"))
     }
 
     override suspend fun getAgentProduct(): Resource<List<AgentProduct>> {

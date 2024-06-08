@@ -27,7 +27,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.ui.auth.FirstPageHeader
-import com.inventoryapp.rcapp.ui.auth.internalauth.AuthViewModel
+import com.inventoryapp.rcapp.ui.auth.AuthViewModel
 import com.inventoryapp.rcapp.ui.theme.spacing
 
 @Composable

@@ -30,6 +30,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.inventoryapp.rcapp.ui.auth.AuthHeader
+import com.inventoryapp.rcapp.ui.auth.AuthViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_HOME
 import com.inventoryapp.rcapp.ui.nav.ROUTE_LOGIN_INTERNAL
 import com.inventoryapp.rcapp.ui.nav.ROUTE_MAIN_INTERNAL_SCREEN
@@ -37,7 +38,7 @@ import com.inventoryapp.rcapp.ui.theme.spacing
 import com.inventoryapp.rcapp.util.Resource
 
 @Composable
-fun LoginInternalScreen(viewModel:AuthViewModel?, navController: NavController){
+fun LoginInternalScreen(viewModel: AuthViewModel?, navController: NavController){
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     val authResource = viewModel?.loginFlow?.collectAsState()

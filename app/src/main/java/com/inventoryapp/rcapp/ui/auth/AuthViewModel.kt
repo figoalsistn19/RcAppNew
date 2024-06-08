@@ -1,4 +1,4 @@
-package com.inventoryapp.rcapp.ui.auth.internalauth
+package com.inventoryapp.rcapp.ui.auth
 
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
@@ -76,17 +76,6 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun loginNavigateTo(email: String) {
-        if (email.isNotEmpty()){
-//            navigateToCorrectScreenForLogin()
-        }
-    }
-    fun login(email: String, password: String)= viewModelScope.launch {
-        _loginFlow.value = Resource.Loading
-        val result = repository.login(email, password)
-        _loginFlow.value = result
-    }
-
     private fun navigateToCorrectScreenForLogin(userId: String)= viewModelScope.launch {
         try {
             val source = Source.DEFAULT
@@ -111,9 +100,9 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    private fun navigateToCorrectScreen(userId: String)= viewModelScope.launch {
+     private fun navigateToCorrectScreen(userId: String)= viewModelScope.launch {
         try {
-            val source = Source.DEFAULT
+            val source = Source.SERVER
             // Periksa apakah pengguna adalah internal user atau agent user
             val internalUserDoc = firestore.collection(FireStoreCollection.INTERNALUSER).document(userId).get(source).await()
             val agentUserDoc = firestore.collection(FireStoreCollection.AGENTUSER).document(userId).get(source).await()
