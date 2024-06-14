@@ -1,6 +1,5 @@
 package com.inventoryapp.rcapp.ui.viewmodel
 
-import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,12 +21,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@Suppress("UNUSED_EXPRESSION")
 @HiltViewModel
 class InternalProductViewModel @Inject constructor(
-    private val repository: InternalRepository,
-    appPreferences: SharedPreferences
+    private val repository: InternalRepository
 ): ViewModel() {
-
     val currentUser: FirebaseUser?
         get() = repository.currentUser
 
@@ -88,7 +86,7 @@ class InternalProductViewModel @Inject constructor(
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
-    fun setIsSearching(value: Boolean) {
+    fun setIsSearching() {
         _isSearching.value = false
     }
 
@@ -102,8 +100,8 @@ class InternalProductViewModel @Inject constructor(
             if (text.isBlank()) { //return the entery list of countries if not is typed
                 orders
             }
-            orders.filter { orders ->// filter and return a list of countries based on the text the user typed
-                orders.productName!!.uppercase().contains(text.trim().uppercase())
+            orders.filter {  // filter and return a list of countries based on the text the user typed
+                it.productName!!.uppercase().contains(text.trim().uppercase())
             }
         }.stateIn(//basically convert the Flow returned from combine operator to StateFlow
             scope = viewModelScope,

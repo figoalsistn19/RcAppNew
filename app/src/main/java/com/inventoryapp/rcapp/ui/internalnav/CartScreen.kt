@@ -247,7 +247,7 @@ fun CartScreen(
                                 .set(productItem)
                                 .addOnSuccessListener {
                                     Toast.makeText(context,"Barang berhasil ditambahkan", Toast.LENGTH_SHORT).show()
-                                    internalProductViewModel.setIsSearching(false)
+                                    internalProductViewModel.setIsSearching()
                                     internalProductViewModel.fetchCardData()
                                 }
                                 .addOnFailureListener {

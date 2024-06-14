@@ -43,7 +43,7 @@ import androidx.navigation.NavController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.AgentProduct
 import com.inventoryapp.rcapp.data.model.InternalProduct
-import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
+import com.inventoryapp.rcapp.ui.nav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_REQUEST_ORDER_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_ORDER_HISTORY_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_STOCK_IN_SCREEN

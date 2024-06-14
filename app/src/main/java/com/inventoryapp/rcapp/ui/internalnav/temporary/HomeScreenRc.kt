@@ -45,7 +45,7 @@ import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.agentnav.ListItemStock
-import com.inventoryapp.rcapp.ui.internalnav.BottomBarScreen
+import com.inventoryapp.rcapp.ui.nav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_REGISTER_INTERNAL
 import com.inventoryapp.rcapp.ui.theme.spacing
@@ -70,7 +70,7 @@ fun HomeScreenRc(
                 .padding(bottom = 20.dp)
                 .background(MaterialTheme.colorScheme.surfaceContainerLowest)
         ) {
-            val (refTopAppBar, refCardPromotion, refMenu, refMenuDetail, refMenuTitle, refMenu1Detail,refMenu1Title, refProduct, refProductList) = createRefs()
+            val (refTopAppBar, refCardPromotion, refMenu, refMenuDetail, refProduct, refProductList) = createRefs()
             val spacing = MaterialTheme.spacing
             Card(modifier = Modifier
                 .constrainAs(refCardPromotion) {

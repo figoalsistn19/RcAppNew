@@ -46,27 +46,8 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController){
     var password by rememberSaveable { mutableStateOf("") }
     val authResource = viewModel?.loginFlow?.collectAsState()
     val context = LocalContext.current
-    val navigateToScreen by viewModel?.navigateToScreen!!.observeAsState()
 
     val data = FirebaseFirestore.getInstance()
-
-//    fun onStart(){
-//        viewModel?.getSession { user ->
-//            if (user != null){
-//                navController.navigate(ROUTE_MAIN_INTERNAL_SCREEN) {
-//                    popUpTo(ROUTE_LOGIN_INTERNAL) { inclusive = true }
-//                    popUpTo(ROUTE_HOME){ inclusive = true}
-//                }
-//            }
-//        }
-//    }
-//    LaunchedEffect(navigateToScreen ) {
-//        viewModel!!.checkUserLoggedIn()
-//        navigateToScreen?.let { screen ->
-//            navController.navigate(screen)
-//            viewModel.navigateToScreen(screen) // Setelah navigasi selesai, reset nilai LiveData
-//        }
-//    }
 
     ConstraintLayout(
         modifier = Modifier
@@ -192,7 +173,6 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController){
                 }
                 is Resource.Success -> {
                     LaunchedEffect(Unit) {
-                        var route = ""
                         val agent = data.collection(FireStoreCollection.AGENTUSER).whereEqualTo("email", email).get().addOnSuccessListener{
                             if (it.documents.isNotEmpty()){
                                 navController.navigate(ROUTE_MAIN_AGENT_SCREEN)
@@ -207,14 +187,6 @@ fun LoginScreen(viewModel: AuthViewModel?, navController: NavController){
                         }.addOnFailureListener{
                             Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                         }
-
-
-
-//                        viewModel.checkUserLoggedIn()
-//                        navigateToScreen?.let { screen ->
-//                            navController.navigate(screen)
-//                            viewModel.navigateToScreen(screen) // Setelah navigasi selesai, reset nilai LiveData
-//                        }
                     }
                 }
             }

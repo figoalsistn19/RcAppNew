@@ -15,6 +15,7 @@ const val ROUTE_INTERNAL_STOCK_OUT_SCREEN = "internal_stock_out_screen"
 const val ROUTE_AGENT_VERIFICATION_SCREEN = "verification_agent_screen"
 const val ROUTE_AGENT_STOCK_MONITORING_SCREEN = "agent_stock_monitoring_screen"
 const val ROUTE_OFFERING_PO_FOR_AGENT_SCREEN = "offering_po_for_agent_screen"
+const val ROUTE_INTERNAL_STOCK_ALERT = "internal_stock_alert"
 
 //SALES MANAGER
 const val ROUTE_MAIN_SALES_MANAGER_SCREEN = "main_sales_manager_screen"

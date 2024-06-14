@@ -37,15 +37,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavHostController
 import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.agentnav.ListItemStock
+import com.inventoryapp.rcapp.ui.nav.BottomBarScreen
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_STOCK_MONITORING_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_AGENT_VERIFICATION_SCREEN
+import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_ALERT
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_IN_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_INTERNAL_STOCK_OUT_SCREEN
 import com.inventoryapp.rcapp.ui.nav.ROUTE_OFFERING_PO_FOR_AGENT_SCREEN
@@ -320,7 +321,7 @@ fun InternalHomeScreen(
                     ) {
                         IconButton(onClick = {
                             if (internalProductViewModel?.role?.value == UserRole.Admin){
-                                navController.navigate(ROUTE_REGISTER_INTERNAL)
+                                navController.navigate(ROUTE_INTERNAL_STOCK_ALERT)
                             } else Toast.makeText(navController.context,"Role tidak diizinkan", Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(imageVector = ImageVector.vectorResource(id = R.drawable.kelola_banner),
