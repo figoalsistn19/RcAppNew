@@ -550,7 +550,7 @@ class InternalRepositoryImp @Inject constructor(
     override suspend fun getRole(): UserRole? {
         return withContext(Dispatchers.IO) {
             if (currentUser != null){
-                val source = Source.SERVER
+                val source = Source.DEFAULT
                 val userRef = database.collection(INTERNALUSER).document(currentUser!!.uid).get(source)
                 val document = userRef.await()
                 val user = document.toObject(InternalUser::class.java)

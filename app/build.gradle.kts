@@ -165,6 +165,10 @@ dependencies {
     implementation ("com.google.firebase:firebase-database-ktx:20.3.0")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
+    //pdf export
+
+    implementation ("com.itextpdf:itext7-core:7.1.17")
+
     //gson
     implementation("com.google.code.gson:gson:2.10")
 

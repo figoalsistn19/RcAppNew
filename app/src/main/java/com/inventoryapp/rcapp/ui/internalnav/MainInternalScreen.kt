@@ -3,6 +3,7 @@ package com.inventoryapp.rcapp.ui.internalnav
 
 import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -302,7 +303,7 @@ fun MainInternalScreen(
                     AgentStockMonitoringScreen(agentUserViewModel)
                 }
                 composable(ROUTE_INTERNAL_STOCK_ALERT){
-                    InternalStockAlert()
+                    InternalStockAlert(internalProductViewModel)
                 }
                 composable(ROUTE_OFFERING_PO_FOR_AGENT_SCREEN){
                     OfferingPoForAgentScreen(offeringPoViewModel, agentUserViewModel, internalProductViewModel, navControllerNonHost)

@@ -11,17 +11,17 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.remember
+import com.inventoryapp.rcapp.ui.auth.AuthViewModel
+import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
+import com.inventoryapp.rcapp.ui.nav.MainNavigation
+import com.inventoryapp.rcapp.ui.theme.RcAppTheme
 import com.inventoryapp.rcapp.ui.viewmodel.AgentProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.AgentTransactionViewModel
-import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
-import com.inventoryapp.rcapp.ui.auth.agentauth.AuthAgentViewModel
-import com.inventoryapp.rcapp.ui.auth.AuthViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.AgentUserViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.InternalTransactionViewModel
 import com.inventoryapp.rcapp.ui.viewmodel.OfferingPoViewModel
-import com.inventoryapp.rcapp.ui.nav.MainNavigation
-import com.inventoryapp.rcapp.ui.theme.RcAppTheme
+import com.inventoryapp.rcapp.ui.viewmodel.SalesOrderViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private val agentProductViewModel by viewModels<AgentProductViewModel>()
 //    private val internal: Internal
 //    private val viewModel by lazy { ViewModelProviders.of(this, InternalProductVMFactory(InternalImp(InternalRepoImp()))).get(InternalProductViewModel::class.java) }
+
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
