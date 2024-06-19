@@ -1,11 +1,10 @@
 package com.inventoryapp.rcapp.data.model
 
 enum class UserRole {
-    Owner,
+    ProcurementManager,
     Admin,
-    FinanceManager,
     SalesManager,
-    OperationTeam,
+    OperationalManager,
     HeadOfWarehouse,
     Sales
 }

@@ -2,10 +2,15 @@ package com.inventoryapp.rcapp.ui.internalnav
 
 //noinspection UsingMaterialAndMaterial3Libraries
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -42,24 +47,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalProduct
 import com.inventoryapp.rcapp.data.model.UserRole
+import com.inventoryapp.rcapp.di.PdfFileIntentFactory
 import com.inventoryapp.rcapp.ui.agentnav.ListItemStock
 import com.inventoryapp.rcapp.ui.viewmodel.InternalProductViewModel
 import com.inventoryapp.rcapp.util.Resource
+import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.colors.DeviceRgb
+import com.itextpdf.kernel.geom.PageSize
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
+import com.itextpdf.layout.borders.Border
 import com.itextpdf.layout.borders.SolidBorder
 import com.itextpdf.layout.element.Cell
+import com.itextpdf.layout.element.Image
 import com.itextpdf.layout.element.Paragraph
 import com.itextpdf.layout.element.Table
 import com.itextpdf.layout.property.TextAlignment
+import com.itextpdf.layout.property.UnitValue
+import com.itextpdf.layout.property.VerticalAlignment
 import java.io.File
-import java.io.FileOutputStream
 import java.io.OutputStream
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -69,55 +85,10 @@ fun InternalStockAlert(
 ){
     val context = LocalContext.current
     val time = Date()
+
+    @SuppressLint("ResourceType")
     fun createPdf(context: Context, products: List<InternalProduct>) {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "PO-$time.pdf")
-            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/RcApp/PreOrderSupplier")
-        }
 
-        val resolver = context.contentResolver
-        val uri = resolver.insert(MediaStore.Files.getContentUri("external"), contentValues)
-
-        uri?.let {
-            val outputStream: OutputStream? = resolver.openOutputStream(it)
-            outputStream?.let { stream ->
-                val pdfWriter = PdfWriter(stream)
-                val pdfDocument = PdfDocument(pdfWriter)
-                val document = Document(pdfDocument)
-
-                // Define the table with 2 columns
-                val table = Table(floatArrayOf(1f, 1f))
-
-                // Add header cells
-                val headerCellProductName = Cell().add(Paragraph("Nama Barang"))
-                    .setBackgroundColor(DeviceRgb(255,225,85))
-                    .setTextAlignment(TextAlignment.CENTER)
-                val headerCellQty = Cell().add(Paragraph("Qty"))
-                    .setBackgroundColor(DeviceRgb(255,225,85))
-                    .setTextAlignment(TextAlignment.CENTER)
-
-                table.addHeaderCell(headerCellProductName)
-                table.addHeaderCell(headerCellQty)
-
-                // Add product data cells
-                products.forEach { product ->
-                    table.addCell(Cell().add(Paragraph(product.productName.toString())))
-                    table.addCell(Cell().add(Paragraph(product.qtyProduct.toString())))
-                }
-
-                document.add(table)
-                document.close()
-                stream.close()
-
-                Toast.makeText(context, "PDF created successfully", Toast.LENGTH_SHORT).show()
-
-                sharePdf(context,uri)
-            }
-        }
-    }
-
-    fun createNotaPdf(context: Context) {
         fun createCell(content: String, bold: Boolean = false): Cell {
             val cell = Cell().add(Paragraph(content))
             if (bold) {
@@ -127,12 +98,12 @@ fun InternalStockAlert(
             cell.setTextAlignment(TextAlignment.CENTER)
             return cell
         }
-//        val filePath = context.getExternalFilesDir(null)?.absolutePath + "/nota_pre_order.pdf"
-//        val file = File(filePath)
-//
-//        val pdfWriter = PdfWriter(FileOutputStream(file))
-//        val pdfDocument = PdfDocument(pdfWriter)
-//        val document = Document(pdfDocument)
+
+        fun createPdfFile(): File {
+            val pdfFileName = "PO-$time.pdf"
+            val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS.toString() + "/RcApp/PreOrderSupplier")
+            return File(directory, pdfFileName)
+        }
 
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, "PO-$time.pdf")
@@ -148,42 +119,94 @@ fun InternalStockAlert(
             outputStream?.let { stream ->
                 val pdfWriter = PdfWriter(stream)
                 val pdfDocument = PdfDocument(pdfWriter)
-                val document = Document(pdfDocument)
+                val document = Document(pdfDocument, PageSize.A5)
 
-                document.add(Paragraph("Nota Pre Order Barang Makanan Ringan").setFontSize(20f))
-                document.add(Paragraph("Perusahaan: XYZ").setFontSize(12f))
-                document.add(Paragraph("Waktu: $time").setFontSize(12f))
-                document.add(Paragraph("Alamat: Jalan Contoh No. 123").setFontSize(12f))
+                document.setMargins(36f, 36f, 36f, 36f)
 
-                val table = Table(floatArrayOf(1f, 2f))
-                table.setWidth(100f)
+                // Add header with logo, company name, and address
+                val logoStream = context.resources.openRawResource(R.raw.rc_logo_png) // Ensure you have a logo in res/raw
+                val logoBytes = logoStream.readBytes()
+                val logoImage = Image(ImageDataFactory.create(logoBytes))
+                logoImage.scaleToFit(120f, 120f)
 
-                table.addCell(createCell("Barang", bold = true))
+                val companyName = Paragraph("UD RIANI CHEARA")
+                    .setFontSize(20f)
+                    .setBold()
+                    .setMarginBottom(1f)
+                    .setTextAlignment(TextAlignment.CENTER)
+
+                val companyAddress = Paragraph("Jalan Sadang Raya No.58 Lingkar Barat \n Kota Bengkulu")
+                    .setFontSize(12f)
+                    .setMarginBottom(4f)
+                    .setTextAlignment(TextAlignment.CENTER)
+
+                val headerTable = Table(UnitValue.createPercentArray(floatArrayOf(1f, 3f)))
+                    .setWidth(UnitValue.createPercentValue(100f))
+                headerTable.addCell(Cell().add(logoImage).setBorder(Border.NO_BORDER))
+                val companyInfo = Paragraph().add(companyName).add(companyAddress)
+                headerTable.addCell(Cell().add(companyInfo).setBorder(Border.NO_BORDER).setVerticalAlignment(
+                    VerticalAlignment.MIDDLE)).setTextAlignment(TextAlignment.CENTER)
+
+                document.add(headerTable)
+
+                // Add destination company and issued date
+                val destinationCompany = Paragraph(products.first().desc)
+                    .setFontSize(12f)
+                    .setMarginTop(10f)
+                val destinationAddress = Paragraph("Jl. Pusan No. 23")
+                    .setFontSize(12f)
+                val issuedDate = Paragraph("Kota Bengkulu, ${SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())} ")
+                    .setFontSize(12f)
+                    .setMarginTop(20f)
+                    .setMarginLeft(1f)
+                    .setTextAlignment(TextAlignment.RIGHT)
+
+                document.add(destinationCompany)
+                document.add(destinationAddress)
+
+                // Define the table with 2 columns
+                val table = Table(floatArrayOf(1f, 3f, 15f)).apply {
+                    setWidth(100f)
+                }
+
+                // Add header cells
+//                val headerCellProductName = Cell().add(Paragraph("Nama Barang"))
+//                    .setBackgroundColor(DeviceRgb(255,225,85))
+//                    .setTextAlignment(TextAlignment.CENTER)
+//                val headerCellQty = Cell().add(Paragraph("Qty"))
+//                    .setBackgroundColor(DeviceRgb(255,225,85))
+//                    .setTextAlignment(TextAlignment.CENTER)
+//
+//                table.addHeaderCell(headerCellProductName)
+//                table.addHeaderCell(headerCellQty)
+
+                table.addCell(createCell("No", bold = true))
+                table.addCell(createCell("Nama Barang", bold = true))
                 table.addCell(createCell("Jumlah", bold = true))
 
-                // Add sample data (ganti dengan data yang sesuai)
-                table.addCell(createCell("Keripik Singkong", bold = false))
-                table.addCell(createCell("5 Pack", bold = false))
-
-                table.addCell(createCell("Keripik Pisang", bold = false))
-                table.addCell(createCell("3 Pack", bold = false))
+                var no = 1
+                // Add product data cells
+                products.forEach { product ->
+                    val qty = product.qtyProduct!! - product.qtyMin!! + 100
+                    table.addCell(Cell().add(Paragraph(no.toString())))
+                    table.addCell(Cell().add(Paragraph(product.productName.toString())))
+                    table.addCell(Cell().add(Paragraph(qty.toString())))
+                    no++
+                }
 
                 document.add(table)
-
-                document.add(Paragraph("Perusahaan yang Ditujui: ABC").setFontSize(12f))
-                document.add(Paragraph("Tanda Tangan: ____________________").setFontSize(12f))
-
-                // Close the document
+                document.add(issuedDate)
                 document.close()
                 stream.close()
 
-                Toast.makeText(context, "PDF created successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "PDF telah disimpan di Download/RcApp/PreOrderSupplier", Toast.LENGTH_SHORT).show()
+
+                showOpenPdfNotification(context, createPdfFile())
 
                 sharePdf(context,uri)
+
             }
         }
-
-        // Show a message or perform any other action after PDF creation
     }
 
     val internalProduct by internalProductViewModel!!.internalProducts.observeAsState()
@@ -204,11 +227,8 @@ fun InternalStockAlert(
 
     when (internalProduct) {
         is Resource.Success -> {
-//            fun filterProducts(products: List<InternalProduct>): List<InternalProduct> {
-//                return products.filter { it.qtyProduct!! <= it.qtyMin!! }
-//            }
-            internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result
-//                    val selectedCategories = remember { mutableStateOf<Set<String>>(emptySet()) }
+
+            internalProductList = (internalProduct as Resource.Success<List<InternalProduct>>).result.filter { it.qtyProduct!! <= it.qtyMin!! }
 
             filteredItems = if (selectedCategories.value.isEmpty()) {
                 internalProductList
@@ -244,6 +264,7 @@ fun InternalStockAlert(
 //            item.category in selectedCategories.value
 //        }
 //    }
+
     Scaffold (
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         modifier = Modifier.padding(top = 65.dp),
@@ -252,8 +273,7 @@ fun InternalStockAlert(
             LazyRow (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
-                    .background(MaterialTheme.colorScheme.surfaceContainer),
+                    .padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
@@ -286,8 +306,8 @@ fun InternalStockAlert(
                     if (internalProductViewModel!!.role.value == UserRole.Admin){
                         ExtendedFloatingActionButton(
                             onClick = {
-//                                createPdf(context, internalProductList)
-                                createNotaPdf(context)
+                                createPdf(context, filteredItems)
+//                                createNotaPdf(context)
                             },
                             shape = FloatingActionButtonDefaults.extendedFabShape,
                             containerColor = MaterialTheme.colorScheme.primary,
@@ -336,6 +356,37 @@ private fun sharePdf(context: Context, pdfUri: Uri) {
         Toast.makeText(context, "No app found to handle PDF sharing", Toast.LENGTH_SHORT).show()
     }
 }
+
+
+@SuppressLint("MissingPermission")
+private fun showOpenPdfNotification(context: Context, pdfFile: File) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            "pdf_channel",
+            "PDF Channel",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    val intent = PdfFileIntentFactory.createOpenPdfIntent(context, pdfFile)
+    val pendingIntent = PendingIntent.getActivity(
+        context, 0, intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE // Tambahkan FLAG_IMMUTABLE
+    )
+
+    val notificationBuilder = NotificationCompat.Builder(context, "pdf_channel")
+        .setContentTitle("PreOrder Supplier")
+        .setContentText("Surat PO berhasil dibuat. Klik untuk membuka.")
+        .setSmallIcon(R.drawable.rc_logo)
+        .setContentIntent(pendingIntent)
+        .setAutoCancel(true)
+
+    NotificationManagerCompat.from(context).notify(1, notificationBuilder.build())
+}
+
 @Preview
 @Composable
 fun InternalStockAlertPreview(){

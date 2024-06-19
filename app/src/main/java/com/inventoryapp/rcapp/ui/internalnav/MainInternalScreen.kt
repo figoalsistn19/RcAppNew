@@ -3,7 +3,6 @@ package com.inventoryapp.rcapp.ui.internalnav
 
 import android.annotation.SuppressLint
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,8 +40,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,6 +53,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.firestore.FirebaseFirestore
+import com.inventoryapp.rcapp.R
 import com.inventoryapp.rcapp.data.model.InternalUser
 import com.inventoryapp.rcapp.data.model.UserRole
 import com.inventoryapp.rcapp.ui.auth.AuthViewModel
@@ -164,6 +166,32 @@ fun MainInternalScreen(
                             )
                         }
                     }
+                    if (internalProductViewModel.role.value == UserRole.Admin){
+                        HorizontalDivider()
+                        Row (
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ){
+                            IconButton(onClick = {
+                                navController.navigate(ROUTE_REGISTER_INTERNAL)
+                            },
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .size(40.dp)
+                            ) {
+                                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.buat_po_agent),
+                                    contentDescription = "logout")
+                            }
+                            Text(
+                                text = "Daftar Karyawan",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Medium
+                                ),
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                    }
+
                     HorizontalDivider()
                     Row (
                         horizontalArrangement = Arrangement.Start,

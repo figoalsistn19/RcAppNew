@@ -219,7 +219,7 @@ fun HomeScreenRc(
                         )
                     ) {
                         IconButton(onClick = {
-                            if (internalProductViewModel!!.role.value != UserRole.Admin || internalProductViewModel.role.value != UserRole.Owner){
+                            if (internalProductViewModel!!.role.value != UserRole.Admin){
                                 navController.navigate(ROUTE_REGISTER_INTERNAL)
                             }
                             else Toast.makeText(context, "Role tidak diizinkan", Toast.LENGTH_SHORT).show()
